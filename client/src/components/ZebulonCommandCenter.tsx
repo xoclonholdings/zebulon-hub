@@ -468,69 +468,80 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
     };
 
     return (
-      <div className="w-full h-full -m-6 p-6 bg-black bg-opacity-95 rounded-lg text-white overflow-hidden">
-        <div className="flex items-center justify-between mb-6 border-b border-white/10 pb-4">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-gradient-to-r from-pink-500 to-blue-500 rounded-lg">
-              <Calendar className="h-5 w-5 text-white" />
+      <div className="w-full h-full -m-4 sm:-m-6 responsive-padding bg-black bg-opacity-95 rounded-lg text-white overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 border-b border-white/10 pb-4 space-y-4 sm:space-y-0">
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <div className="p-1.5 sm:p-2 bg-gradient-to-r from-pink-500 to-blue-500 rounded-lg zebulon-glow">
+              <Calendar className="responsive-icon text-white" />
             </div>
-            <div>
-              <h2 className="font-bold text-xl bg-gradient-to-r from-pink-400 to-blue-400 bg-clip-text text-transparent">
+            <div className="min-w-0 flex-1">
+              <h2 className="font-bold text-lg sm:text-xl zebulon-text-gradient truncate">
                 Smart Calendar
               </h2>
-              <p className="text-sm text-gray-400">Schedule and manage your events</p>
+              <p className="responsive-text text-gray-400 truncate">Schedule and manage your events</p>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <Badge className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-300 border border-blue-400/30">
+          <div className="flex items-center space-x-2 self-end sm:self-auto">
+            <Badge className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-300 border border-blue-400/30 text-xs sm:text-sm px-2 py-1 whitespace-nowrap">
               {calendarEvents.length} Events
             </Badge>
-            <Button onClick={() => setShowEventForm(!showEventForm)} className="bg-gradient-to-r from-pink-500 to-blue-500">
-              <Plus className="h-4 w-4 mr-2" />
-              New Event
+            <Button 
+              onClick={() => setShowEventForm(!showEventForm)} 
+              className="zebulon-button px-3 sm:px-4 py-2 text-xs sm:text-sm whitespace-nowrap"
+            >
+              <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">New Event</span>
+              <span className="sm:hidden">New</span>
             </Button>
           </div>
         </div>
 
-        <div className="flex flex-col h-full space-y-6">
+        <div className="flex flex-col h-full space-y-4 sm:space-y-6">
           {/* Add Event Form */}
           {showEventForm && (
-            <div className="bg-white/10 rounded-lg p-4 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+            <div className="zebulon-card bg-white/10 rounded-lg responsive-padding space-y-3 sm:space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <Input
                   placeholder="Event title..."
                   value={newEvent.title}
                   onChange={(e) => setNewEvent({...newEvent, title: e.target.value})}
-                  className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                  className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 text-sm sm:text-base"
                 />
                 <Input
                   type="date"
                   value={newEvent.date}
                   onChange={(e) => setNewEvent({...newEvent, date: e.target.value})}
-                  className="bg-white/10 border-white/20 text-white"
+                  className="bg-white/10 border-white/20 text-white text-sm sm:text-base"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <Input
                   type="time"
                   value={newEvent.time}
                   onChange={(e) => setNewEvent({...newEvent, time: e.target.value})}
-                  className="bg-white/10 border-white/20 text-white"
+                  className="bg-white/10 border-white/20 text-white text-sm sm:text-base"
                 />
                 <Input
                   placeholder="Description (optional)"
                   value={newEvent.description}
                   onChange={(e) => setNewEvent({...newEvent, description: e.target.value})}
-                  className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                  className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 text-sm sm:text-base"
                 />
               </div>
-              <div className="flex space-x-2">
-                <Button onClick={addEvent} className="bg-gradient-to-r from-pink-500 to-blue-500 text-white">
-                  <Save className="h-4 w-4 mr-2" />
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                <Button 
+                  onClick={addEvent} 
+                  className="zebulon-button text-white flex-1 text-sm sm:text-base"
+                >
+                  <Save className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
                   Save Event
                 </Button>
-                <Button onClick={() => setShowEventForm(false)} variant="ghost" className="text-gray-400">
-                  <X className="h-4 w-4 mr-2" />
+                <Button 
+                  onClick={() => setShowEventForm(false)} 
+                  variant="ghost" 
+                  className="text-gray-400 hover:text-white hover:bg-white/10 flex-1 text-sm sm:text-base"
+                >
+                  <X className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
                   Cancel
                 </Button>
               </div>
@@ -538,30 +549,41 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
           )}
 
           {/* Events List */}
-          <ScrollArea className="flex-1">
+          <ScrollArea className="flex-1 zebulon-scrollable">
             {calendarEvents.length === 0 ? (
-              <div className="text-center text-gray-500 py-8">
-                <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>No events scheduled</p>
-                <p className="text-sm mt-1">Add your first event to get started</p>
+              <div className="text-center text-gray-500 py-6 sm:py-8">
+                <Calendar className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 sm:mb-4 opacity-50" />
+                <p className="text-sm sm:text-base">No events scheduled</p>
+                <p className="text-xs sm:text-sm mt-1">Add your first event to get started</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2 sm:space-y-3">
                 {calendarEvents.map((event) => (
-                  <div key={event.id} className="bg-white/10 rounded-lg p-4 hover:bg-white/20 transition-all">
-                    <div className="flex items-start justify-between mb-2">
-                      <h3 className="font-medium text-white">{event.title}</h3>
-                      <Button variant="ghost" size="sm" onClick={() => deleteEvent(event.id)} className="text-red-400 hover:text-red-300">
-                        <Trash2 className="h-4 w-4" />
+                  <div key={event.id} className="zebulon-card bg-white/10 rounded-lg responsive-padding hover:bg-white/20 transition-all duration-200">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-2 space-y-1 sm:space-y-0">
+                      <h3 className="font-medium text-white text-sm sm:text-base truncate flex-1 mr-2">{event.title}</h3>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => deleteEvent(event.id)} 
+                        className="text-red-400 hover:text-red-300 hover:bg-red-500/20 p-1 sm:p-2 self-start"
+                      >
+                        <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                       </Button>
                     </div>
-                    <div className="flex items-center space-x-4 text-sm text-gray-300">
-                      <span>{event.date}</span>
-                      <span>•</span>
-                      <span>{event.time}</span>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-1 sm:space-y-0 text-xs sm:text-sm text-gray-300">
+                      <span className="flex items-center">
+                        <Calendar className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                        {event.date}
+                      </span>
+                      <span className="hidden sm:inline">•</span>
+                      <span className="flex items-center">
+                        <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                        {event.time}
+                      </span>
                     </div>
                     {event.description && (
-                      <p className="text-gray-400 text-sm mt-2">{event.description}</p>
+                      <p className="text-gray-400 text-xs sm:text-sm mt-2 line-clamp-2">{event.description}</p>
                     )}
                   </div>
                 ))}
@@ -1574,7 +1596,7 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 pt-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4">
                   <Button
                     onClick={() => {
                       setMessage("Show me all my current tasks and notes");
@@ -1615,11 +1637,11 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
   };
 
   return (
-    <div className="w-full h-full">
-      <Card className="bg-black bg-opacity-95 border border-primary border-opacity-20 zebulon-glow text-white h-full flex flex-col min-h-[80vh] rounded-xl backdrop-blur-lg">
-        <CardHeader className="pb-3 space-y-3">
+    <div className="w-full h-full px-2 sm:px-4 md:px-6">
+      <Card className="bg-black bg-opacity-95 border border-primary border-opacity-20 zebulon-glow text-white h-full flex flex-col min-h-[80vh] rounded-xl backdrop-blur-lg max-w-4xl mx-auto">
+        <CardHeader className="pb-3 space-y-3 px-4 sm:px-6">
           <div className="flex justify-center">
-            <div className="w-16 h-16 flex items-center justify-center cursor-pointer hover:scale-105 transition-transform duration-200" onClick={() => setShowAdminLogin(true)}>
+            <div className="w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center cursor-pointer hover:scale-105 transition-transform duration-200" onClick={() => setShowAdminLogin(true)}>
               <img 
                 src={logoSrc} 
                 alt="Zebulon Logo - Click for Admin" 
@@ -1640,7 +1662,7 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
             </div>
           </div>
           
-          <CardTitle className="text-center text-xl font-bold zebulon-text-gradient">
+          <CardTitle className="text-center text-lg sm:text-xl md:text-2xl font-bold zebulon-text-gradient">
             ZEBULON
           </CardTitle>
           
@@ -1656,12 +1678,12 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
           </div>
 
           {/* AI Core Status Pills */}
-          <div className="flex justify-center space-x-1 flex-wrap gap-1">
+          <div className="flex justify-center space-x-1 flex-wrap gap-1 px-2">
             <Button
               variant={activeCore === 'zed' ? 'secondary' : 'ghost'}
               size="sm"
               onClick={() => setActiveCore('zed')}
-              className="h-7 px-2 text-xs bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20"
+              className="h-7 px-1.5 sm:px-2 text-xs bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20"
             >
               <Database className="h-3 w-3 mr-1" />
               Zed: Active
@@ -1671,7 +1693,7 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
               variant={activeCore === 'zeta' ? 'secondary' : 'ghost'}
               size="sm"
               onClick={() => setActiveCore('zeta')}
-              className="h-7 px-2 text-xs bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20"
+              className="h-7 px-1.5 sm:px-2 text-xs bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20"
             >
               <Shield className="h-3 w-3 mr-1" />
               Zeta: Monitoring
@@ -1681,20 +1703,20 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
               variant={activeCore === 'fantasma' ? 'secondary' : 'ghost'}
               size="sm"
               onClick={() => setActiveCore('fantasma')}
-              className="h-7 px-2 text-xs bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20"
+              className="h-7 px-1.5 sm:px-2 text-xs bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20"
             >
               <Lock className="h-3 w-3 mr-1" />
               Fantasma: Secure
             </Button>
           </div>
 
-          {/* Feature Navigation Buttons - Enhanced 3x3 grid with consistent spacing */}
-          <div className="grid grid-cols-3 gap-3 p-3 bg-black/20 rounded-xl border border-white/10">
+          {/* Feature Navigation Buttons - Enhanced responsive grid with consistent spacing */}
+          <div className="grid grid-cols-3 gap-2 sm:gap-3 p-2 sm:p-3 bg-black/20 rounded-xl border border-white/10">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setActiveFeature('chat')}
-              className={`h-14 flex-col p-3 transition-all duration-200 rounded-lg ${
+              className={`zebulon-nav-button ${
                 activeFeature === 'chat' 
                   ? 'zebulon-button-active' 
                   : 'zebulon-button'
@@ -1835,14 +1857,14 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
           </div>
         </CardHeader>
 
-        <CardContent className="flex-1 flex flex-col pt-0">
+        <CardContent className="flex-1 flex flex-col pt-0 px-4 sm:px-6">
           {renderFeatureContent()}
         </CardContent>
 
         {/* Chat Input Area - Enhanced styling and spacing */}
         {activeFeature !== 'chat' && (
-          <div className="p-6 border-t border-white/20 bg-black/10 rounded-b-lg">
-            <div className="flex items-center space-x-4">
+          <div className="p-4 sm:p-6 border-t border-white/20 bg-black/10 rounded-b-lg">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               <div className="flex-1 relative">
                 <input
                   type="text"
@@ -1850,7 +1872,7 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  className="w-full zebulon-input rounded-full px-6 py-3 text-sm shadow-inner"
+                  className="w-full zebulon-input rounded-full px-4 sm:px-6 py-2 sm:py-3 text-sm shadow-inner"
                 />
               </div>
               <Button 

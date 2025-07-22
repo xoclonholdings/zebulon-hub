@@ -120,9 +120,32 @@
   }
 }
 
-/* Enhanced component styling for consistency */
+/* Enhanced component styling for consistency with responsive design */
 .zebulon-button {
   @apply bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white border border-transparent hover:border-white/20 transition-all duration-200;
+}
+
+.zebulon-nav-button {
+  @apply h-12 sm:h-14 flex-col p-2 sm:p-3 transition-all duration-200 rounded-lg;
+}
+
+/* Responsive utilities */
+@layer utilities {
+  .responsive-grid-2-3 {
+    @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3;
+  }
+  
+  .responsive-padding {
+    @apply p-4 sm:p-6;
+  }
+  
+  .responsive-text {
+    @apply text-sm sm:text-base;
+  }
+  
+  .responsive-icon {
+    @apply h-4 w-4 sm:h-5 sm:w-5;
+  }
 }
 
 .zebulon-button-active {
@@ -157,6 +180,45 @@
 
 .zebulon-divider {
   @apply border-t border-white/20 my-4;
+}
+
+/* Additional responsive utilities for better calendar formatting */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.responsive-card {
+  @apply p-3 sm:p-4 lg:p-5 rounded-lg transition-all duration-200;
+}
+
+.responsive-button {
+  @apply px-3 sm:px-4 py-2 text-xs sm:text-sm rounded-md transition-all duration-200;
+}
+
+.responsive-input {
+  @apply text-sm sm:text-base px-3 py-2 rounded-md;
+}
+
+.responsive-icon {
+  @apply h-4 w-4 sm:h-5 sm:w-5;
+}
+
+.responsive-text {
+  @apply text-xs sm:text-sm;
+}
+
+.responsive-padding {
+  @apply p-3 sm:p-4 lg:p-6;
 }
 
 /* Mobile responsiveness for unified command interface */
