@@ -373,9 +373,9 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
   return (
     <div className="w-full h-full">
       <Card className="bg-black bg-opacity-95 border border-primary border-opacity-20 zebulon-glow text-white h-full flex flex-col min-h-[80vh] rounded-xl backdrop-blur-lg">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-center mb-4">
-            <div className="w-16 h-16 rounded-lg overflow-hidden zebulon-glow flex items-center justify-center">
+        <CardHeader className="pb-3 space-y-3">
+          <div className="flex justify-center">
+            <div className="w-12 h-12 rounded-lg overflow-hidden zebulon-glow flex items-center justify-center">
               <img 
                 src="/attached_assets/B0D5FD57-DDBC-4F91-9877-81CD04F42684_1753150322908.png" 
                 alt="Zebulon Logo" 
@@ -384,28 +384,28 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
             </div>
           </div>
           
-          <CardTitle className="text-center text-2xl font-bold zebulon-text-gradient mb-2">
+          <CardTitle className="text-center text-xl font-bold zebulon-text-gradient">
             ZEBULON
           </CardTitle>
           
           {/* Active Core Status */}
-          <div className="text-center space-y-2">
-            <div className="flex items-center justify-center space-x-2">
-              <CurrentIcon className="h-5 w-5" />
-              <span className="font-semibold">{currentCoreInfo.name}</span>
+          <div className="text-center">
+            <div className="flex items-center justify-center space-x-2 mb-1">
+              <CurrentIcon className="h-4 w-4" />
+              <span className="text-sm font-medium">{currentCoreInfo.name}</span>
             </div>
-            <div className="text-white text-opacity-90 text-sm">
+            <div className="text-xs text-white text-opacity-75">
               {currentCoreInfo.description}
             </div>
           </div>
 
           {/* AI Core Status Pills */}
-          <div className="flex justify-center space-x-2 mt-4 flex-wrap">
+          <div className="flex justify-center space-x-1 flex-wrap gap-1">
             <Button
               variant={activeCore === 'zed' ? 'secondary' : 'ghost'}
               size="sm"
               onClick={() => setActiveCore('zed')}
-              className="h-8 px-3 text-xs bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 border-white border-opacity-20"
+              className="h-7 px-2 text-xs bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20"
             >
               <Database className="h-3 w-3 mr-1" />
               Zed: Active
@@ -415,7 +415,7 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
               variant={activeCore === 'zeta' ? 'secondary' : 'ghost'}
               size="sm"
               onClick={() => setActiveCore('zeta')}
-              className="h-8 px-3 text-xs bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 border-white border-opacity-20"
+              className="h-7 px-2 text-xs bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20"
             >
               <Shield className="h-3 w-3 mr-1" />
               Zeta: Monitoring
@@ -425,20 +425,20 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
               variant={activeCore === 'fantasma' ? 'secondary' : 'ghost'}
               size="sm"
               onClick={() => setActiveCore('fantasma')}
-              className="h-8 px-3 text-xs bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 border-white border-opacity-20"
+              className="h-7 px-2 text-xs bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20"
             >
               <Lock className="h-3 w-3 mr-1" />
               Fantasma: Secure
             </Button>
           </div>
 
-          {/* Feature Navigation Buttons */}
-          <div className="grid grid-cols-3 gap-2 mt-4">
+          {/* Feature Navigation Buttons - 3x2 grid */}
+          <div className="grid grid-cols-3 gap-2">
             <Button
               variant={activeFeature === 'chat' ? 'secondary' : 'ghost'}
               size="sm"
               onClick={() => setActiveFeature('chat')}
-              className="h-10 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 border-white border-opacity-20 flex-col"
+              className="h-12 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 flex-col p-1"
             >
               <Brain className="h-4 w-4 mb-1" />
               <span className="text-xs">Chat</span>
@@ -448,7 +448,7 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
               variant={activeFeature === 'status' ? 'secondary' : 'ghost'}
               size="sm"
               onClick={() => setActiveFeature('status')}
-              className="h-10 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 border-white border-opacity-20 flex-col"
+              className="h-12 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 flex-col p-1"
             >
               <BarChart3 className="h-4 w-4 mb-1" />
               <span className="text-xs">Status</span>
@@ -458,7 +458,7 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
               variant={activeFeature === 'calendar' ? 'secondary' : 'ghost'}
               size="sm"
               onClick={() => setActiveFeature('calendar')}
-              className="h-10 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 border-white border-opacity-20 flex-col"
+              className="h-12 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 flex-col p-1"
             >
               <Calendar className="h-4 w-4 mb-1" />
               <span className="text-xs">Calendar</span>
@@ -468,7 +468,7 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
               variant={activeFeature === 'notes' ? 'secondary' : 'ghost'}
               size="sm"
               onClick={() => setActiveFeature('notes')}
-              className="h-10 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 border-white border-opacity-20 flex-col"
+              className="h-12 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 flex-col p-1"
             >
               <FileText className="h-4 w-4 mb-1" />
               <span className="text-xs">Notes</span>
@@ -478,7 +478,7 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
               variant={activeFeature === 'music' ? 'secondary' : 'ghost'}
               size="sm"
               onClick={() => setActiveFeature('music')}
-              className="h-10 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 border-white border-opacity-20 flex-col"
+              className="h-12 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 flex-col p-1"
             >
               <Music className="h-4 w-4 mb-1" />
               <span className="text-xs">Music</span>
@@ -488,7 +488,7 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
               variant={activeFeature === 'photos' ? 'secondary' : 'ghost'}
               size="sm"
               onClick={() => setActiveFeature('photos')}
-              className="h-10 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 border-white border-opacity-20 flex-col"
+              className="h-12 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 flex-col p-1"
             >
               <Camera className="h-4 w-4 mb-1" />
               <span className="text-xs">Photos</span>
