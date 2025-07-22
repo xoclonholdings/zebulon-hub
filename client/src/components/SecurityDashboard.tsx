@@ -76,12 +76,15 @@ const SecurityDashboard: React.FC = () => {
 
   const loadDashboard = async () => {
     try {
+      console.log('🔐 Loading security dashboard...');
       const response = await fetch('/api/security/dashboard');
       if (!response.ok) {
-        throw new Error('Dashboard API failed');
+        throw new Error(`Dashboard API failed: ${response.status}`);
       }
       const data = await response.json();
+      console.log('🔐 Security dashboard data received:', data);
       setDashboard(data.dashboard);
+      console.log('🔐 Dashboard state updated:', data.dashboard);
     } catch (error) {
       console.error('Failed to load security dashboard:', error);
       toast({
@@ -189,8 +192,19 @@ const SecurityDashboard: React.FC = () => {
     );
   }
 
+  // Debug logging
+  console.log('🔐 SecurityDashboard render - dashboard:', dashboard);
+  console.log('🔐 SecurityDashboard render - scanResult:', scanResult);
+
   return (
     <div className="space-y-6">
+      {/* Debug Info */}
+      {dashboard && (
+        <div className="text-xs text-gray-500 bg-black/30 p-2 rounded">
+          Debug: Critical: {dashboard.criticalIssues}, High: {dashboard.highPriorityIssues}, Total: {dashboard.vulnerabilityCount}, Risk: {dashboard.riskScore}
+        </div>
+      )}
+      
       {/* Security Overview */}
       <Card className="bg-black/50 border-primary/30">
         <CardHeader>
