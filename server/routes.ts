@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { processZedCoreMessage, processZetaCoreAnalysis, generateRecommendations } from "./services/openai";
+import { processZedCoreMessage, generateRecommendations, processAIMessage } from "./services/local-ai";
 import { oracleService } from "./services/oracle";
 import { voiceService } from "./services/voice";
 import { insertChatMessageSchema, insertOracleQuerySchema, insertTaskSchema, insertNoteSchema } from "@shared/schema";

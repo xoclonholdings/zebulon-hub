@@ -19,7 +19,7 @@ export interface OracleStatus {
 
 export interface SystemStatus {
   oracle: OracleStatus;
-  fantasia: {
+  fantasma: {
     active: boolean;
     lastScan: string;
     threatsDetected: number;

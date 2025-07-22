@@ -60,7 +60,7 @@ export default function SecurityStatusBar({ status }: SecurityStatusBarProps) {
         </div>
         
         <div className="text-sm text-gray-500">
-          Last Scan: {formatTime(status.fantasia.lastScan)}
+          Last Scan: {status.fantasma?.lastScan ? formatTime(status.fantasma.lastScan) : 'Never'}
         </div>
       </div>
     </div>
