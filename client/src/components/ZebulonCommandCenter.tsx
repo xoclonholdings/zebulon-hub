@@ -1352,18 +1352,114 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
               </div>
             </ScrollArea>
 
+            {/* AI Core Selection & Quick Settings */}
+            <div className="flex items-center justify-between mb-3 p-3 bg-white/5 rounded-lg">
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setActiveCore('zed')}
+                  className={`text-xs px-3 py-1 ${activeCore === 'zed' ? 'bg-blue-500/20 text-blue-300' : 'text-gray-400 hover:text-white'}`}
+                >
+                  <Brain className="h-3 w-3 mr-1" />
+                  Zed
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setActiveCore('zeta')}
+                  className={`text-xs px-3 py-1 ${activeCore === 'zeta' ? 'bg-green-500/20 text-green-300' : 'text-gray-400 hover:text-white'}`}
+                >
+                  <Shield className="h-3 w-3 mr-1" />
+                  Zeta
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setActiveCore('fantasma')}
+                  className={`text-xs px-3 py-1 ${activeCore === 'fantasma' ? 'bg-purple-500/20 text-purple-300' : 'text-gray-400 hover:text-white'}`}
+                >
+                  <Lock className="h-3 w-3 mr-1" />
+                  Fantasma
+                </Button>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setActiveFeature('config')}
+                  className="text-gray-400 hover:text-white p-1"
+                  title="Chat Settings"
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
+                <Badge className="bg-green-500/20 text-green-300 text-xs">
+                  {currentCoreInfo.name}
+                </Badge>
+              </div>
+            </div>
+
+            {/* File Upload Area - Show if files are being uploaded */}
+            {uploadedFiles.length > 0 && (
+              <div className="mb-3 p-3 bg-white/5 rounded-lg border border-white/10">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-white/80">Attached Files ({uploadedFiles.length})</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setUploadedFiles([])}
+                    className="text-red-400 hover:text-red-300 p-1 h-6 w-6"
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+                <div className="space-y-2 max-h-20 overflow-y-auto">
+                  {uploadedFiles.map((file, index) => {
+                    const IconComponent = getFileIcon(file);
+                    return (
+                      <div key={index} className="flex items-center space-x-2 text-xs">
+                        <IconComponent className="h-3 w-3 text-blue-400" />
+                        <span className="text-white/70 flex-1 truncate">{file.name}</span>
+                        <span className="text-gray-500">{formatFileSize(file.size)}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleFileRemove(index)}
+                          className="text-red-400 hover:text-red-300 p-1 h-6 w-6"
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Input Area */}
             <div className="space-y-3">
               <div className="flex items-center space-x-2">
                 <div className="flex-1 relative">
                   <Input
-                    placeholder="Ask Zed..."
+                    placeholder={`Ask ${currentCoreInfo.name}...`}
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    className="bg-white bg-opacity-10 border-white border-opacity-20 text-white placeholder:text-white placeholder:text-opacity-60 pr-12"
+                    className="bg-white bg-opacity-10 border-white border-opacity-20 text-white placeholder:text-white placeholder:text-opacity-60 pr-20"
                     disabled={sendMessageMutation.isPending}
                   />
+                  
+                  {/* File Upload Button */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-9 top-1 h-8 w-8 p-0 hover:bg-white hover:bg-opacity-10"
+                    onClick={() => fileInputRef.current?.click()}
+                    title="Attach files"
+                  >
+                    <Upload className="h-4 w-4 text-blue-400" />
+                  </Button>
                   
                   {/* Voice Input Button */}
                   <Button
@@ -1383,12 +1479,26 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
                 <Button
                   onClick={handleSendMessage}
                   disabled={!message.trim() || sendMessageMutation.isPending}
-                  className="bg-white bg-opacity-20 hover:bg-white hover:bg-opacity-30 text-white border-white border-opacity-20"
+                  className="bg-gradient-to-r from-pink-500 to-blue-500 text-white"
                   size="sm"
                 >
                   <Send className="h-4 w-4" />
                 </Button>
               </div>
+
+              {/* Hidden file input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                className="hidden"
+                onChange={(e) => {
+                  if (e.target.files) {
+                    handleFileUpload(e.target.files);
+                  }
+                }}
+                accept=".pdf,.doc,.docx,.txt,.md,.csv,.json,.jpg,.jpeg,.png,.gif,.mp3,.mp4,.wav,.zip,.rar"
+              />
 
               {/* Voice Feedback */}
               {(isRecording || isProcessing) && (
@@ -2028,7 +2138,7 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
 
       {/* Mobile Navigation - Bottom Tab Bar */}
       <nav className="bg-black/95 backdrop-blur-sm border-t border-white/10 safe-bottom">
-        <div className="grid grid-cols-5 gap-1 p-2">
+        <div className="grid grid-cols-6 gap-1 p-2">
           <Button
             variant="ghost"
             size="sm"
@@ -2046,15 +2156,43 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setActiveFeature('status')}
+            onClick={() => setActiveFeature('notes')}
             className={`mobile-button flex-col p-2 transition-all duration-200 rounded-lg touch-manipulation ${
-              activeFeature === 'status' 
+              activeFeature === 'notes' 
                 ? 'bg-primary/20 text-primary' 
                 : 'text-white/75 hover:text-white hover:bg-white/10'
             }`}
           >
-            <BarChart3 className="h-4 w-4 mb-1" />
-            <span className="text-mobile-xs font-medium">Status</span>
+            <FileText className="h-4 w-4 mb-1" />
+            <span className="text-mobile-xs font-medium">Notes</span>
+          </Button>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setActiveFeature('config')}
+            className={`mobile-button flex-col p-2 transition-all duration-200 rounded-lg touch-manipulation ${
+              activeFeature === 'config' 
+                ? 'bg-primary/20 text-primary' 
+                : 'text-white/75 hover:text-white hover:bg-white/10'
+            }`}
+          >
+            <Settings className="h-4 w-4 mb-1" />
+            <span className="text-mobile-xs font-medium">Config</span>
+          </Button>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setActiveFeature('music')}
+            className={`mobile-button flex-col p-2 transition-all duration-200 rounded-lg touch-manipulation ${
+              activeFeature === 'music' 
+                ? 'bg-primary/20 text-primary' 
+                : 'text-white/75 hover:text-white hover:bg-white/10'
+            }`}
+          >
+            <Music className="h-4 w-4 mb-1" />
+            <span className="text-mobile-xs font-medium">Music</span>
           </Button>
           
           <Button
@@ -2071,6 +2209,23 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
             <span className="text-mobile-xs font-medium">Oracle</span>
           </Button>
           
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setActiveFeature('status')}
+            className={`mobile-button flex-col p-2 transition-all duration-200 rounded-lg touch-manipulation ${
+              activeFeature === 'status' 
+                ? 'bg-primary/20 text-primary' 
+                : 'text-white/75 hover:text-white hover:bg-white/10'
+            }`}
+          >
+            <BarChart3 className="h-4 w-4 mb-1" />
+            <span className="text-mobile-xs font-medium">Status</span>
+          </Button>
+        </div>
+        
+        {/* Secondary Navigation Row for Additional Features */}
+        <div className="grid grid-cols-4 gap-1 p-2 border-t border-white/5">
           <Button
             variant="ghost"
             size="sm"
@@ -2097,6 +2252,34 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
           >
             <Camera className="h-4 w-4 mb-1" />
             <span className="text-mobile-xs font-medium">Photos</span>
+          </Button>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setActiveFeature('notes')}
+            className={`mobile-button flex-col p-2 transition-all duration-200 rounded-lg touch-manipulation ${
+              activeFeature === 'notes' 
+                ? 'bg-primary/20 text-primary' 
+                : 'text-white/75 hover:text-white hover:bg-white/10'
+            }`}
+          >
+            <FileText className="h-4 w-4 mb-1" />
+            <span className="text-mobile-xs font-medium">Notes</span>
+          </Button>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setActiveFeature('admin')}
+            className={`mobile-button flex-col p-2 transition-all duration-200 rounded-lg touch-manipulation ${
+              activeFeature === 'admin' 
+                ? 'bg-primary/20 text-primary' 
+                : 'text-white/75 hover:text-white hover:bg-white/10'
+            }`}
+          >
+            <Shield className="h-4 w-4 mb-1" />
+            <span className="text-mobile-xs font-medium">Admin</span>
           </Button>
         </div>
       </nav>
