@@ -2,167 +2,99 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: hsl(0, 0%, 100%);
-  --foreground: hsl(20, 14.3%, 4.1%);
-  --muted: hsl(60, 4.8%, 95.9%);
-  --muted-foreground: hsl(25, 5.3%, 44.7%);
-  --popover: hsl(0, 0%, 100%);
-  --popover-foreground: hsl(20, 14.3%, 4.1%);
-  --card: hsl(0, 0%, 100%);
-  --card-foreground: hsl(20, 14.3%, 4.1%);
-  --border: hsl(20, 5.9%, 90%);
-  --input: hsl(20, 5.9%, 90%);
-  --primary: hsl(207, 90%, 54%);
-  --primary-foreground: hsl(211, 100%, 99%);
-  --secondary: hsl(60, 4.8%, 95.9%);
-  --secondary-foreground: hsl(24, 9.8%, 10%);
-  --accent: hsl(60, 4.8%, 95.9%);
-  --accent-foreground: hsl(24, 9.8%, 10%);
-  --destructive: hsl(0, 84.2%, 60.2%);
-  --destructive-foreground: hsl(60, 9.1%, 97.8%);
-  --ring: hsl(20, 14.3%, 4.1%);
-  --radius: 0.5rem;
-  
-  /* Zebulon custom colors */
-  --zebulon-blue: hsl(207, 90%, 54%);
-  --zebulon-orange: hsl(20, 90%, 60%);
-  --zebulon-dark: hsl(0, 0%, 7%);
-  --zebulon-grey: hsl(0, 0%, 26%);
-}
+@layer base {
+  :root {
+    /* Dark Zebulon theme - matching the logo colors */
+    --background: 0 0% 8%;
+    --foreground: 210 40% 98%;
+    --card: 0 0% 12%;
+    --card-foreground: 210 40% 98%;
+    --popover: 0 0% 12%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 42 100% 50%; /* Golden yellow from logo */
+    --primary-foreground: 0 0% 8%;
+    --secondary: 0 0% 16%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 0 0% 16%;
+    --muted-foreground: 215.4 16.3% 65%;
+    --accent: 42 100% 50%;
+    --accent-foreground: 0 0% 8%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 0 0% 20%;
+    --input: 0 0% 16%;
+    --ring: 42 100% 50%;
+    --radius: 0.75rem;
+    
+    /* Zebulon specific colors */
+    --zebulon-gold: 42 100% 50%;
+    --zebulon-orange: 20 100% 60%;
+    --zebulon-dark: 0 0% 8%;
+    --zebulon-card: 0 0% 12%;
+    --zebulon-border: 0 0% 20%;
+    --zebulon-text: 210 40% 98%;
+    --zebulon-muted: 215.4 16.3% 65%;
+  }
 
-.dark {
-  --background: hsl(240, 10%, 3.9%);
-  --foreground: hsl(0, 0%, 98%);
-  --muted: hsl(240, 3.7%, 15.9%);
-  --muted-foreground: hsl(240, 5%, 64.9%);
-  --popover: hsl(240, 10%, 3.9%);
-  --popover-foreground: hsl(0, 0%, 98%);
-  --card: hsl(240, 10%, 3.9%);
-  --card-foreground: hsl(0, 0%, 98%);
-  --border: hsl(240, 3.7%, 15.9%);
-  --input: hsl(240, 3.7%, 15.9%);
-  --primary: hsl(207, 90%, 54%);
-  --primary-foreground: hsl(211, 100%, 99%);
-  --secondary: hsl(240, 3.7%, 15.9%);
-  --secondary-foreground: hsl(0, 0%, 98%);
-  --accent: hsl(240, 3.7%, 15.9%);
-  --accent-foreground: hsl(0, 0%, 98%);
-  --destructive: hsl(0, 62.8%, 30.6%);
-  --destructive-foreground: hsl(0, 0%, 98%);
-  --ring: hsl(240, 4.9%, 83.9%);
-  --radius: 0.5rem;
-  
-  /* Zebulon dark mode colors */
-  --zebulon-blue: hsl(207, 80%, 48%);
-  --zebulon-orange: hsl(20, 80%, 55%);
-  --zebulon-dark: hsl(0, 0%, 95%);
-  --zebulon-grey: hsl(0, 0%, 80%);
+  .dark {
+    /* Same as root for consistent dark theme */
+    --background: 0 0% 8%;
+    --foreground: 210 40% 98%;
+    --card: 0 0% 12%;
+    --card-foreground: 210 40% 98%;
+    --popover: 0 0% 12%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 42 100% 50%;
+    --primary-foreground: 0 0% 8%;
+    --secondary: 0 0% 16%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 0 0% 16%;
+    --muted-foreground: 215.4 16.3% 65%;
+    --accent: 42 100% 50%;
+    --accent-foreground: 0 0% 8%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 0 0% 20%;
+    --input: 0 0% 16%;
+    --ring: 42 100% 50%;
+  }
 }
 
 @layer base {
   * {
     @apply border-border;
   }
-
   body {
-    @apply font-sans antialiased bg-background text-foreground;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  }
-}
-
-@layer utilities {
-  .font-inter {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    @apply bg-background text-foreground;
+    background: #121212; /* Ensure solid black background */
   }
   
-  .widget-card {
-    transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
+  html {
+    background: #121212;
+  }
+}
+
+/* Custom Zebulon styling */
+@layer components {
+  .zebulon-gradient {
+    @apply bg-gradient-to-r from-yellow-500 via-orange-500 to-yellow-600;
   }
   
-  .widget-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+  .zebulon-card {
+    @apply bg-card backdrop-blur-sm border border-border rounded-xl;
+    background-color: hsl(var(--card) / 0.8);
+    border-color: hsl(var(--border) / 0.5);
   }
   
-  .chat-bubble {
-    animation: slideUp 0.3s ease;
+  .zebulon-glow {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
   }
   
-  .oracle-glow {
-    box-shadow: 0 0 20px hsl(207, 90%, 54%, 0.3);
+  .zebulon-text-gradient {
+    background: linear-gradient(to right, hsl(var(--primary)), hsl(20 100% 60%));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
   }
-  
-  .dark .oracle-glow {
-    box-shadow: 0 0 20px hsl(207, 80%, 48%, 0.3);
-  }
-}
-
-@keyframes slideUp {
-  from { 
-    opacity: 0; 
-    transform: translateY(10px); 
-  }
-  to { 
-    opacity: 1; 
-    transform: translateY(0); 
-  }
-}
-
-/* Grid layout for Brady Bunch style */
-@media (min-width: 1024px) {
-  .grid-cols-brady {
-    grid-template-columns: repeat(3, minmax(280px, 1fr));
-  }
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .widget-card {
-    transform: none;
-  }
-  
-  .widget-card:hover {
-    transform: none;
-  }
-}
-
-/* Voice recording animation */
-.recording-pulse {
-  animation: recordingPulse 1.5s ease-in-out infinite;
-}
-
-@keyframes recordingPulse {
-  0% { 
-    opacity: 1; 
-    transform: scale(1); 
-  }
-  50% { 
-    opacity: 0.5; 
-    transform: scale(1.05); 
-  }
-  100% { 
-    opacity: 1; 
-    transform: scale(1); 
-  }
-}
-
-/* Status indicators */
-.status-pulse {
-  animation: statusPulse 2s infinite;
-}
-
-@keyframes statusPulse {
-  0%, 100% { 
-    opacity: 1; 
-  }
-  50% { 
-    opacity: 0.5; 
-  }
-}
-
-/* Smooth transitions for theme switching */
-* {
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }

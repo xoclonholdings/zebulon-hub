@@ -84,7 +84,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 font-inter">
+    <div className="min-h-screen bg-background font-inter">
       <Header
         user={user}
         onVoiceActivation={handleVoiceActivation}
@@ -134,7 +134,7 @@ export default function Dashboard() {
 
       {/* Quick Action Floating Button */}
       <div className="fixed bottom-6 right-6">
-        <Button className="w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-colors flex items-center justify-center">
+        <Button className="w-14 h-14 zebulon-gradient text-black rounded-full shadow-lg hover:shadow-xl zebulon-glow transition-all flex items-center justify-center">
           <Plus className="w-6 h-6" />
         </Button>
       </div>
