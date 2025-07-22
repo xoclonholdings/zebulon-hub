@@ -1599,9 +1599,6 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
           </div>
         );
 
-      case 'files':
-        return renderFileUploadInterface();
-
       default:
         return (
           <div className="text-center text-white text-opacity-75 py-8">
@@ -1784,6 +1781,20 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
             >
               <Settings className="h-5 w-5 mb-1.5" />
               <span className="text-xs font-medium">Config</span>
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setActiveFeature('files')}
+              className={`h-14 flex-col p-3 transition-all duration-200 rounded-lg ${
+                activeFeature === 'files' 
+                  ? 'zebulon-button-active' 
+                  : 'zebulon-button'
+              }`}
+            >
+              <Upload className="h-5 w-5 mb-1.5" />
+              <span className="text-xs font-medium">Files</span>
             </Button>
 
             <Button
