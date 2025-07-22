@@ -14,7 +14,9 @@ import { knowledgeUpdater } from "./services/knowledge-updater";
 import { adminControlService } from "./services/admin-control";
 import { storageOptimizer } from "./services/storage-optimizer";
 import { securityManager } from "./security/security-manager";
-import { securityHardening } from "./security/securityHardening";
+import { inputSanitizer } from "./security/inputSanitizer";
+import { vulnerabilityFixes } from "./security/vulnerabilityFixes";
+import { comprehensiveSecurityMiddleware, apiSecurityMiddleware, adminSecurityMiddleware } from "./middleware/securityMiddleware";
 import securityRoutes from "./routes/security";
 import { z } from "zod";
 
@@ -24,12 +26,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Trust proxy for rate limiting
   app.set('trust proxy', 1);
   
-  // Apply security middleware
-  app.use(securityManager.securityHeaders());
+  // Apply comprehensive security middleware stack
+  app.use(comprehensiveSecurityMiddleware);
+  app.use(vulnerabilityFixes.createAccountLockoutMiddleware());
+  app.use(vulnerabilityFixes.createStrictValidationMiddleware());
   
-  // Rate limiting
-  app.use('/api/', securityManager.createRateLimit(15 * 60 * 1000, 100)); // 100 requests per 15 minutes
-  app.use('/api/admin/', securityManager.createRateLimit(5 * 60 * 1000, 10)); // 10 admin requests per 5 minutes
+  // Enhanced rate limiting for different endpoints
+  app.use('/api/', apiSecurityMiddleware);
+  app.use('/api/admin/', adminSecurityMiddleware);
+  app.use('/api/security/', securityManager.createRateLimit(5 * 60 * 1000, 20)); // 20 security requests per 5 minutes
+  
+  // Add secure error handling at the end
+  app.use(vulnerabilityFixes.createSecureErrorHandler());
 
   // WebSocket server for real-time communication
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
@@ -40,7 +48,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     ws.on('message', async (message: Buffer) => {
       try {
-        const data = JSON.parse(message.toString());
+        const rawData = JSON.parse(message.toString());
+        // Sanitize all incoming WebSocket data
+        const data = inputSanitizer.sanitizeQueryParam(rawData);
         
         switch (data.type) {
           case 'chat':

@@ -4,10 +4,22 @@ import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import { vulnerabilityScanner, SecurityScanResult } from './vulnerabilityScanner';
 
-// Extend Express Request type for file uploads
+// File upload interface
+interface UploadedFile {
+  fieldname: string;
+  originalname: string;
+  encoding: string;
+  mimetype: string;
+  size: number;
+  destination: string;
+  filename: string;
+  path: string;
+  buffer: Buffer;
+}
+
 interface MulterRequest extends Request {
-  file?: Express.Multer.File;
-  files?: Express.Multer.File[] | { [fieldname: string]: Express.Multer.File[] };
+  file?: UploadedFile;
+  files?: UploadedFile[] | { [fieldname: string]: UploadedFile[] };
 }
 
 export interface SecurityConfig {

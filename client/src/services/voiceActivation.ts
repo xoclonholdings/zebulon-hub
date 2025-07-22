@@ -55,7 +55,13 @@ class VoiceActivationService {
 
   async initialize(): Promise<boolean> {
     try {
-      // Request microphone permissions
+      // Check if getUserMedia is supported
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        console.warn('Voice Security: getUserMedia not supported in this browser');
+        return false;
+      }
+
+      // Request microphone permissions with graceful fallback
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
           echoCancellation: true,
@@ -80,8 +86,21 @@ class VoiceActivationService {
       this.logSecurityEvent('Voice activation system initialized');
       return true;
     } catch (error) {
-      console.error('Failed to initialize voice activation:', error);
-      this.logSecurityEvent(`Initialization failed: ${error}`);
+      if (error instanceof DOMException) {
+        if (error.name === 'NotAllowedError') {
+          console.warn('Voice Security: Microphone access denied by user');
+          this.logSecurityEvent('Microphone access denied - voice features disabled');
+        } else if (error.name === 'NotFoundError') {
+          console.warn('Voice Security: No microphone found');
+          this.logSecurityEvent('No microphone detected - voice features disabled');
+        } else {
+          console.warn('Voice Security: Browser compatibility issue:', error.message);
+          this.logSecurityEvent(`Browser compatibility: ${error.message}`);
+        }
+      } else {
+        console.error('Voice Security: Unexpected error:', error);
+        this.logSecurityEvent(`Initialization failed: ${error}`);
+      }
       return false;
     }
   }
