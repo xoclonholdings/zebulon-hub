@@ -98,14 +98,19 @@ export class StorageOptimizer {
   // Advanced caching methods
   private getFromCache(key: string): any | null {
     const cached = this.cache.get(key);
-    if (!cached) return null;
-    
-    if (Date.now() > cached.timestamp + cached.ttl) {
-      this.cache.delete(key);
+    if (!cached) {
+      this.performanceMetrics.cacheMisses++;
       return null;
     }
     
-    return cached.data;
+    if (Date.now() > cached.timestamp + cached.ttl) {
+      this.cache.delete(key);
+      this.performanceMetrics.cacheMisses++;
+      return null;
+    }
+    
+    this.performanceMetrics.cacheHits++;
+    return this.compressionEnabled ? this.decompress(cached.data) : cached.data;
   }
 
   private setCache(key: string, data: any, ttl: number = this.defaultTTL): void {

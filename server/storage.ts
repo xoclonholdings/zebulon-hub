@@ -339,7 +339,7 @@ export class MemStorage implements IStorage {
     // Keep only the latest 1000 messages per user
     for (const [userId, messages] of Array.from(userMessageCounts.entries())) {
       if (messages.length > 1000) {
-        messages.sort((a: any, b: any) => b.timestamp!.getTime() - a.timestamp!.getTime());
+        messages.sort((a: ChatMessage, b: ChatMessage) => b.timestamp!.getTime() - a.timestamp!.getTime());
         const toDelete = messages.slice(1000);
         
         for (const message of toDelete) {
@@ -473,9 +473,9 @@ export class MemStorage implements IStorage {
       userMessageGroups.get(message.userId)?.push(message);
     }
 
-    for (const [userId, messages] of userMessageGroups.entries()) {
+    for (const [userId, messages] of Array.from(userMessageGroups.entries())) {
       if (messages.length > 500) {
-        messages.sort((a, b) => b.timestamp!.getTime() - a.timestamp!.getTime());
+        messages.sort((a: ChatMessage, b: ChatMessage) => b.timestamp!.getTime() - a.timestamp!.getTime());
         const toDelete = messages.slice(500);
         
         for (const message of toDelete) {
@@ -494,9 +494,9 @@ export class MemStorage implements IStorage {
       userQueryGroups.get(query.userId)?.push(query);
     }
 
-    for (const [userId, queries] of userQueryGroups.entries()) {
+    for (const [userId, queries] of Array.from(userQueryGroups.entries())) {
       if (queries.length > 200) {
-        queries.sort((a, b) => b.timestamp!.getTime() - a.timestamp!.getTime());
+        queries.sort((a: OracleQuery, b: OracleQuery) => b.timestamp!.getTime() - a.timestamp!.getTime());
         const toDelete = queries.slice(200);
         
         for (const query of toDelete) {

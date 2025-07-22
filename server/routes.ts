@@ -4,6 +4,7 @@ import { createServer, type Server } from "http";
 import diagnosticsRouter from './routes/diagnostics';
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
+import { enhancedStorage } from "./services/enhanced-storage";
 import { processZedCoreMessage, generateRecommendations, processAIMessage } from "./services/local-ai";
 import { oracleService } from "./services/oracle";
 import { voiceService } from "./services/voice";
@@ -486,7 +487,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Save user message
       const userMessage = await storage.createChatMessage({
         ...validatedData,
-        isUser: true,
         response: undefined,
         metadata: null
       });
@@ -496,7 +496,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: userId,
         message: zedResponse.response,
         aiCore: validatedData.aiCore || 'zed',
-        isUser: false,
         response: zedResponse.response,
         metadata: zedResponse.metadata
       });
@@ -720,39 +719,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         case 'direct_chat':
         case 'quick_action':
           // Process message through Zed AI core
-          response = await processZedCoreMessage({
-            message: message,
-            context: {
-              source: 'browser_extension',
-              ...context
-            },
+          const zedResult = await processZedCoreMessage(message, {
+            source: 'browser_extension',
+            ...context,
             userId: userId
           });
+          response = zedResult.response;
           break;
           
         case 'analyze_text':
-          response = await processZedCoreMessage({
-            message: `Analyze this text: "${req.body.content}"`,
-            context: { source: 'browser_extension', action: 'text_analysis' },
-            userId: userId
-          });
+          const analyzeResult = await processZedCoreMessage(
+            `Analyze this text: "${req.body.content}"`,
+            { source: 'browser_extension', action: 'text_analysis', userId: userId }
+          );
+          response = analyzeResult.response;
           break;
           
         case 'explain_page':
           const { pageData } = req.body;
-          response = await processZedCoreMessage({
-            message: `Explain this webpage: Title: "${pageData.title}", URL: "${pageData.url}", Content: "${pageData.content}"`,
-            context: { source: 'browser_extension', action: 'page_explanation' },
-            userId: userId
-          });
+          const explainResult = await processZedCoreMessage(
+            `Explain this webpage: Title: "${pageData.title}", URL: "${pageData.url}", Content: "${pageData.content}"`,
+            { source: 'browser_extension', action: 'page_explanation', userId: userId }
+          );
+          response = explainResult.response;
           break;
           
         case 'convert_to_oracle':
-          response = await processZedCoreMessage({
-            message: `Convert this natural language to an Oracle SQL query: "${req.body.naturalLanguage}"`,
-            context: { source: 'browser_extension', action: 'oracle_conversion' },
-            userId: userId
-          });
+          const oracleResult = await processZedCoreMessage(
+            `Convert this natural language to an Oracle SQL query: "${req.body.naturalLanguage}"`,
+            { source: 'browser_extension', action: 'oracle_conversion', userId: userId }
+          );
+          response = oracleResult.response;
           break;
           
         default:
@@ -762,16 +759,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Store the extension interaction
       await storage.createChatMessage({
         userId: userId,
-        content: message,
-        isUser: true,
-        aiCore: 'zed',
-        timestamp: new Date().toISOString()
+        message: message,
+        aiCore: 'zed'
       });
       
       await storage.createChatMessage({
         userId: userId,
-        content: response,
-        isUser: false,
+        message: response,
         aiCore: 'zed',
         timestamp: new Date().toISOString()
       });
@@ -1498,7 +1492,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = parseInt(req.params.userId);
       const { oracleAdminService } = await import('./services/oracle-admin');
       
-      const maximizedOracle = await oracleAdminService.enableMaximumCapabilities(userId, {
+      const maximizedOracle = await (oracleAdminService as any).enableMaximumCapabilities(userId, {
         // No query timeouts or limitations
         unlimitedTimeout: true,
         unlimitedConnections: true,
@@ -1739,6 +1733,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await storageOptimizer.preloadUserData(parseInt(userId));
           res.json({ message: `Data preloaded for user ${userId}` });
           break;
+
+        case 'force_optimize':
+          const result = await enhancedStorage.forceOptimization();
+          res.json({ message: "Force optimization completed", result });
+          break;
           
         default:
           res.status(400).json({ error: "Unknown optimization action" });
@@ -1746,6 +1745,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Storage optimization error:", error);
       res.status(500).json({ message: "Storage optimization failed" });
+    }
+  });
+
+  // Enhanced storage stats endpoint
+  app.get("/api/storage/enhanced-stats", async (req, res) => {
+    try {
+      const stats = await enhancedStorage.getEnhancedStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Enhanced storage stats error:", error);
+      res.status(500).json({ error: "Failed to get enhanced storage stats" });
+    }
+  });
+
+  // Enhanced chat messages with filtering
+  app.get('/api/chat/:userId/enhanced', async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const { limit = 50, aiCore, dateFrom, searchText } = req.query;
+      
+      const filters = {
+        aiCore: aiCore as string,
+        dateFrom: dateFrom as string,
+        searchText: searchText as string
+      };
+      
+      const messages = await enhancedStorage.getChatMessagesEnhanced(
+        userId, 
+        parseInt(limit as string), 
+        filters
+      );
+      
+      res.json(messages);
+    } catch (error) {
+      console.error('Enhanced chat messages error:', error);
+      res.status(500).json({ error: 'Failed to get enhanced chat messages' });
+    }
+  });
+
+  // Advanced message search
+  app.post('/api/chat/:userId/search', async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const criteria = req.body;
+      
+      const results = await enhancedStorage.searchMessages(userId, criteria);
+      res.json(results);
+    } catch (error) {
+      console.error('Message search error:', error);
+      res.status(500).json({ error: 'Message search failed' });
     }
   });
 
