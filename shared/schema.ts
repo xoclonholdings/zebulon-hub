@@ -25,6 +25,7 @@ export const chatMessages = pgTable("chat_messages", {
   message: text("message").notNull(),
   response: text("response"),
   aiCore: text("ai_core").notNull(), // "zed", "zeta", etc.
+  isUser: boolean("is_user").default(false), // true for user messages, false for AI responses
   timestamp: timestamp("timestamp").defaultNow(),
   metadata: jsonb("metadata"),
 });

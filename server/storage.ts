@@ -112,12 +112,17 @@ export class MemStorage implements IStorage {
     const user: User = {
       id,
       username: insertUser.username,
-      password: insertUser.password,
+      passwordHash: insertUser.passwordHash,
       codename: insertUser.codename,
       role: insertUser.role || 'User',
-      theme: insertUser.theme || 'light',
+      theme: insertUser.theme || 'dark',
       voiceId: null,
-      createdAt: new Date()
+      isActive: true,
+      lastLogin: null,
+      failedLoginAttempts: 0,
+      lockedUntil: null,
+      createdAt: new Date(),
+      updatedAt: new Date()
     };
     this.users.set(id, user);
     return user;
@@ -135,7 +140,7 @@ export class MemStorage implements IStorage {
   }
 
   // Chat Messages
-  async createChatMessage(messageData: InsertChatMessage & { response?: string; metadata?: any }): Promise<ChatMessage> {
+  async createChatMessage(messageData: InsertChatMessage & { response?: string; metadata?: any; isUser?: boolean }): Promise<ChatMessage> {
     const id = this.currentMessageId++;
     const message: ChatMessage = {
       id,
@@ -143,6 +148,7 @@ export class MemStorage implements IStorage {
       message: messageData.message,
       response: messageData.response || null,
       aiCore: messageData.aiCore,
+      isUser: messageData.isUser || false,
       timestamp: new Date(),
       metadata: messageData.metadata || null
     };

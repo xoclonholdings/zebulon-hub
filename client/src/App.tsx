@@ -8,7 +8,7 @@ import NotFound from "@/pages/not-found";
 
 function Router() {
   return (
-    <div className="min-h-screen bg-black">
+    <div className="mobile-viewport mobile-container bg-black overflow-hidden">
       <Switch>
         <Route path="/" component={Dashboard} />
         <Route component={NotFound} />

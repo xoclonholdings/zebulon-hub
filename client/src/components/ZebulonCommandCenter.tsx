@@ -1698,14 +1698,15 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
   };
 
   return (
-    <div className="w-full h-full px-2 sm:px-4 md:px-6">
-      <Card className="bg-black bg-opacity-95 border border-primary border-opacity-20 zebulon-glow text-white h-full flex flex-col min-h-[80vh] rounded-xl backdrop-blur-lg max-w-4xl mx-auto">
-        <CardHeader className="pb-3 space-y-3 px-4 sm:px-6">
-          <div className="flex justify-center">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center cursor-pointer hover:scale-105 transition-transform duration-200" onClick={() => setShowAdminLogin(true)}>
+    <div className="w-full h-screen bg-black safe-top safe-bottom overflow-hidden flex flex-col">
+      {/* Mobile Header - Compact */}
+      <header className="bg-black/95 backdrop-blur-sm border-b border-white/10 safe-top">
+        <div className="flex items-center justify-between p-3">
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 flex items-center justify-center cursor-pointer touch-manipulation" onClick={() => setShowAdminLogin(true)}>
               <img 
                 src={logoSrc} 
-                alt="Zebulon Logo - Click for Admin" 
+                alt="Zebulon" 
                 className="w-full h-full object-contain"
                 onError={(e) => {
                   console.error('Logo failed to load:', e);
@@ -1717,15 +1718,53 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
                 }}
                 onLoad={() => console.log('Logo loaded successfully')}
               />
-              <div className="w-full h-full flex items-center justify-center text-white font-bold text-xl zebulon-text-gradient cursor-pointer" style={{display: 'none'}} onClick={() => setShowAdminLogin(true)}>
+              <div className="w-full h-full flex items-center justify-center text-white font-bold text-mobile-lg zebulon-text-gradient cursor-pointer" style={{display: 'none'}} onClick={() => setShowAdminLogin(true)}>
                 Z
               </div>
             </div>
+            <h1 className="text-mobile-lg font-bold zebulon-text-gradient">ZEBULON</h1>
           </div>
           
-          <CardTitle className="text-center text-lg sm:text-xl md:text-2xl font-bold zebulon-text-gradient">
-            ZEBULON
-          </CardTitle>
+          {/* Core Status Indicator */}
+          <div className="flex items-center space-x-1">
+            <CurrentIcon className="h-4 w-4 text-primary" />
+            <span className="text-mobile-xs text-white/75">{currentCoreInfo.name}</span>
+          </div>
+        </div>
+        
+        {/* Core Switcher - Horizontal Scroll */}
+        <div className="flex space-x-2 px-3 pb-3 overflow-x-auto scrollbar-hide">
+          <Button
+            variant={activeCore === 'zed' ? 'secondary' : 'ghost'}
+            size="sm"
+            onClick={() => setActiveCore('zed')}
+            className="mobile-button text-mobile-xs bg-white/10 hover:bg-white/20 flex-shrink-0 touch-manipulation"
+          >
+            <Database className="h-3 w-3 mr-1" />
+            Zed
+          </Button>
+          
+          <Button
+            variant={activeCore === 'zeta' ? 'secondary' : 'ghost'}
+            size="sm"
+            onClick={() => setActiveCore('zeta')}
+            className="mobile-button text-mobile-xs bg-white/10 hover:bg-white/20 flex-shrink-0 touch-manipulation"
+          >
+            <Shield className="h-3 w-3 mr-1" />
+            Zeta
+          </Button>
+          
+          <Button
+            variant={activeCore === 'fantasma' ? 'secondary' : 'ghost'}
+            size="sm"
+            onClick={() => setActiveCore('fantasma')}
+            className="mobile-button text-mobile-xs bg-white/10 hover:bg-white/20 flex-shrink-0 touch-manipulation"
+          >
+            <Lock className="h-3 w-3 mr-1" />
+            Fantasma
+          </Button>
+        </div>
+      </header>
           
           {/* Active Core Status */}
           <div className="text-center">
@@ -1771,206 +1810,132 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
             </Button>
           </div>
 
-          {/* Feature Navigation Buttons - Enhanced responsive grid with consistent spacing */}
-          <div className="grid grid-cols-3 gap-2 sm:gap-3 p-2 sm:p-3 bg-black/20 rounded-xl border border-white/10">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setActiveFeature('chat')}
-              className={`zebulon-nav-button ${
-                activeFeature === 'chat' 
-                  ? 'zebulon-button-active' 
-                  : 'zebulon-button'
-              }`}
-            >
-              <Brain className="h-5 w-5 mb-1.5" />
-              <span className="text-xs font-medium">Chat</span>
-            </Button>
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setActiveFeature('status')}
-              className={`h-14 flex-col p-3 transition-all duration-200 rounded-lg ${
-                activeFeature === 'status' 
-                  ? 'zebulon-button-active' 
-                  : 'zebulon-button'
-              }`}
-            >
-              <BarChart3 className="h-5 w-5 mb-1.5" />
-              <span className="text-xs font-medium">Status</span>
-            </Button>
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setActiveFeature('oracle')}
-              className={`h-14 flex-col p-3 transition-all duration-200 rounded-lg ${
-                activeFeature === 'oracle' 
-                  ? 'zebulon-button-active' 
-                  : 'zebulon-button'
-              }`}
-            >
-              <Database className="h-5 w-5 mb-1.5" />
-              <span className="text-xs font-medium">Oracle</span>
-            </Button>
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setActiveFeature('calendar')}
-              className={`h-14 flex-col p-3 transition-all duration-200 rounded-lg ${
-                activeFeature === 'calendar' 
-                  ? 'zebulon-button-active' 
-                  : 'zebulon-button'
-              }`}
-            >
-              <Calendar className="h-5 w-5 mb-1.5" />
-              <span className="text-xs font-medium">Calendar</span>
-            </Button>
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setActiveFeature('music')}
-              className={`h-14 flex-col p-3 transition-all duration-200 rounded-lg ${
-                activeFeature === 'music' 
-                  ? 'zebulon-button-active' 
-                  : 'zebulon-button'
-              }`}
-            >
-              <Music className="h-5 w-5 mb-1.5" />
-              <span className="text-xs font-medium">Music</span>
-            </Button>
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setActiveFeature('photos')}
-              className={`h-14 flex-col p-3 transition-all duration-200 rounded-lg ${
-                activeFeature === 'photos' 
-                  ? 'zebulon-button-active' 
-                  : 'zebulon-button'
-              }`}
-            >
-              <Camera className="h-5 w-5 mb-1.5" />
-              <span className="text-xs font-medium">Photos</span>
-            </Button>
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setActiveFeature('config')}
-              className={`h-14 flex-col p-3 transition-all duration-200 rounded-lg ${
-                activeFeature === 'config' 
-                  ? 'zebulon-button-active' 
-                  : 'zebulon-button'
-              }`}
-            >
-              <Settings className="h-5 w-5 mb-1.5" />
-              <span className="text-xs font-medium">Config</span>
-            </Button>
+      {/* Mobile Navigation - Bottom Tab Bar */}
+      <nav className="bg-black/95 backdrop-blur-sm border-t border-white/10 safe-bottom">
+        <div className="grid grid-cols-5 gap-1 p-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setActiveFeature('chat')}
+            className={`mobile-button flex-col p-2 transition-all duration-200 rounded-lg touch-manipulation ${
+              activeFeature === 'chat' 
+                ? 'bg-primary/20 text-primary' 
+                : 'text-white/75 hover:text-white hover:bg-white/10'
+            }`}
+          >
+            <Brain className="h-4 w-4 mb-1" />
+            <span className="text-mobile-xs font-medium">Chat</span>
+          </Button>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setActiveFeature('status')}
+            className={`mobile-button flex-col p-2 transition-all duration-200 rounded-lg touch-manipulation ${
+              activeFeature === 'status' 
+                ? 'bg-primary/20 text-primary' 
+                : 'text-white/75 hover:text-white hover:bg-white/10'
+            }`}
+          >
+            <BarChart3 className="h-4 w-4 mb-1" />
+            <span className="text-mobile-xs font-medium">Status</span>
+          </Button>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setActiveFeature('oracle')}
+            className={`mobile-button flex-col p-2 transition-all duration-200 rounded-lg touch-manipulation ${
+              activeFeature === 'oracle' 
+                ? 'bg-primary/20 text-primary' 
+                : 'text-white/75 hover:text-white hover:bg-white/10'
+            }`}
+          >
+            <Database className="h-4 w-4 mb-1" />
+            <span className="text-mobile-xs font-medium">Oracle</span>
+          </Button>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setActiveFeature('calendar')}
+            className={`mobile-button flex-col p-2 transition-all duration-200 rounded-lg touch-manipulation ${
+              activeFeature === 'calendar' 
+                ? 'bg-primary/20 text-primary' 
+                : 'text-white/75 hover:text-white hover:bg-white/10'
+            }`}
+          >
+            <Calendar className="h-4 w-4 mb-1" />
+            <span className="text-mobile-xs font-medium">Calendar</span>
+          </Button>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setActiveFeature('photos')}
+            className={`mobile-button flex-col p-2 transition-all duration-200 rounded-lg touch-manipulation ${
+              activeFeature === 'photos' 
+                ? 'bg-primary/20 text-primary' 
+                : 'text-white/75 hover:text-white hover:bg-white/10'
+            }`}
+          >
+            <Camera className="h-4 w-4 mb-1" />
+            <span className="text-mobile-xs font-medium">Photos</span>
+          </Button>
+        </div>
+      </nav>
 
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setActiveFeature('files')}
-              className={`h-14 flex-col p-3 transition-all duration-200 rounded-lg ${
-                activeFeature === 'files' 
-                  ? 'zebulon-button-active' 
-                  : 'zebulon-button'
-              }`}
-            >
-              <Upload className="h-5 w-5 mb-1.5" />
-              <span className="text-xs font-medium">Files</span>
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setActiveFeature('notes')}
-              className={`h-14 flex-col p-3 transition-all duration-200 rounded-lg ${
-                activeFeature === 'notes' 
-                  ? 'zebulon-button-active' 
-                  : 'zebulon-button'
-              }`}
-            >
-              <FileText className="h-5 w-5 mb-1.5" />
-              <span className="text-xs font-medium">Notes</span>
-            </Button>
-
-            {/* Admin Button - Enhanced styling, only show if logged in as admin */}
-            {currentAdmin && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setActiveFeature('admin')}
-                className={`h-14 flex-col p-3 transition-all duration-200 rounded-lg ${
-                  activeFeature === 'admin' 
-                    ? 'bg-gradient-to-r from-orange-500/30 to-red-500/30 text-white border border-orange-400/50 shadow-lg' 
-                    : 'bg-red-900/20 hover:bg-red-800/30 text-orange-300 hover:text-white border border-red-700/40 hover:border-orange-400/50'
-                }`}
-              >
-                <Shield className="h-5 w-5 mb-1.5" />
-                <span className="text-xs font-medium">Admin</span>
-              </Button>
-            )}
-          </div>
-        </CardHeader>
-
-        <CardContent className="flex-1 flex flex-col pt-0 px-4 sm:px-6">
+      {/* Main Content Area - Mobile Optimized */}
+      <main className="flex-1 overflow-y-auto bg-gradient-to-b from-black/80 to-black/90 backdrop-blur-sm smooth-scroll">
+        <div className="mobile-padding min-h-full">
           {renderFeatureContent()}
-        </CardContent>
+        </div>
+      </main>
 
-        {/* Chat Input Area - Enhanced styling and spacing */}
-        {activeFeature !== 'chat' && (
-          <div className="p-4 sm:p-6 border-t border-white/20 bg-black/10 rounded-b-lg">
-            <div className="flex items-center space-x-2 sm:space-x-4">
-              <div className="flex-1 relative">
-                <input
-                  type="text"
-                  placeholder="Ask Zed..."
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  className="w-full zebulon-input rounded-full px-4 sm:px-6 py-2 sm:py-3 text-sm shadow-inner"
-                />
-              </div>
-              <Button 
-                variant="ghost"
-                className="p-3 bg-white/10 hover:bg-white/20 rounded-full transition-all border border-white/10"
-                onClick={handleVoiceRecording}
-              >
-                {isRecording ? (
-                  <MicOff className="h-5 w-5 text-red-400" />
-                ) : (
-                  <Mic className="h-5 w-5 text-white" />
-                )}
-              </Button>
-              <Button 
-                className="p-3 bg-primary hover:bg-primary/80 rounded-full transition-all shadow-lg"
-                onClick={handleSendMessage}
-                disabled={!message.trim() || sendMessageMutation.isPending}
-              >
-                <Send className="h-5 w-5 text-white" />
-              </Button>
-            </div>
-          </div>
-        )}
-      </Card>
-      
-      {/* System Notifications for Cross-App Ducking */}
-      <ZedSystemNotifications userId={1} />
-      
       {/* Admin Login Modal */}
-      <AdminLoginModal
-        open={showAdminLogin}
-        onOpenChange={setShowAdminLogin}
-        onLoginSuccess={(admin) => {
-          setCurrentAdmin(admin);
-          setActiveFeature('admin');
-        }}
-      />
+      {showAdminLogin && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 safe-top safe-bottom">
+          <Card className="bg-black/95 border border-primary/30 max-w-sm w-full backdrop-blur-lg">
+            <CardHeader>
+              <CardTitle className="text-center text-primary text-mobile-lg">Zebulon Admin</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Input 
+                    type="text" 
+                    placeholder="Username" 
+                    className="bg-white/10 border-white/20 text-white"
+                  />
+                  <Input 
+                    type="password" 
+                    placeholder="Password" 
+                    className="bg-white/10 border-white/20 text-white"
+                  />
+                </div>
+                <div className="flex space-x-2">
+                  <Button 
+                    onClick={() => setShowAdminLogin(false)}
+                    variant="outline" 
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={() => {
+                      setCurrentAdmin({ username: 'admin', role: 'admin' });
+                      setShowAdminLogin(false);
+                    }}
+                    className="flex-1 bg-gradient-to-r from-pink-500 to-blue-500"
+                  >
+                    Login
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };

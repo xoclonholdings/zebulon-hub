@@ -393,6 +393,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Send chat message
+  app.post('/api/chat/:userId', async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const validatedData = insertChatMessageSchema.parse({
+        ...req.body,
+        userId: userId
+      });
+      
+      // Process with Zed Core
+      const zedResponse = await processZedCoreMessage(validatedData.message);
+      
+      // Save user message
+      const userMessage = await storage.createChatMessage({
+        ...validatedData,
+        isUser: true,
+        response: null,
+        metadata: null
+      });
+
+      // Save AI response
+      const aiMessage = await storage.createChatMessage({
+        userId: userId,
+        message: zedResponse.response,
+        aiCore: validatedData.aiCore || 'zed',
+        isUser: false,
+        response: zedResponse.response,
+        metadata: zedResponse.metadata
+      });
+
+      // If there's an Oracle query, execute it
+      if (zedResponse.sqlQuery) {
+        try {
+          const queryResult = await oracleService.executeQuery(zedResponse.sqlQuery);
+          
+          // Save Oracle query
+          await storage.createOracleQuery({
+            userId: userId,
+            naturalLanguage: validatedData.message,
+            sqlQuery: zedResponse.sqlQuery,
+            results: queryResult.rows,
+            executionTime: queryResult.metadata.executionTime
+          });
+
+          res.json({
+            userMessage,
+            aiMessage,
+            queryResult
+          });
+        } catch (queryError) {
+          const errorMessage = queryError instanceof Error ? queryError.message : 'Unknown error';
+          res.json({
+            userMessage,
+            aiMessage: {
+              ...aiMessage,
+              message: `${zedResponse.response}\n\nQuery execution failed: ${errorMessage}`
+            },
+            error: `Query execution failed: ${errorMessage}`
+          });
+        }
+      } else {
+        res.json({
+          userMessage,
+          aiMessage
+        });
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ message: errorMessage });
+    }
+  });
+
   // Tasks management
   app.get('/api/tasks/:userId', async (req, res) => {
     try {
