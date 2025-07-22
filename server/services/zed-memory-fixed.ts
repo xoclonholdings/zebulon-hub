@@ -1,6 +1,6 @@
 import { db } from "../db";
 import { zedMemoryEntries, zedMemoryAssociations, zedConversationContext, zedLearningPatterns } from "@shared/schema";
-import { eq, and, desc, sql, inArray } from "drizzle-orm";
+import { eq, and, desc, sql, inArray, orderBy } from "drizzle-orm";
 import { encryptionService } from "./encryption";
 import type { ZedMemoryEntry, ZedMemoryAssociation, ZedConversationContext, ZedLearningPattern } from "@shared/schema";
 import crypto from 'crypto';
@@ -355,6 +355,31 @@ export class ZedMemoryServiceFixed {
       );
     
     return (expiredResult.rowCount || 0) + (archiveResult.rowCount || 0);
+  }
+
+  // Delete a memory entry permanently
+  async deleteMemory(userId: number, memoryId: number): Promise<boolean> {
+    try {
+      const result = await db
+        .update(zedMemoryEntries)
+        .set({ 
+          isActive: false,
+          deletedAt: new Date(),
+          updatedAt: new Date()
+        })
+        .where(
+          and(
+            eq(zedMemoryEntries.id, memoryId),
+            eq(zedMemoryEntries.userId, userId),
+            eq(zedMemoryEntries.isActive, true)
+          )
+        );
+      
+      return (result.rowCount || 0) > 0;
+    } catch (error) {
+      console.error('Failed to delete memory:', error);
+      return false;
+    }
   }
 }
 

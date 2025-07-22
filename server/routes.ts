@@ -1105,6 +1105,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/memory/:userId/:memoryId", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const memoryId = parseInt(req.params.memoryId);
+      const { zedMemoryServiceFixed } = await import("./services/zed-memory-fixed");
+      
+      await zedMemoryServiceFixed.deleteMemory(userId, memoryId);
+      res.json({ success: true, message: "Memory deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete memory" });
+    }
+  });
+
   // Security vulnerability scanning endpoints
   app.get("/api/security/scan", async (req, res) => {
     try {

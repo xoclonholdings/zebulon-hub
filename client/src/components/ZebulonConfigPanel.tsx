@@ -23,7 +23,16 @@ import {
   RotateCcw,
   Save,
   FileText,
-  ChevronRight
+  ChevronRight,
+  Memory,
+  Search,
+  Trash2,
+  Calendar,
+  Tag,
+  Star,
+  Archive,
+  RefreshCw,
+  BarChart3
 } from 'lucide-react';
 
 interface ZebulonConfig {
@@ -71,11 +80,31 @@ const ZebulonConfigPanel: React.FC<ZebulonConfigPanelProps> = ({ userId }) => {
   const [activeSection, setActiveSection] = useState<string>('theme');
   const [localConfig, setLocalConfig] = useState<ZebulonConfig>({});
   const [unsavedChanges, setUnsavedChanges] = useState(false);
+  const [memorySearchQuery, setMemorySearchQuery] = useState('');
+  const [memoryFilter, setMemoryFilter] = useState('all');
+  const [selectedMemoryType, setSelectedMemoryType] = useState('');
   const queryClient = useQueryClient();
 
   // Fetch current configuration
   const { data: config = {} } = useQuery<ZebulonConfig>({
     queryKey: [`/api/config/${userId}`],
+  });
+
+  // Fetch memory bank data
+  const { data: memories = [], isLoading: memoriesLoading } = useQuery({
+    queryKey: [`/api/memory/${userId}/search`, memorySearchQuery, memoryFilter, selectedMemoryType],
+    queryFn: () => {
+      const params = new URLSearchParams({
+        q: memorySearchQuery,
+        sortBy: 'recent',
+        limit: '50'
+      });
+      if (selectedMemoryType) {
+        params.append('types', selectedMemoryType);
+      }
+      return apiRequest(`/api/memory/${userId}/search?${params.toString()}`);
+    },
+    enabled: activeSection === 'memory'
   });
 
   // Initialize local config when fetched
@@ -107,6 +136,15 @@ const ZebulonConfigPanel: React.FC<ZebulonConfigPanelProps> = ({ userId }) => {
       a.download = `zebulon-config-${new Date().toISOString().split('T')[0]}.json`;
       a.click();
       URL.revokeObjectURL(url);
+    }
+  });
+
+  // Delete memory mutation
+  const deleteMemoryMutation = useMutation({
+    mutationFn: (memoryId: number) => 
+      apiRequest(`/api/memory/${userId}/${memoryId}`, 'DELETE'),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/memory/${userId}/search`] });
     }
   });
 
@@ -173,6 +211,7 @@ const ZebulonConfigPanel: React.FC<ZebulonConfigPanelProps> = ({ userId }) => {
     { id: 'theme', icon: Palette, name: 'Theme', description: 'Visual customization' },
     { id: 'zed', icon: Brain, name: 'Zed Core', description: 'AI assistant settings' },
     { id: 'zeta', icon: Shield, name: 'Zeta Core', description: 'Security monitoring' },
+    { id: 'memory', icon: Memory, name: 'Memory Bank', description: 'Zed AI memory management' },
     { id: 'fantasma', icon: Eye, name: 'Fantasma', description: 'Firewall protection' },
     { id: 'interface', icon: Monitor, name: 'Interface', description: 'Dashboard layout' },
     { id: 'oracle', icon: Database, name: 'Oracle', description: 'Database settings' },
@@ -537,6 +576,207 @@ const ZebulonConfigPanel: React.FC<ZebulonConfigPanelProps> = ({ userId }) => {
     );
   };
 
+  const renderMemorySection = () => {
+    const memoryTypes = [
+      { value: '', label: 'All Memory Types' },
+      { value: 'conversation', label: 'Conversations' },
+      { value: 'oracle_query', label: 'Oracle Queries' },
+      { value: 'user_preference', label: 'User Preferences' },
+      { value: 'system_event', label: 'System Events' },
+      { value: 'learning_data', label: 'Learning Data' }
+    ];
+
+    return (
+      <div className="space-y-6">
+        {/* Memory Bank Controls */}
+        <Card className="zebulon-card border border-white/20">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Memory className="h-5 w-5 text-blue-400" />
+              <span className="zebulon-text-gradient">Memory Bank Controls</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label className="text-white">Search Memories</Label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search memory content..."
+                    value={memorySearchQuery}
+                    onChange={(e) => setMemorySearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label className="text-white">Memory Type</Label>
+                <Select value={selectedMemoryType} onValueChange={setSelectedMemoryType}>
+                  <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-black border-white/20">
+                    {memoryTypes.map((type) => (
+                      <SelectItem key={type.value} value={type.value} className="text-white hover:bg-white/10">
+                        {type.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-white">Sort & Filter</Label>
+                <Select value={memoryFilter} onValueChange={setMemoryFilter}>
+                  <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-black border-white/20">
+                    <SelectItem value="all" className="text-white hover:bg-white/10">All Memories</SelectItem>
+                    <SelectItem value="recent" className="text-white hover:bg-white/10">Recent Only</SelectItem>
+                    <SelectItem value="important" className="text-white hover:bg-white/10">High Importance</SelectItem>
+                    <SelectItem value="frequently_accessed" className="text-white hover:bg-white/10">Frequently Accessed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Memory Entries */}
+        <Card className="zebulon-card border border-white/20">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Archive className="h-5 w-5 text-purple-400" />
+                <span className="zebulon-text-gradient">Memory Entries</span>
+              </div>
+              <Badge className="bg-blue-500/20 text-blue-300 border border-blue-400/30">
+                {memories.length} entries
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="h-96 zebulon-scrollable">
+              {memoriesLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <RefreshCw className="h-6 w-6 animate-spin text-blue-400" />
+                  <span className="ml-2 text-gray-400">Loading memories...</span>
+                </div>
+              ) : memories.length === 0 ? (
+                <div className="text-center py-8 text-gray-400">
+                  <Memory className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>No memories found</p>
+                  <p className="text-sm mt-1">Try adjusting your search filters</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {memories.map((memory: any) => (
+                    <div key={memory.id} className="bg-white/10 rounded-lg responsive-padding hover:bg-white/20 transition-all">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center space-x-2 mb-1">
+                            <Badge className="bg-purple-500/20 text-purple-300 border border-purple-400/30 text-xs">
+                              {memory.memoryType || 'unknown'}
+                            </Badge>
+                            <Badge className="bg-blue-500/20 text-blue-300 border border-blue-400/30 text-xs">
+                              {memory.category || 'general'}
+                            </Badge>
+                            {memory.importance && (
+                              <div className="flex items-center">
+                                <Star className="h-3 w-3 text-yellow-400 mr-1" />
+                                <span className="text-xs text-yellow-400">{memory.importance}/10</span>
+                              </div>
+                            )}
+                          </div>
+                          <h4 className="font-medium text-white text-sm truncate">{memory.key}</h4>
+                          {memory.content && (
+                            <p className="text-gray-300 text-xs mt-1 line-clamp-2">
+                              {typeof memory.content === 'string' ? memory.content : JSON.stringify(memory.content, null, 2)}
+                            </p>
+                          )}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteMemoryMutation.mutate(memory.id)}
+                          disabled={deleteMemoryMutation.isPending}
+                          className="text-red-400 hover:text-red-300 hover:bg-red-500/20 ml-2"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      
+                      <div className="flex items-center justify-between text-xs text-gray-400 mt-2">
+                        <div className="flex items-center space-x-3">
+                          <span className="flex items-center">
+                            <Calendar className="h-3 w-3 mr-1" />
+                            {new Date(memory.createdAt).toLocaleDateString()}
+                          </span>
+                          {memory.lastAccessed && (
+                            <span className="flex items-center">
+                              <Eye className="h-3 w-3 mr-1" />
+                              {new Date(memory.lastAccessed).toLocaleDateString()}
+                            </span>
+                          )}
+                        </div>
+                        {memory.contextTags && memory.contextTags.length > 0 && (
+                          <div className="flex items-center space-x-1">
+                            <Tag className="h-3 w-3" />
+                            <span className="truncate max-w-24">{memory.contextTags.join(', ')}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
+          </CardContent>
+        </Card>
+
+        {/* Memory Statistics */}
+        <Card className="zebulon-card border border-white/20">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <BarChart3 className="h-5 w-5 text-green-400" />
+              <span className="zebulon-text-gradient">Memory Statistics</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+              <div className="space-y-1">
+                <div className="text-2xl font-bold text-blue-400">{memories.length}</div>
+                <div className="text-xs text-gray-400">Total Memories</div>
+              </div>
+              <div className="space-y-1">
+                <div className="text-2xl font-bold text-purple-400">
+                  {memories.filter((m: any) => m.memoryType === 'conversation').length}
+                </div>
+                <div className="text-xs text-gray-400">Conversations</div>
+              </div>
+              <div className="space-y-1">
+                <div className="text-2xl font-bold text-green-400">
+                  {memories.filter((m: any) => m.memoryType === 'oracle_query').length}
+                </div>
+                <div className="text-xs text-gray-400">Oracle Queries</div>
+              </div>
+              <div className="space-y-1">
+                <div className="text-2xl font-bold text-yellow-400">
+                  {memories.filter((m: any) => (m.importance || 0) >= 7).length}
+                </div>
+                <div className="text-xs text-gray-400">High Priority</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
+
   const renderCurrentSection = () => {
     switch (activeSection) {
       case 'theme': 
@@ -545,6 +785,8 @@ const ZebulonConfigPanel: React.FC<ZebulonConfigPanelProps> = ({ userId }) => {
         return renderZedCoreSection();
       case 'zeta': 
         return renderZetaCoreSection();
+      case 'memory':
+        return renderMemorySection();
       case 'fantasma': 
         return renderFantasmaSection();
       case 'interface': 
