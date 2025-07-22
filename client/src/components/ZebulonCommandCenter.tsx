@@ -13,7 +13,16 @@ import {
   Brain, 
   Target,
   Activity,
-  Lock
+  Lock,
+  Calendar,
+  FileText,
+  Music,
+  Camera,
+  Settings,
+  BarChart3,
+  Clock,
+  Users,
+  Zap
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -28,13 +37,46 @@ interface ChatMessage {
   aiCore?: 'zed' | 'zeta' | 'fantasma';
 }
 
-interface ZebulonCommandCenterProps {
-  userId: number;
+interface SystemStatus {
+  oracle: {
+    connected: boolean;
+    activeConnections: number;
+    maxConnections: number;
+    responseTime: number;
+    memoryUsage: number;
+    uptime: string;
+  };
+  security: {
+    level: 'high' | 'medium' | 'low';
+    vulnerabilities: number;
+    encrypted: boolean;
+  };
+  zedCore: {
+    active: boolean;
+    memory: number;
+    tasks: number;
+  };
+  zetaCore: {
+    monitoring: boolean;
+    threats: number;
+    alerts: number;
+  };
+  fantasmaFirewall: {
+    active: boolean;
+    blocked: number;
+    stealth: boolean;
+  };
 }
 
-const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId }) => {
+interface ZebulonCommandCenterProps {
+  userId: number;
+  systemStatus: SystemStatus;
+}
+
+const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, systemStatus }) => {
   const [message, setMessage] = useState('');
   const [activeCore, setActiveCore] = useState<'zed' | 'zeta' | 'fantasma'>('zed');
+  const [activeFeature, setActiveFeature] = useState<'chat' | 'calendar' | 'notes' | 'music' | 'photos' | 'status'>('chat');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
 
@@ -142,9 +184,184 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId }) =
   const currentCoreInfo = getCoreInfo(activeCore);
   const CurrentIcon = currentCoreInfo.icon;
 
+  const renderFeatureContent = () => {
+    switch (activeFeature) {
+      case 'chat':
+        return (
+          <>
+            {/* Chat Messages */}
+            <ScrollArea className="flex-1 bg-black bg-opacity-20 rounded-lg p-3 max-h-64 mb-4">
+              <div className="space-y-3">
+                {messages.map((msg) => (
+                  <div key={msg.id} className={`flex ${msg.isUser ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[80%] rounded-lg px-3 py-2 ${
+                      msg.isUser 
+                        ? 'bg-white bg-opacity-20 text-white ml-auto' 
+                        : 'bg-black bg-opacity-30 text-white'
+                    }`}>
+                      {!msg.isUser && msg.aiCore && (
+                        <div className="text-xs opacity-75 mb-1 flex items-center space-x-1">
+                          {getCoreInfo(msg.aiCore).icon && React.createElement(getCoreInfo(msg.aiCore).icon, { className: "h-3 w-3" })}
+                          <span>{getCoreInfo(msg.aiCore).name}</span>
+                        </div>
+                      )}
+                      <div className="text-sm">{msg.content}</div>
+                      <div className="text-xs opacity-50 mt-1">
+                        {new Date(msg.timestamp).toLocaleTimeString()}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                <div ref={messagesEndRef} />
+              </div>
+            </ScrollArea>
+
+            {/* Input Area */}
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2">
+                <div className="flex-1 relative">
+                  <Input
+                    placeholder="Ask Zebulon anything..."
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    className="bg-white bg-opacity-10 border-white border-opacity-20 text-white placeholder:text-white placeholder:text-opacity-60 pr-12"
+                    disabled={sendMessageMutation.isPending}
+                  />
+                  
+                  {/* Voice Input Button */}
+                  {isSupported && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-1 top-1 h-8 w-8 p-0 hover:bg-white hover:bg-opacity-10"
+                      onClick={isListening ? stopListening : startListening}
+                    >
+                      {isListening ? (
+                        <MicOff className="h-4 w-4 text-red-400" />
+                      ) : (
+                        <Mic className="h-4 w-4" />
+                      )}
+                    </Button>
+                  )}
+                </div>
+                
+                <Button
+                  onClick={handleSendMessage}
+                  disabled={!message.trim() || sendMessageMutation.isPending}
+                  className="bg-white bg-opacity-20 hover:bg-white hover:bg-opacity-30 text-white border-white border-opacity-20"
+                  size="sm"
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {/* Voice Feedback */}
+              {isListening && (
+                <div className="flex items-center justify-center space-x-2 text-sm">
+                  <Activity className="h-4 w-4 animate-pulse text-red-400" />
+                  <span className="text-white text-opacity-75">Listening...</span>
+                </div>
+              )}
+            </div>
+          </>
+        );
+
+      case 'status':
+        return (
+          <div className="space-y-4 text-white">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-black bg-opacity-20 rounded-lg p-4">
+                <div className="flex items-center space-x-2 mb-2">
+                  <Database className="h-5 w-5 text-blue-400" />
+                  <span className="font-semibold">Oracle Status</span>
+                </div>
+                <div className="text-sm space-y-1">
+                  <div>Connections: {systemStatus.oracle.activeConnections}/{systemStatus.oracle.maxConnections}</div>
+                  <div>Response: {systemStatus.oracle.responseTime}ms</div>
+                  <div>Memory: {systemStatus.oracle.memoryUsage}%</div>
+                  <div>Uptime: {systemStatus.oracle.uptime}</div>
+                </div>
+              </div>
+
+              <div className="bg-black bg-opacity-20 rounded-lg p-4">
+                <div className="flex items-center space-x-2 mb-2">
+                  <Shield className="h-5 w-5 text-green-400" />
+                  <span className="font-semibold">Security Status</span>
+                </div>
+                <div className="text-sm space-y-1">
+                  <div>Level: {systemStatus.security?.level || 'High'}</div>
+                  <div>Vulnerabilities: {systemStatus.security?.vulnerabilities || 0}</div>
+                  <div>Encrypted: {systemStatus.security?.encrypted ? 'Yes' : 'No'}</div>
+                </div>
+              </div>
+
+              <div className="bg-black bg-opacity-20 rounded-lg p-4">
+                <div className="flex items-center space-x-2 mb-2">
+                  <Brain className="h-5 w-5 text-purple-400" />
+                  <span className="font-semibold">AI Cores</span>
+                </div>
+                <div className="text-sm space-y-1">
+                  <div>Zed: {systemStatus.zedCore?.active ? 'Active' : 'Inactive'}</div>
+                  <div>Zeta: {systemStatus.zetaCore?.monitoring ? 'Monitoring' : 'Standby'}</div>
+                  <div>Fantasma: {systemStatus.fantasmaFirewall?.active ? 'Secure' : 'Disabled'}</div>
+                </div>
+              </div>
+
+              <div className="bg-black bg-opacity-20 rounded-lg p-4">
+                <div className="flex items-center space-x-2 mb-2">
+                  <BarChart3 className="h-5 w-5 text-yellow-400" />
+                  <span className="font-semibold">Performance</span>
+                </div>
+                <div className="text-sm space-y-1">
+                  <div>CPU: 45%</div>
+                  <div>Memory: 67%</div>
+                  <div>Network: 12 MB/s</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'calendar':
+        return (
+          <div className="bg-black bg-opacity-20 rounded-lg p-4 text-white">
+            <div className="flex items-center space-x-2 mb-4">
+              <Calendar className="h-5 w-5" />
+              <span className="font-semibold">Today's Schedule</span>
+            </div>
+            <div className="space-y-3 text-sm">
+              <div className="flex items-center space-x-3 p-2 bg-white bg-opacity-10 rounded">
+                <Clock className="h-4 w-4" />
+                <div>
+                  <div className="font-medium">Database Maintenance</div>
+                  <div className="text-xs opacity-75">2:00 PM - 3:00 PM</div>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3 p-2 bg-white bg-opacity-10 rounded">
+                <Users className="h-4 w-4" />
+                <div>
+                  <div className="font-medium">Team Sync</div>
+                  <div className="text-xs opacity-75">4:00 PM - 4:30 PM</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      default:
+        return (
+          <div className="text-center text-white text-opacity-75 py-8">
+            <div className="text-lg font-semibold mb-2">Feature Coming Soon</div>
+            <div className="text-sm">This feature is being developed.</div>
+          </div>
+        );
+    }
+  };
+
   return (
     <div className="w-full h-full">
-      <Card className="zebulon-gradient border-0 text-white h-full flex flex-col">
+      <Card className="zebulon-gradient border-0 text-white h-full flex flex-col min-h-[80vh]">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-center mb-4">
             <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
@@ -168,7 +385,7 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId }) =
           </div>
 
           {/* AI Core Status Pills */}
-          <div className="flex justify-center space-x-2 mt-4">
+          <div className="flex justify-center space-x-2 mt-4 flex-wrap">
             <Button
               variant={activeCore === 'zed' ? 'secondary' : 'ghost'}
               size="sm"
@@ -199,84 +416,73 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId }) =
               Fantasma: Secure
             </Button>
           </div>
+
+          {/* Feature Navigation Buttons */}
+          <div className="grid grid-cols-3 gap-2 mt-4">
+            <Button
+              variant={activeFeature === 'chat' ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => setActiveFeature('chat')}
+              className="h-10 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 border-white border-opacity-20 flex-col"
+            >
+              <Brain className="h-4 w-4 mb-1" />
+              <span className="text-xs">Chat</span>
+            </Button>
+            
+            <Button
+              variant={activeFeature === 'status' ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => setActiveFeature('status')}
+              className="h-10 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 border-white border-opacity-20 flex-col"
+            >
+              <BarChart3 className="h-4 w-4 mb-1" />
+              <span className="text-xs">Status</span>
+            </Button>
+            
+            <Button
+              variant={activeFeature === 'calendar' ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => setActiveFeature('calendar')}
+              className="h-10 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 border-white border-opacity-20 flex-col"
+            >
+              <Calendar className="h-4 w-4 mb-1" />
+              <span className="text-xs">Calendar</span>
+            </Button>
+            
+            <Button
+              variant={activeFeature === 'notes' ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => setActiveFeature('notes')}
+              className="h-10 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 border-white border-opacity-20 flex-col"
+            >
+              <FileText className="h-4 w-4 mb-1" />
+              <span className="text-xs">Notes</span>
+            </Button>
+            
+            <Button
+              variant={activeFeature === 'music' ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => setActiveFeature('music')}
+              className="h-10 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 border-white border-opacity-20 flex-col"
+            >
+              <Music className="h-4 w-4 mb-1" />
+              <span className="text-xs">Music</span>
+            </Button>
+            
+            <Button
+              variant={activeFeature === 'photos' ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => setActiveFeature('photos')}
+              className="h-10 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 border-white border-opacity-20 flex-col"
+            >
+              <Camera className="h-4 w-4 mb-1" />
+              <span className="text-xs">Photos</span>
+            </Button>
+          </div>
         </CardHeader>
 
-        <CardContent className="flex-1 flex flex-col space-y-4 pt-0">
-          {/* Chat Messages */}
-          <ScrollArea className="flex-1 bg-black bg-opacity-20 rounded-lg p-3 max-h-64">
-            <div className="space-y-3">
-              {messages.map((msg) => (
-                <div key={msg.id} className={`flex ${msg.isUser ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[80%] rounded-lg px-3 py-2 ${
-                    msg.isUser 
-                      ? 'bg-white bg-opacity-20 text-white ml-auto' 
-                      : 'bg-black bg-opacity-30 text-white'
-                  }`}>
-                    {!msg.isUser && msg.aiCore && (
-                      <div className="text-xs opacity-75 mb-1 flex items-center space-x-1">
-                        {getCoreInfo(msg.aiCore).icon && React.createElement(getCoreInfo(msg.aiCore).icon, { className: "h-3 w-3" })}
-                        <span>{getCoreInfo(msg.aiCore).name}</span>
-                      </div>
-                    )}
-                    <div className="text-sm">{msg.content}</div>
-                    <div className="text-xs opacity-50 mt-1">
-                      {new Date(msg.timestamp).toLocaleTimeString()}
-                    </div>
-                  </div>
-                </div>
-              ))}
-              <div ref={messagesEndRef} />
-            </div>
-          </ScrollArea>
-
-          {/* Input Area */}
-          <div className="space-y-3">
-            <div className="flex items-center space-x-2">
-              <div className="flex-1 relative">
-                <Input
-                  placeholder="Ask Zebulon anything..."
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  className="bg-white bg-opacity-10 border-white border-opacity-20 text-white placeholder:text-white placeholder:text-opacity-60 pr-12"
-                  disabled={sendMessageMutation.isPending}
-                />
-                
-                {/* Voice Input Button */}
-                {isSupported && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-1 top-1 h-8 w-8 p-0 hover:bg-white hover:bg-opacity-10"
-                    onClick={isListening ? stopListening : startListening}
-                  >
-                    {isListening ? (
-                      <MicOff className="h-4 w-4 text-red-400" />
-                    ) : (
-                      <Mic className="h-4 w-4" />
-                    )}
-                  </Button>
-                )}
-              </div>
-              
-              <Button
-                onClick={handleSendMessage}
-                disabled={!message.trim() || sendMessageMutation.isPending}
-                className="bg-white bg-opacity-20 hover:bg-white hover:bg-opacity-30 text-white border-white border-opacity-20"
-                size="sm"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
-            </div>
-
-            {/* Voice Feedback */}
-            {isListening && (
-              <div className="flex items-center justify-center space-x-2 text-sm">
-                <Activity className="h-4 w-4 animate-pulse text-red-400" />
-                <span className="text-white text-opacity-75">Listening...</span>
-              </div>
-            )}
-          </div>
+        <CardContent className="flex-1 flex flex-col pt-0">
+          {renderFeatureContent()}
         </CardContent>
       </Card>
     </div>

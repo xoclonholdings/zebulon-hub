@@ -87,22 +87,13 @@ export default function Dashboard() {
         onSettingsClick={handleSettingsClick}
       />
       
-      {/* Main Dashboard - Focused Command Interface */}
+      {/* Main Dashboard - Single Unified Widget */}
       <main className="max-w-4xl mx-auto px-3 sm:px-6 py-4 sm:py-6">
-        {/* Primary Zebulon Command Center */}
-        <div className="mb-6 min-h-[600px]">
-          <ZebulonCommandCenter userId={user.id} />
-        </div>
-        
-        {/* Secondary Widget - Calendar */}
-        <div className="grid grid-cols-1 gap-4">
-          <CalendarWidget />
-        </div>
-        
-        {/* Security Status Bar - Compact */}
-        <div className="mt-6">
-          <SecurityStatusBar 
-            status={systemStatus || mockSystemStatus} 
+        {/* Single Zebulon Widget containing all features */}
+        <div className="w-full min-h-[80vh]">
+          <ZebulonCommandCenter 
+            userId={user.id} 
+            systemStatus={systemStatus || mockSystemStatus}
           />
         </div>
       </main>
