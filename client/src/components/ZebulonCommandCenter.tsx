@@ -51,6 +51,7 @@ import { OracleAdminPanel } from './OracleAdminPanel';
 import ZebulonConfigPanel from './ZebulonConfigPanel';
 import { AdminLoginModal } from './AdminLoginModal';
 import ZedSystemNotifications from './ZedSystemNotifications';
+// Note: NotesToDoWidget will be implemented as inline component
 
 interface ChatMessage {
   id: number;
@@ -99,7 +100,7 @@ interface ZebulonCommandCenterProps {
 const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, systemStatus }) => {
   const [message, setMessage] = useState('');
   const [activeCore, setActiveCore] = useState<'zed' | 'zeta' | 'fantasma'>('zed');
-  const [activeFeature, setActiveFeature] = useState<'chat' | 'calendar' | 'music' | 'photos' | 'status' | 'oracle' | 'config' | 'files' | 'admin'>('chat');
+  const [activeFeature, setActiveFeature] = useState<'chat' | 'calendar' | 'music' | 'photos' | 'status' | 'oracle' | 'config' | 'files' | 'admin' | 'notes'>('chat');
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [uploadProgress, setUploadProgress] = useState<{[key: string]: number}>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -1349,7 +1350,156 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
 
 
       case 'oracle':
-        return renderOracleInterface();
+        return (
+          <div className="w-full h-full space-y-6 overflow-y-auto zebulon-scrollable">
+            {/* Oracle Database Management Interface */}
+            <Card className="zebulon-card border border-white/20">
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-3 mb-6">
+                  <Database className="h-6 w-6 text-blue-400 zebulon-glow" />
+                  <div>
+                    <h3 className="text-lg font-semibold zebulon-text-gradient">Oracle Database Management</h3>
+                    <p className="text-sm text-gray-400">Natural language Oracle operations via Zed AI</p>
+                  </div>
+                </div>
+
+                {/* Connection Status */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-sm text-gray-300">Connection Status</span>
+                      <Badge className={`${systemStatus.oracle.connected ? 'bg-green-500/20 text-green-400 border-green-500/40' : 'bg-red-500/20 text-red-400 border-red-500/40'}`}>
+                        {systemStatus.oracle.connected ? 'Connected' : 'Disconnected'}
+                      </Badge>
+                    </div>
+                    <div className="text-xs text-gray-400 space-y-1">
+                      <div className="flex justify-between">
+                        <span>Response Time:</span>
+                        <span className="text-white">{systemStatus.oracle.responseTime}ms</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Active Connections:</span>
+                        <span className="text-white">{systemStatus.oracle.activeConnections}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-sm text-gray-300">Query Performance</span>
+                      <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/40">
+                        Active
+                      </Badge>
+                    </div>
+                    <div className="text-xs text-gray-400 space-y-1">
+                      <div className="flex justify-between">
+                        <span>Avg Query Time:</span>
+                        <span className="text-white">45ms</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Memory Usage:</span>
+                        <span className="text-white">{systemStatus.oracle.memoryUsage}%</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Oracle Commands */}
+                <div className="space-y-4">
+                  <h4 className="text-md font-semibold text-white">Quick Oracle Commands</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button
+                      onClick={() => {
+                        setMessage("Show all Oracle database tables and their structure");
+                        setActiveFeature('chat');
+                        handleSendMessage();
+                      }}
+                      className="zebulon-button text-left justify-start p-4 h-auto"
+                    >
+                      <Database className="h-4 w-4 mr-2" />
+                      <div>
+                        <div className="text-sm font-medium">Show Tables</div>
+                        <div className="text-xs text-gray-400">List all database tables</div>
+                      </div>
+                    </Button>
+                    
+                    <Button
+                      onClick={() => {
+                        setMessage("Check Oracle database performance and optimization recommendations");
+                        setActiveFeature('chat');
+                        handleSendMessage();
+                      }}
+                      className="zebulon-button text-left justify-start p-4 h-auto"
+                    >
+                      <BarChart3 className="h-4 w-4 mr-2" />
+                      <div>
+                        <div className="text-sm font-medium">Performance Check</div>
+                        <div className="text-xs text-gray-400">Analyze database performance</div>
+                      </div>
+                    </Button>
+                    
+                    <Button
+                      onClick={() => {
+                        setMessage("Generate Oracle database security audit report");
+                        setActiveFeature('chat');
+                        handleSendMessage();
+                      }}
+                      className="zebulon-button text-left justify-start p-4 h-auto"
+                    >
+                      <Shield className="h-4 w-4 mr-2" />
+                      <div>
+                        <div className="text-sm font-medium">Security Audit</div>
+                        <div className="text-xs text-gray-400">Check security status</div>
+                      </div>
+                    </Button>
+                    
+                    <Button
+                      onClick={() => {
+                        setMessage("Execute Oracle database backup and maintenance tasks");
+                        setActiveFeature('chat');
+                        handleSendMessage();
+                      }}
+                      className="zebulon-button text-left justify-start p-4 h-auto"
+                    >
+                      <Settings className="h-4 w-4 mr-2" />
+                      <div>
+                        <div className="text-sm font-medium">Maintenance</div>
+                        <div className="text-xs text-gray-400">Run maintenance tasks</div>
+                      </div>
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Custom Oracle Query */}
+                <div className="mt-6 pt-6 border-t border-white/20">
+                  <h4 className="text-md font-semibold text-white mb-4">Custom Oracle Query</h4>
+                  <div className="space-y-3">
+                    <Input
+                      placeholder="Ask Zed to execute Oracle queries in natural language..."
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      className="zebulon-input"
+                    />
+                    <Button
+                      onClick={() => {
+                        if (message.trim()) {
+                          setActiveFeature('chat');
+                          handleSendMessage();
+                        }
+                      }}
+                      disabled={!message.trim() || sendMessageMutation.isPending}
+                      className="w-full bg-primary/20 hover:bg-primary/30 border border-primary/40 text-primary"
+                    >
+                      <Database className="h-4 w-4 mr-2" />
+                      Execute with Zed AI
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
 
       case 'config':
         return (
@@ -1374,6 +1524,83 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
 
       case 'admin':
         return renderAdminInterface();
+
+      case 'notes':
+        return (
+          <div className="w-full h-full space-y-6 overflow-y-auto zebulon-scrollable">
+            <Card className="zebulon-card border border-white/20 text-white">
+              <CardContent className="p-6 space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold zebulon-text-gradient">Tasks & Notes</h3>
+                  <Button
+                    onClick={() => {
+                      setMessage("Add new task: ");
+                      setActiveFeature('chat');
+                    }}
+                    className="bg-primary/20 hover:bg-primary/30 border border-primary/40 text-primary p-2 rounded-lg transition-all"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+                
+                <div className="space-y-4">
+                  <Input
+                    placeholder="Add a new task or note..."
+                    className="zebulon-input text-sm rounded-lg"
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        const input = e.target as HTMLInputElement;
+                        setMessage(`Create task: ${input.value}`);
+                        setActiveFeature('chat');
+                        handleSendMessage();
+                        input.value = '';
+                      }
+                    }}
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                    <div className="text-sm zebulon-text-muted text-center py-4">
+                      Use Zed AI to create, manage, and organize your tasks and notes.
+                      <br />
+                      Try saying: "Create a task to review project status" or "Add a note about the meeting"
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 pt-4">
+                  <Button
+                    onClick={() => {
+                      setMessage("Show me all my current tasks and notes");
+                      setActiveFeature('chat');
+                      handleSendMessage();
+                    }}
+                    className="zebulon-button text-left justify-start p-3"
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    <div className="text-xs">View All Tasks</div>
+                  </Button>
+                  
+                  <Button
+                    onClick={() => {
+                      setMessage("Create a daily task list for today");
+                      setActiveFeature('chat');
+                      handleSendMessage();
+                    }}
+                    className="zebulon-button text-left justify-start p-3"
+                  >
+                    <Calendar className="h-4 w-4 mr-2" />
+                    <div className="text-xs">Daily Planning</div>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
+
+      case 'files':
+        return renderFileUploadInterface();
 
       default:
         return (
@@ -1562,15 +1789,15 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setActiveFeature('files')}
+              onClick={() => setActiveFeature('notes')}
               className={`h-14 flex-col p-3 transition-all duration-200 rounded-lg ${
-                activeFeature === 'files' 
+                activeFeature === 'notes' 
                   ? 'zebulon-button-active' 
                   : 'zebulon-button'
               }`}
             >
-              <Upload className="h-5 w-5 mb-1.5" />
-              <span className="text-xs font-medium">Files</span>
+              <FileText className="h-5 w-5 mb-1.5" />
+              <span className="text-xs font-medium">Notes</span>
             </Button>
 
             {/* Admin Button - Enhanced styling, only show if logged in as admin */}
