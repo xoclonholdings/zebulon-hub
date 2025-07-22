@@ -655,10 +655,10 @@ export function ZebulonConfigPanel({ userId }: ConfigPanelProps) {
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Mobile/Desktop Navigation */}
         {isMobile ? (
-          /* Mobile: Horizontal scrollable tabs */
-          <div className="p-3 border-b border-white/10 bg-black/20">
-            <ScrollArea className="w-full">
-              <div className="flex space-x-2 pb-2">
+          /* Mobile: Horizontal scrollable tabs - enhanced for better sliding */
+          <div className="px-3 py-4 border-b border-white/10 bg-black/20">
+            <div className="overflow-x-auto scrollbar-hide smooth-scroll">
+              <div className="flex space-x-3 min-w-max pb-1">
                 {sections.map((section) => {
                   const Icon = section.icon;
                   const isActive = activeSection === section.id;
@@ -668,19 +668,20 @@ export function ZebulonConfigPanel({ userId }: ConfigPanelProps) {
                       variant="ghost"
                       size="sm"
                       onClick={() => setActiveSection(section.id)}
-                      className={`flex-shrink-0 h-8 px-3 text-xs font-medium transition-all duration-200 ${
+                      className={`flex-shrink-0 h-10 px-4 text-sm font-medium transition-all duration-200 rounded-full ${
                         isActive 
-                          ? 'bg-gradient-to-r from-pink-500/20 to-blue-500/20 text-white border border-pink-400/30' 
-                          : 'bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-transparent hover:border-white/20'
+                          ? 'bg-gradient-to-r from-pink-500/30 to-blue-500/30 text-white border-2 border-pink-400/50 shadow-lg' 
+                          : 'bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white border-2 border-transparent hover:border-white/30'
                       }`}
+                      style={{ minWidth: '120px' }}
                     >
-                      <Icon className="h-3 w-3 mr-1" />
+                      <Icon className="h-4 w-4 mr-2" />
                       <span className="whitespace-nowrap">{section.label}</span>
                     </Button>
                   );
                 })}
               </div>
-            </ScrollArea>
+            </div>
           </div>
         ) : (
           /* Desktop: Side navigation */
