@@ -15,7 +15,7 @@ export interface ZedCoreResponse {
 
 export async function processZedCoreMessage(message: string, context?: Record<string, any>): Promise<ZedCoreResponse> {
   try {
-    const systemPrompt = `You are Zed Core, the conversational AI assistant for the Zebulon™️ Oracle AI ecosystem. 
+    const systemPrompt = `You are Zed Core, the conversational AI assistant for the Zebulon Oracle AI ecosystem. 
     You are urban, culturally fluent, sharp, direct, and respectful. 
     You help users interact with Oracle databases using natural language.
     
@@ -71,7 +71,7 @@ export async function processZetaCoreAnalysis(data: any[]): Promise<{
   securityAlerts?: string[];
 }> {
   try {
-    const systemPrompt = `You are Zeta Core, the data analysis and security sentinel for Zebulon™️.
+    const systemPrompt = `You are Zeta Core, the data analysis and security sentinel for Zebulon.
     You analyze data patterns, provide insights, and identify security concerns.
     
     Analyze the provided data and respond in JSON format with:

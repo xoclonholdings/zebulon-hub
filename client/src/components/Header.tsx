@@ -11,11 +11,11 @@ export default function Header() {
               <div className="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition-opacity">
                 <img 
                   src={ZebulonLogo} 
-                  alt="Zebulon™ Logo" 
+                  alt="Zebulon Logo" 
                   className="h-8 w-8"
                 />
                 <h1 className="text-2xl font-bold zebulon-text-gradient">
-                  Zebulon™ Oracle AI
+                  Zebulon Oracle AI
                 </h1>
               </div>
             </Link>

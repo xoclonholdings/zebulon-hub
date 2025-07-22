@@ -271,7 +271,7 @@ const ZebulonConfigPanel: React.FC<ZebulonConfigPanelProps> = ({ userId }) => {
                 backgroundClip: 'text'
               }}
             >
-              ZEBULON™ PREVIEW
+              ZEBULON PREVIEW
             </div>
             <p className="text-white/75 text-sm">Your customized theme in action</p>
           </div>

@@ -74,7 +74,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
             </div>
             <div>
               <span className="text-xl font-bold bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent">
-                Zebulon™ Admin Access
+                Zebulon Admin Access
               </span>
               <p className="text-sm text-gray-400 font-normal">
                 Secure administrative controls

@@ -786,7 +786,7 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
     setSpotifyConnected(true);
     setCurrentTrack({
       title: 'AI-Generated Ambient Focus',
-      artist: 'Zebulon™ Soundscapes',
+      artist: 'Zebulon Soundscapes',
       playing: false
     });
   };
@@ -1632,7 +1632,7 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
                 onLoad={() => console.log('Logo loaded successfully')}
               />
               <div className="w-full h-full flex items-center justify-center text-white font-bold text-xl zebulon-text-gradient cursor-pointer" style={{display: 'none'}} onClick={() => setShowAdminLogin(true)}>
-                Z™
+                Z
               </div>
             </div>
           </div>

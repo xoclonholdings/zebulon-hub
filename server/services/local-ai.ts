@@ -1,4 +1,4 @@
-// Zebulon™ Sovereign AI System
+// Zebulon Sovereign AI System
 // Full-capability AI combining OpenAI and Julius AI features
 // Advanced reasoning, data analysis, code generation, and natural language processing
 
