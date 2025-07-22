@@ -41,6 +41,11 @@ interface ZedMemoryPanelProps {
 }
 
 export function ZedMemoryPanel({ userId }: ZedMemoryPanelProps) {
+  // Add our actual memory API
+  const { data: actualMemoryData } = useQuery({
+    queryKey: ['/api/memory', userId],
+    refetchInterval: 5000,
+  });
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');

@@ -394,6 +394,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Memory Management API - View Zed's memory contents
+  app.get('/api/memory/:userId', async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      
+      // Get all memory components
+      const chatMessages = await storage.getChatMessages(userId, 50);
+      const oracleQueries = await storage.getOracleQueries(userId, 20);
+      const userTasks = await storage.getUserTasks(userId);
+      
+      // Build memory summary
+      const conversationHistory = chatMessages
+        .filter(msg => msg.isUser)
+        .slice(0, 10)
+        .map(msg => ({
+          id: msg.id,
+          message: msg.message,
+          timestamp: msg.timestamp
+        }));
+      
+      const memoryData = {
+        storageLocation: {
+          file: 'server/storage.ts',
+          class: 'MemStorage',
+          type: 'In-Memory Storage (RAM)',
+          dataStructures: {
+            chatMessages: 'Map<number, ChatMessage>',
+            oracleQueries: 'Map<number, OracleQuery>', 
+            tasks: 'Map<number, UserTask>'
+          }
+        },
+        conversationHistory,
+        databaseQueries: oracleQueries.map(q => ({
+          id: q.id,
+          query: q.naturalLanguage,
+          sqlQuery: q.sqlQuery,
+          timestamp: q.timestamp
+        })),
+        tasks: userTasks.map(t => ({
+          id: t.id,
+          title: t.title,
+          description: t.description,
+          completed: t.completed,
+          createdAt: t.createdAt
+        })),
+        memoryStats: {
+          totalConversations: chatMessages.length,
+          totalQueries: oracleQueries.length,
+          totalTasks: userTasks.length,
+          completedTasks: userTasks.filter(t => t.completed).length
+        }
+      };
+      
+      res.json(memoryData);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ message: errorMessage });
+    }
+  });
+
   // Chat history
   app.get('/api/chat/:userId', async (req, res) => {
     try {
