@@ -34,11 +34,9 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-black p-4">
-      <ZebulonCommandCenter 
-        userId={1} 
-        systemStatus={mockSystemStatus}
-      />
-    </div>
+    <ZebulonCommandCenter 
+      userId={1} 
+      systemStatus={mockSystemStatus}
+    />
   );
 }
