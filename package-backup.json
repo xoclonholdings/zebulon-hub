@@ -3,9 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "NODE_ENV=development tsx server/index.ts",
-    "build": "node build.js",
-    "start": "NODE_ENV=production node dist/index.js"
+    "dev": "NODE_ENV=development tsx server/index.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4",
