@@ -5,15 +5,8 @@ import { useQuery } from "@tanstack/react-query";
 
 import Header from "@/components/Header";
 import SecurityStatusBar from "@/components/SecurityStatusBar";
-import ProfileWidget from "@/components/widgets/ProfileWidget";
-import WeatherWidget from "@/components/widgets/WeatherWidget";
-import OracleStatusWidget from "@/components/widgets/OracleStatusWidget";
-import ZebulonCommandChat from "@/components/widgets/ZebulonCommandChat";
+import ZebulonCommandCenter from "@/components/ZebulonCommandCenter";
 import CalendarWidget from "@/components/widgets/CalendarWidget";
-import NotesToDoWidget from "@/components/widgets/NotesToDoWidget";
-import MusicPlayerWidget from "@/components/widgets/MusicPlayerWidget";
-import PhotoCarouselWidget from "@/components/widgets/PhotoCarouselWidget";
-import ZebulonLiteWidget from "@/components/widgets/ZebulonLiteWidget";
 import ZedConfigPanel from "@/components/ZedConfigPanel";
 
 import { UserProfile, SystemStatus } from "@/lib/types";
@@ -94,52 +87,20 @@ export default function Dashboard() {
         onSettingsClick={handleSettingsClick}
       />
       
-      {/* Main Dashboard - Mobile-Optimized Brady Bunch Grid */}
-      <main className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-3 sm:py-6">
-        {/* Mobile: 1 column, Tablet: 2 columns, Desktop: 3 columns */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 auto-rows-fr">
-          {/* Profile Widget - Always full width on mobile */}
-          <div className="sm:col-span-2 lg:col-span-1">
-            <ProfileWidget
-              user={user}
-              oracleStatus={systemStatus?.oracle || mockSystemStatus.oracle}
-              stats={stats}
-            />
-          </div>
-
-          {/* Weather Widget */}
-          <WeatherWidget />
-
-          {/* Oracle Status Widget */}
-          <OracleStatusWidget />
-
-          {/* ZEBULON COMMAND CHAT - Responsive sizing */}
-          <div className="sm:col-span-2 lg:col-span-3 xl:col-span-2">
-            <ZebulonCommandChat user={user} />
-          </div>
-
-          {/* Calendar Widget */}
-          <div className="lg:col-span-1">
-            <CalendarWidget />
-          </div>
-
-          {/* Notes & To-Do Widget */}
-          <NotesToDoWidget userId={user.id} />
-
-          {/* Music Player Widget */}
-          <MusicPlayerWidget />
-
-          {/* Photo Carousel Widget - Spans 2 columns on larger screens */}
-          <div className="sm:col-span-2 lg:col-span-2">
-            <PhotoCarouselWidget />
-          </div>
-
-          {/* Zebulon Lite Recommends Widget */}
-          <ZebulonLiteWidget userId={user.id} />
+      {/* Main Dashboard - Focused Command Interface */}
+      <main className="max-w-4xl mx-auto px-3 sm:px-6 py-4 sm:py-6">
+        {/* Primary Zebulon Command Center */}
+        <div className="mb-6 min-h-[600px]">
+          <ZebulonCommandCenter userId={user.id} />
         </div>
         
-        {/* Security Status Bar - Compact on mobile */}
-        <div className="mt-4 sm:mt-6">
+        {/* Secondary Widget - Calendar */}
+        <div className="grid grid-cols-1 gap-4">
+          <CalendarWidget />
+        </div>
+        
+        {/* Security Status Bar - Compact */}
+        <div className="mt-6">
           <SecurityStatusBar 
             status={systemStatus || mockSystemStatus} 
           />
