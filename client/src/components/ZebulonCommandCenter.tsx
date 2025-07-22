@@ -1355,40 +1355,11 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
               </div>
             </ScrollArea>
 
-            {/* AI Core Selection */}
-            <div className="flex items-center justify-between mb-3 p-2 bg-white/5 rounded-lg">
-              <div className="flex items-center space-x-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setActiveCore('zed')}
-                  className={`text-xs px-2 py-1 ${activeCore === 'zed' ? 'bg-blue-500/20 text-blue-300' : 'text-gray-400 hover:text-white'}`}
-                >
-                  <Brain className="h-3 w-3 mr-1" />
-                  Zed
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setActiveCore('zeta')}
-                  className={`text-xs px-2 py-1 ${activeCore === 'zeta' ? 'bg-green-500/20 text-green-300' : 'text-gray-400 hover:text-white'}`}
-                >
-                  <Shield className="h-3 w-3 mr-1" />
-                  Zeta
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setActiveCore('fantasma')}
-                  className={`text-xs px-2 py-1 ${activeCore === 'fantasma' ? 'bg-purple-500/20 text-purple-300' : 'text-gray-400 hover:text-white'}`}
-                >
-                  <Lock className="h-3 w-3 mr-1" />
-                  Fantasma
-                </Button>
-              </div>
-              
-              <Badge className="bg-green-500/20 text-green-300 text-xs">
-                {currentCoreInfo.name}
+            {/* AI Core Display - Show current active core only */}
+            <div className="flex items-center justify-center mb-3 p-2 bg-white/5 rounded-lg">
+              <Badge className="bg-green-500/20 text-green-300 text-sm flex items-center space-x-2">
+                {React.createElement(getCoreInfo(activeCore).icon, { className: "h-4 w-4" })}
+                <span>{currentCoreInfo.name}</span>
               </Badge>
             </div>
 
@@ -1871,7 +1842,7 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <VoiceActivationPanel userId={user?.id || 1} />
+                  <VoiceActivationPanel userId={userId || 1} />
                 </CardContent>
               </Card>
 
@@ -2071,40 +2042,10 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
         </div>
         
         {/* Core Switcher - Horizontal Scroll */}
-        <div className="flex space-x-2 px-3 pb-3 overflow-x-auto scrollbar-hide">
-          <Button
-            variant={activeCore === 'zed' ? 'secondary' : 'ghost'}
-            size="sm"
-            onClick={() => setActiveCore('zed')}
-            className="mobile-button text-mobile-xs bg-white/10 hover:bg-white/20 flex-shrink-0 touch-manipulation"
-          >
-            <Database className="h-3 w-3 mr-1" />
-            Zed
-          </Button>
-          
-          <Button
-            variant={activeCore === 'zeta' ? 'secondary' : 'ghost'}
-            size="sm"
-            onClick={() => setActiveCore('zeta')}
-            className="mobile-button text-mobile-xs bg-white/10 hover:bg-white/20 flex-shrink-0 touch-manipulation"
-          >
-            <Shield className="h-3 w-3 mr-1" />
-            Zeta
-          </Button>
-          
-          <Button
-            variant={activeCore === 'fantasma' ? 'secondary' : 'ghost'}
-            size="sm"
-            onClick={() => setActiveCore('fantasma')}
-            className="mobile-button text-mobile-xs bg-white/10 hover:bg-white/20 flex-shrink-0 touch-manipulation"
-          >
-            <Lock className="h-3 w-3 mr-1" />
-            Fantasma
-          </Button>
-        </div>
+
       </header>
           
-          {/* Active Core Status */}
+          {/* Active Core Status - Simplified */}
           <div className="text-center">
             <div className="flex items-center justify-center space-x-2 mb-1">
               <CurrentIcon className="h-4 w-4" />
@@ -2115,38 +2056,7 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
             </div>
           </div>
 
-          {/* AI Core Status Pills */}
-          <div className="flex justify-center space-x-1 flex-wrap gap-1 px-2">
-            <Button
-              variant={activeCore === 'zed' ? 'secondary' : 'ghost'}
-              size="sm"
-              onClick={() => setActiveCore('zed')}
-              className="h-7 px-1.5 sm:px-2 text-xs bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20"
-            >
-              <Database className="h-3 w-3 mr-1" />
-              Zed: Active
-            </Button>
-            
-            <Button
-              variant={activeCore === 'zeta' ? 'secondary' : 'ghost'}
-              size="sm"
-              onClick={() => setActiveCore('zeta')}
-              className="h-7 px-1.5 sm:px-2 text-xs bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20"
-            >
-              <Shield className="h-3 w-3 mr-1" />
-              Zeta: Monitoring
-            </Button>
-            
-            <Button
-              variant={activeCore === 'fantasma' ? 'secondary' : 'ghost'}
-              size="sm"
-              onClick={() => setActiveCore('fantasma')}
-              className="h-7 px-1.5 sm:px-2 text-xs bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20"
-            >
-              <Lock className="h-3 w-3 mr-1" />
-              Fantasma: Secure
-            </Button>
-          </div>
+
 
       {/* Mobile Navigation - Single Row Clean Layout for 7 features */}
       <nav className="bg-black/95 backdrop-blur-sm border-t border-white/10 safe-bottom">

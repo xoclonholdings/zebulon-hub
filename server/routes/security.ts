@@ -18,6 +18,7 @@ const requireAdmin = async (req: any, res: Response, next: Function) => {
         message: 'Admin privileges required' 
       });
     }
+    console.log('🔐 Security route accessed by admin user');
     next();
   } catch (error) {
     res.status(500).json({ error: 'Authorization check failed' });
