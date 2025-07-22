@@ -240,19 +240,53 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
     enabled: !!userId,
   });
 
-  // Send message mutation with permission check
-  const sendMessageMutation = useMutation({
-    mutationFn: async (data: { message: string; aiCore: string }) => {
-      // Check if autonomous operations are allowed
-      try {
-        const autonomousCheck: any = await apiRequest(`/api/user/${userId}/permissions/autonomousOperations`, 'GET');
-        if (!autonomousCheck.hasPermission && data.message.includes('autonomous')) {
-          throw new Error('Autonomous operations require admin approval');
+  const { sendMessage: sendWebSocketMessage } = useWebSocket();
+
+  // Send message via WebSocket for real-time chat
+  const sendChatMessage = async (messageText: string) => {
+    if (!messageText.trim()) return;
+    
+    try {
+      // Check if autonomous operations are allowed for admin-level commands
+      if (messageText.toLowerCase().includes('autonomous') || messageText.toLowerCase().includes('admin')) {
+        try {
+          const autonomousCheck: any = await apiRequest(`/api/user/${userId}/permissions/autonomousOperations`, 'GET');
+          if (!autonomousCheck.hasPermission) {
+            toast({
+              title: "Permission Required",
+              description: "Autonomous operations require admin approval",
+              variant: "destructive",
+            });
+            return;
+          }
+        } catch (error) {
+          console.warn('Permission check failed, proceeding with message');
         }
-      } catch (error) {
-        console.warn('Permission check failed, proceeding with message');
       }
       
+      // Send via WebSocket for real-time processing
+      sendWebSocketMessage({
+        type: 'chat',
+        userId: userId,
+        message: messageText,
+        aiCore: activeCore
+      });
+      
+      setMessage('');
+      
+    } catch (error) {
+      console.error('Message send failed:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send message. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Legacy mutation for HTTP fallback (kept for compatibility)
+  const sendMessageMutation = useMutation({
+    mutationFn: async (data: { message: string; aiCore: string }) => {
       return apiRequest(`/api/chat/${userId}`, 'POST', data);
     },
     onSuccess: () => {
@@ -288,14 +322,29 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
 
   // Handle WebSocket messages
   useEffect(() => {
-    addMessageHandler('ai_response', (data) => {
+    const handleChatResponse = (data: any) => {
+      console.log('Received chat response:', data);
+      // Invalidate queries to refresh chat data
       queryClient.invalidateQueries({ queryKey: ['/api/chat', userId] });
-    });
+      
+      // Show success toast for successful message processing
+      if (data.userMessage && data.zedMessage) {
+        toast({
+          title: "Message Processed",
+          description: `Zed responded to your message`,
+          variant: "default",
+        });
+      }
+    };
+
+    addMessageHandler('chat_response', handleChatResponse);
+    addMessageHandler('ai_response', handleChatResponse);
 
     return () => {
+      removeMessageHandler('chat_response');
       removeMessageHandler('ai_response');
     };
-  }, [addMessageHandler, removeMessageHandler, queryClient, userId]);
+  }, [addMessageHandler, removeMessageHandler, queryClient, userId, toast]);
 
   // File upload functionality
   const handleFileUpload = (files: FileList | null) => {
@@ -1307,10 +1356,8 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
   const handleSendMessage = () => {
     if (!message.trim()) return;
     
-    sendMessageMutation.mutate({
-      message: message.trim(),
-      aiCore: activeCore
-    });
+    // Use WebSocket for real-time conversation
+    sendChatMessage(message.trim());
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {

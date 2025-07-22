@@ -88,14 +88,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const validatedData = insertChatMessageSchema.parse(data);
         
+        // Save user message first
+        const userMessage = await storage.createChatMessage({
+          ...validatedData,
+          isUser: true,
+          response: null,
+          metadata: null
+        });
+
         // Process with Local AI Engine (100% offline)
         const { processZedCoreMessage } = await import('./services/local-ai');
         const zedResponse = await processZedCoreMessage(validatedData.message, { userId: validatedData.userId });
         
-        // Save to storage
-        const chatMessage = await storage.createChatMessage({
-          ...validatedData,
-          response: zedResponse.response,
+        // Save Zed's response as separate message
+        const zedMessage = await storage.createChatMessage({
+          userId: validatedData.userId,
+          message: zedResponse.response,
+          aiCore: 'zed',
+          isUser: false,
+          response: null,
           metadata: zedResponse.metadata
         });
 
@@ -115,7 +126,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
             ws.send(JSON.stringify({
               type: 'chat_response',
-              message: chatMessage,
+              userMessage: userMessage,
+              zedMessage: zedMessage,
               queryResult,
               aiCore: 'zed'
             }));
@@ -123,7 +135,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const errorMessage = queryError instanceof Error ? queryError.message : 'Unknown error';
             ws.send(JSON.stringify({
               type: 'chat_response',
-              message: chatMessage,
+              userMessage: userMessage,
+              zedMessage: zedMessage,
               error: `Query execution failed: ${errorMessage}`,
               aiCore: 'zed'
             }));
@@ -131,7 +144,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } else {
           ws.send(JSON.stringify({
             type: 'chat_response',
-            message: chatMessage,
+            userMessage: userMessage,
+            zedMessage: zedMessage,
             aiCore: 'zed'
           }));
         }
