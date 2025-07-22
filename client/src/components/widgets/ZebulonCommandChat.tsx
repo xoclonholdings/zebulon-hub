@@ -171,7 +171,7 @@ export default function ZebulonCommandChat({ user }: ZebulonCommandChatProps) {
         <div className="relative">
           <Input
             type="text"
-            placeholder="Ask Zebulon anything..."
+            placeholder="Ask Zed..."
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyPress={handleKeyPress}

@@ -195,8 +195,50 @@ export const insertProcessAuthorizationSchema = createInsertSchema(processAuthor
   timeoutMs: true,
 });
 
+// Zebulon Configuration Table
+export const zebulonConfigs = pgTable('zebulon_configs', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id).notNull().unique(),
+  
+  // Theme settings (JSON)
+  themeSettings: text('theme_settings').default('{"primaryColor":"#8b5cf6","secondaryColor":"#3b82f6","backgroundColor":"#000000","textColor":"#ffffff","opacity":95,"glowIntensity":50,"animationSpeed":"normal","logoSize":100}'),
+  
+  // Core system settings (JSON)
+  zedCoreSettings: text('zed_core_settings').default('{"enabled":true,"responseDelay":500,"contextMemory":100,"autoApproval":false,"learningMode":true,"personality":"balanced","voiceEnabled":false,"adaptiveBehavior":false}'),
+  zetaCoreSettings: text('zeta_core_settings').default('{"enabled":true,"securityLevel":"high","autoBlock":true,"threatDetection":true,"auditLevel":"standard","alertThreshold":"medium","realTimeMonitoring":true,"behaviorAnalysis":true}'),
+  fantasmaSettings: text('fantasma_settings').default('{"enabled":true,"stealthMode":false,"scanInterval":60,"deepScanEnabled":false,"autoQuarantine":false,"trafficObfuscation":false,"logRetention":30,"emergencyMode":false}'),
+  
+  // Interface settings (JSON)
+  interfaceSettings: text('interface_settings').default('{"layout":"grid","widgetSize":"medium","chatPosition":"center","enableVoice":false,"enableGestures":false,"autoHide":false,"compactMode":false,"multiMonitor":false}'),
+  
+  // Oracle settings (JSON)
+  oracleSettings: text('oracle_settings').default('{"defaultTimeout":30,"maxConnections":5,"autoCommit":false,"queryLogging":true,"performanceMode":"balanced","compressionEnabled":false,"encryptionLevel":"standard"}'),
+  
+  // Behavioral settings (JSON)
+  behaviorSettings: text('behavior_settings').default('{"contextAwareness":75,"adaptivePersonality":true,"learningFromInteractions":true,"proactiveAssistance":false,"emotionalIntelligence":false,"customRoutines":[],"workflowAutomation":false}'),
+  
+  // Security settings (JSON)
+  securitySettings: text('security_settings').default('{"biometricAuth":false,"sessionTimeout":3600,"dataEncryption":"aes256","auditTrail":true,"anonymousMode":false,"secureDelete":true,"vpnIntegration":false}'),
+  
+  // Timestamps
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const insertZebulonConfigSchema = createInsertSchema(zebulonConfigs).pick({
+  userId: true,
+  themeSettings: true,
+  zedCoreSettings: true,
+  zetaCoreSettings: true,
+  fantasmaSettings: true,
+  interfaceSettings: true,
+  oracleSettings: true,
+  behaviorSettings: true,
+  securitySettings: true,
+});
+
 // Relations
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ many, one }) => ({
   chatMessages: many(chatMessages),
   oracleQueries: many(oracleQueries),
   userTasks: many(userTasks),
@@ -208,6 +250,14 @@ export const usersRelations = relations(users, ({ many }) => ({
   memoryAssociations: many(zedMemoryAssociations),
   conversationContexts: many(zedConversationContext),
   learningPatterns: many(zedLearningPatterns),
+  zebulonConfig: one(zebulonConfigs),
+}));
+
+export const zebulonConfigsRelations = relations(zebulonConfigs, ({ one }) => ({
+  user: one(users, {
+    fields: [zebulonConfigs.userId],
+    references: [users.id],
+  }),
 }));
 
 export const userConfigurationsRelations = relations(userConfigurations, ({ one }) => ({
@@ -410,3 +460,5 @@ export type ZedMemoryEntry = typeof zedMemoryEntries.$inferSelect;
 export type ZedMemoryAssociation = typeof zedMemoryAssociations.$inferSelect;
 export type ZedConversationContext = typeof zedConversationContext.$inferSelect;
 export type ZedLearningPattern = typeof zedLearningPatterns.$inferSelect;
+export type ZebulonConfig = typeof zebulonConfigs.$inferSelect;
+export type InsertZebulonConfig = z.infer<typeof insertZebulonConfigSchema>;

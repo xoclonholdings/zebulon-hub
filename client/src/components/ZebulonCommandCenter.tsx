@@ -30,6 +30,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { useWebSocket } from '@/hooks/use-websocket';
 import { useVoice } from '@/hooks/use-voice';
 import { OracleAdminPanel } from './OracleAdminPanel';
+import { ZebulonConfigPanel } from './ZebulonConfigPanel';
 
 interface ChatMessage {
   id: number;
@@ -78,7 +79,7 @@ interface ZebulonCommandCenterProps {
 const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, systemStatus }) => {
   const [message, setMessage] = useState('');
   const [activeCore, setActiveCore] = useState<'zed' | 'zeta' | 'fantasma'>('zed');
-  const [activeFeature, setActiveFeature] = useState<'chat' | 'calendar' | 'notes' | 'music' | 'photos' | 'status' | 'oracle'>('chat');
+  const [activeFeature, setActiveFeature] = useState<'chat' | 'calendar' | 'notes' | 'music' | 'photos' | 'status' | 'oracle' | 'config'>('chat');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
 
@@ -234,7 +235,7 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
               <div className="flex items-center space-x-2">
                 <div className="flex-1 relative">
                   <Input
-                    placeholder="Ask Zebulon anything..."
+                    placeholder="Ask Zed..."
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     onKeyPress={handleKeyPress}
@@ -366,6 +367,13 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
         return (
           <div className="w-full h-full -m-6">
             <OracleAdminPanel userId={userId} />
+          </div>
+        );
+
+      case 'config':
+        return (
+          <div className="w-full h-full -m-6">
+            <ZebulonConfigPanel userId={userId} />
           </div>
         );
 
@@ -526,9 +534,9 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
             </Button>
             
             <Button
-              variant={activeFeature === 'calendar' ? 'secondary' : 'ghost'}
+              variant={activeFeature === 'config' ? 'secondary' : 'ghost'}
               size="sm"
-              onClick={() => setActiveFeature('calendar')}
+              onClick={() => setActiveFeature('config')}
               className="h-10 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 flex-col p-1"
             >
               <Settings className="h-3 w-3 mb-1" />
@@ -548,7 +556,7 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
               <div className="flex-1 relative">
                 <input
                   type="text"
-                  placeholder="Ask Zebulon anything..."
+                  placeholder="Ask Zed..."
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
