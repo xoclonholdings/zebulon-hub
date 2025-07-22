@@ -1590,8 +1590,199 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
 
       case 'config':
         return (
-          <div className="w-full h-full -m-6">
-            <ZebulonConfigPanel userId={userId} />
+          <div className="w-full h-full -m-6 p-6 bg-black bg-opacity-95 rounded-lg text-white overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-6 border-b border-white/10 pb-4">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg">
+                  <Settings className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="font-bold text-xl bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                    System Configuration
+                  </h2>
+                  <p className="text-sm text-gray-400">Customize Zebulon AI cores and interface settings</p>
+                </div>
+              </div>
+              <Badge className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-300 border border-blue-400/30">
+                Advanced
+              </Badge>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full overflow-y-auto">
+              {/* Zed Core Configuration */}
+              <Card className="bg-white/10 border border-white/20">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2 text-blue-400">
+                    <Brain className="h-5 w-5" />
+                    <span>Zed Core Settings</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-white">Response Style</Label>
+                    <Select defaultValue="professional">
+                      <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="professional">Professional</SelectItem>
+                        <SelectItem value="casual">Casual</SelectItem>
+                        <SelectItem value="technical">Technical</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-white">Context Memory</Label>
+                    <Slider defaultValue={[75]} max={100} step={5} className="w-full" />
+                    <div className="text-xs text-gray-400">Memory retention: 75%</div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <Label className="text-white">Voice Commands</Label>
+                    <Switch defaultChecked />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <Label className="text-white">Auto-Learning</Label>
+                    <Switch defaultChecked />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Zeta Core Security */}
+              <Card className="bg-white/10 border border-white/20">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2 text-green-400">
+                    <Shield className="h-5 w-5" />
+                    <span>Zeta Security Settings</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-white">Security Level</Label>
+                    <Select defaultValue="high">
+                      <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="minimal">Minimal</SelectItem>
+                        <SelectItem value="standard">Standard</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                        <SelectItem value="maximum">Maximum</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-white">Threat Detection</Label>
+                    <Slider defaultValue={[90]} max={100} step={5} className="w-full" />
+                    <div className="text-xs text-gray-400">Sensitivity: 90%</div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <Label className="text-white">Real-time Monitoring</Label>
+                    <Switch defaultChecked />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <Label className="text-white">Auto-Block Threats</Label>
+                    <Switch defaultChecked />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Fantasma Firewall */}
+              <Card className="bg-white/10 border border-white/20">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2 text-purple-400">
+                    <Eye className="h-5 w-5" />
+                    <span>Fantasma Firewall</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-white">Stealth Mode</Label>
+                    <Select defaultValue="active">
+                      <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="disabled">Disabled</SelectItem>
+                        <SelectItem value="passive">Passive</SelectItem>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="maximum">Maximum</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-white">Scan Frequency</Label>
+                    <Slider defaultValue={[60]} max={180} min={5} step={5} className="w-full" />
+                    <div className="text-xs text-gray-400">Every 60 minutes</div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <Label className="text-white">Behavioral Cloaking</Label>
+                    <Switch defaultChecked />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <Label className="text-white">Fanflux Log Purging</Label>
+                    <Switch defaultChecked />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Interface Theme */}
+              <Card className="bg-white/10 border border-white/20">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2 text-pink-400">
+                    <Palette className="h-5 w-5" />
+                    <span>Interface Theme</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-white">Primary Color</Label>
+                    <div className="flex space-x-2">
+                      <div className="w-8 h-8 rounded bg-gradient-to-r from-pink-500 to-blue-500 border-2 border-white cursor-pointer"></div>
+                      <div className="w-8 h-8 rounded bg-gradient-to-r from-green-500 to-blue-500 border border-white/30 cursor-pointer"></div>
+                      <div className="w-8 h-8 rounded bg-gradient-to-r from-purple-500 to-pink-500 border border-white/30 cursor-pointer"></div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-white">Glow Intensity</Label>
+                    <Slider defaultValue={[80]} max={100} step={5} className="w-full" />
+                    <div className="text-xs text-gray-400">Intensity: 80%</div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <Label className="text-white">Animations</Label>
+                    <Switch defaultChecked />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <Label className="text-white">Mobile Optimization</Label>
+                    <Switch defaultChecked />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-white/10">
+              <Button variant="outline" className="text-white border-white/30">
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Reset to Defaults
+              </Button>
+              <Button className="bg-gradient-to-r from-pink-500 to-blue-500 text-white">
+                <Save className="h-4 w-4 mr-2" />
+                Save Configuration
+              </Button>
+            </div>
           </div>
         );
 
