@@ -589,5 +589,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Security vulnerability scanning endpoints
+  app.get("/api/security/scan", async (req, res) => {
+    try {
+      const { vulnerabilityScanner } = await import("./security/vulnerability-scanner");
+      const report = await vulnerabilityScanner.performSecurityScan();
+      res.json(report);
+    } catch (error) {
+      res.status(500).json({ error: "Security scan failed" });
+    }
+  });
+
+  app.get("/api/security/status", async (req, res) => {
+    try {
+      const { vulnerabilityScanner } = await import("./security/vulnerability-scanner");
+      const report = await vulnerabilityScanner.performSecurityScan();
+      
+      res.json({
+        securityLevel: report.critical === 0 && report.high < 3 ? 'high' : 
+                      report.critical === 0 ? 'medium' : 'low',
+        vulnerabilities: report.totalVulnerabilities,
+        encrypted: report.systemHealth.encryptionStatus,
+        lastScan: report.timestamp,
+        systemHealth: report.systemHealth
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Security status check failed" });
+    }
+  });
+
   return httpServer;
 }
