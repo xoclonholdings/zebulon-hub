@@ -499,6 +499,25 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
         <CardContent className="flex-1 flex flex-col pt-0">
           {renderFeatureContent()}
         </CardContent>
+
+        {/* Chat Input Area */}
+        <div className="p-4 border-t border-white border-opacity-10">
+          <div className="flex items-center space-x-2">
+            <div className="flex-1 relative">
+              <input
+                type="text"
+                placeholder="Ask Zebulon anything..."
+                className="w-full bg-white bg-opacity-10 border border-white border-opacity-20 rounded-full px-4 py-2 text-white placeholder-white placeholder-opacity-60 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+              />
+            </div>
+            <button className="p-2 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 rounded-full transition-all">
+              <Mic className="h-4 w-4 text-white" />
+            </button>
+            <button className="p-2 bg-primary hover:bg-primary/80 rounded-full transition-all">
+              <Send className="h-4 w-4 text-white" />
+            </button>
+          </div>
+        </div>
       </Card>
     </div>
   );
