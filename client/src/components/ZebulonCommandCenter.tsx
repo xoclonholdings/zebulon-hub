@@ -82,11 +82,11 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
 
   const { addMessageHandler, removeMessageHandler } = useWebSocket();
   const { 
-    isListening, 
-    transcript, 
-    startListening, 
-    stopListening, 
-    isSupported 
+    isRecording,
+    isProcessing,
+    startRecording,
+    stopRecording,
+    recordAndProcess
   } = useVoice();
 
   // Fetch chat messages
@@ -111,11 +111,22 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
   }, [messages]);
 
   // Handle voice input
-  useEffect(() => {
-    if (transcript && !isListening) {
-      setMessage(transcript);
+  const handleVoiceRecording = async () => {
+    if (isRecording) {
+      try {
+        const audioBlob = await stopRecording();
+        await recordAndProcess(audioBlob, userId, (result) => {
+          if (result.transcription?.text) {
+            setMessage(result.transcription.text);
+          }
+        });
+      } catch (error) {
+        console.error('Voice recording failed:', error);
+      }
+    } else {
+      await startRecording();
     }
-  }, [transcript, isListening]);
+  };
 
   // Handle WebSocket messages
   useEffect(() => {
@@ -230,20 +241,18 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
                   />
                   
                   {/* Voice Input Button */}
-                  {isSupported && (
-                    <Button
+                  <Button
                       variant="ghost"
                       size="sm"
                       className="absolute right-1 top-1 h-8 w-8 p-0 hover:bg-white hover:bg-opacity-10"
-                      onClick={isListening ? stopListening : startListening}
+                      onClick={handleVoiceRecording}
                     >
-                      {isListening ? (
+                      {isRecording ? (
                         <MicOff className="h-4 w-4 text-red-400" />
                       ) : (
                         <Mic className="h-4 w-4" />
                       )}
                     </Button>
-                  )}
                 </div>
                 
                 <Button
@@ -257,10 +266,12 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
               </div>
 
               {/* Voice Feedback */}
-              {isListening && (
+              {(isRecording || isProcessing) && (
                 <div className="flex items-center justify-center space-x-2 text-sm">
                   <Activity className="h-4 w-4 animate-pulse text-red-400" />
-                  <span className="text-white text-opacity-75">Listening...</span>
+                  <span className="text-white text-opacity-75">
+                    {isRecording ? 'Recording...' : 'Processing...'}
+                  </span>
                 </div>
               )}
             </div>
