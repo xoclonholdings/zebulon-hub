@@ -88,8 +88,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const validatedData = insertChatMessageSchema.parse(data);
         
-        // Process with Zed Core
-        const zedResponse = await processZedCoreMessage(validatedData.message);
+        // Process with Local AI Engine (100% offline)
+        const { processZedCoreMessage } = await import('./services/local-ai');
+        const zedResponse = await processZedCoreMessage(validatedData.message, { userId: validatedData.userId });
         
         // Save to storage
         const chatMessage = await storage.createChatMessage({

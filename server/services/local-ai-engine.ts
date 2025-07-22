@@ -420,7 +420,7 @@ export default utils;`;
       'component': 'jsx',
       'utility': 'javascript'
     };
-    return languages[type] || 'javascript';
+    return languages[type as keyof typeof languages] || 'javascript';
   }
 
   private explainCodePurpose(type: string, message: string): string {
@@ -431,7 +431,7 @@ export default utils;`;
       'component': 'a React component with state management and data fetching',
       'utility': 'utility functions for common programming tasks'
     };
-    return purposes[type] || 'a code solution for your requirements';
+    return purposes[type as keyof typeof purposes] || 'a code solution for your requirements';
   }
 
   private async analyzeData(message: string, context?: any): Promise<{
@@ -531,7 +531,7 @@ This analysis provides actionable intelligence for your decision-making process.
       }
     };
 
-    return insights[type] || {
+    return insights[type as keyof typeof insights] || {
       summary: 'Analysis complete with actionable insights identified.',
       points: [
         'Data quality is good with minimal anomalies',
@@ -694,7 +694,7 @@ Would you like me to elaborate on any of these areas?`,
 I'm here to provide intelligent assistance across a wide range of topics. Whether you need technical help, analysis, or just want to explore ideas, I'm ready to engage in meaningful conversation.`
     };
 
-    return responses[type] || responses['conversational'];
+    return responses[type as keyof typeof responses] || responses['conversational'];
   }
 
   private generateExplanation(message: string): string {
