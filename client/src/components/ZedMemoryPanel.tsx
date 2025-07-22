@@ -57,30 +57,31 @@ export function ZedMemoryPanel({ userId }: ZedMemoryPanelProps) {
   // Fetch memory statistics
   const { data: memoryStats } = useQuery<MemoryStats>({
     queryKey: ['/api/memory', userId, 'stats'],
-    queryFn: () => apiRequest(`/api/memory/${userId}/stats`)
+    queryFn: async () => {
+      const res = await apiRequest(`/api/memory/${userId}/stats`);
+      return await res.json();
+    }
   });
 
   // Search memories
   const { data: memories, isLoading: searchingMemories } = useQuery<MemoryEntry[]>({
     queryKey: ['/api/memory', userId, 'search', searchQuery, selectedType, selectedCategory],
-    queryFn: () => {
+    queryFn: async () => {
       const params = new URLSearchParams();
       if (searchQuery) params.set('q', searchQuery);
       if (selectedType) params.set('types', selectedType);
       if (selectedCategory) params.set('categories', selectedCategory);
       params.set('limit', '50');
       
-      return apiRequest(`/api/memory/${userId}/search?${params.toString()}`);
+      const res = await apiRequest(`/api/memory/${userId}/search?${params.toString()}`);
+      return await res.json();
     }
   });
 
   // Create memory mutation
   const createMemoryMutation = useMutation({
     mutationFn: (memoryData: any) => 
-      apiRequest(`/api/memory/${userId}/remember`, {
-        method: 'POST',
-        body: JSON.stringify(memoryData)
-      }),
+      apiRequest(`/api/memory/${userId}/remember`, 'POST', memoryData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/memory', userId] });
       setNewMemory({ type: 'fact', category: 'general', content: '', importance: 5 });

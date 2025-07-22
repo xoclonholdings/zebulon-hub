@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, varchar, real, uuid } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { relations } from "drizzle-orm";
 import { z } from "zod";
@@ -238,6 +238,157 @@ export const zedConversationContextRelations = relations(zedConversationContext,
 export const zedLearningPatternsRelations = relations(zedLearningPatterns, ({ one }) => ({
   user: one(users, { fields: [zedLearningPatterns.userId], references: [users.id] }),
 }));
+
+// Oracle Administration Tables
+export const oracleConnections = pgTable("oracle_connections", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  connectionName: text("connection_name").notNull(),
+  host: text("host").notNull(),
+  port: integer("port").default(1521),
+  serviceName: text("service_name").notNull(),
+  username: text("username").notNull(),
+  encryptedPassword: text("encrypted_password").notNull(), // AES encrypted
+  connectionString: text("connection_string"),
+  isActive: boolean("is_active").default(true),
+  lastTested: timestamp("last_tested"),
+  testResult: text("test_result"), // "success" | "failed" | "timeout"
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const oracleSchemas = pgTable("oracle_schemas", {
+  id: serial("id").primaryKey(),
+  connectionId: integer("connection_id").references(() => oracleConnections.id).notNull(),
+  schemaName: text("schema_name").notNull(),
+  isSystem: boolean("is_system").default(false),
+  objectCount: integer("object_count").default(0),
+  sizeBytes: integer("size_bytes").default(0),
+  lastAnalyzed: timestamp("last_analyzed"),
+  privileges: jsonb("privileges"), // user privileges on this schema
+});
+
+export const oracleObjects = pgTable("oracle_objects", {
+  id: serial("id").primaryKey(),
+  schemaId: integer("schema_id").references(() => oracleSchemas.id).notNull(),
+  objectName: text("object_name").notNull(),
+  objectType: text("object_type").notNull(), // TABLE, VIEW, PROCEDURE, FUNCTION, etc.
+  status: text("status").notNull(), // VALID, INVALID
+  created: timestamp("created"),
+  lastDdlTime: timestamp("last_ddl_time"),
+  metadata: jsonb("metadata"), // columns, indexes, etc.
+});
+
+export const oracleQueryHistory = pgTable("oracle_query_history", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  connectionId: integer("connection_id").references(() => oracleConnections.id).notNull(),
+  queryText: text("query_text").notNull(),
+  queryHash: text("query_hash").notNull(), // SHA256 for deduplication
+  executionTime: real("execution_time"), // in seconds
+  rowsAffected: integer("rows_affected"),
+  status: text("status").notNull(), // "success" | "error" | "timeout"
+  errorMessage: text("error_message"),
+  zetaSecurityCheck: jsonb("zeta_security_check"), // Zeta Core security analysis
+  securityRisk: text("security_risk").default("low"), // "low" | "medium" | "high" | "critical"
+  executedAt: timestamp("executed_at").defaultNow(),
+});
+
+export const oracleSecurityAudits = pgTable("oracle_security_audits", {
+  id: serial("id").primaryKey(),
+  connectionId: integer("connection_id").references(() => oracleConnections.id).notNull(),
+  auditType: text("audit_type").notNull(), // "login" | "query" | "ddl" | "privilege_escalation"
+  userId: integer("user_id").references(() => users.id).notNull(),
+  oracleUser: text("oracle_user").notNull(), // Oracle username
+  operation: text("operation").notNull(),
+  objectName: text("object_name"),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  riskLevel: text("risk_level").default("low"), // Zeta Core risk assessment
+  blocked: boolean("blocked").default(false), // Whether Zeta blocked the operation
+  zetaResponse: jsonb("zeta_response"), // Zeta Core analysis details
+  timestamp: timestamp("timestamp").defaultNow(),
+});
+
+export const oraclePerformanceMetrics = pgTable("oracle_performance_metrics", {
+  id: serial("id").primaryKey(),
+  connectionId: integer("connection_id").references(() => oracleConnections.id).notNull(),
+  metricType: text("metric_type").notNull(), // "cpu" | "memory" | "io" | "sessions" | "locks"
+  value: real("value").notNull(),
+  unit: text("unit").notNull(), // "percent" | "mb" | "seconds" | "count"
+  threshold: real("threshold"), // alert threshold
+  status: text("status").default("normal"), // "normal" | "warning" | "critical"
+  collectedAt: timestamp("collected_at").defaultNow(),
+});
+
+// Insert schemas for Oracle administration
+export const insertOracleConnectionSchema = createInsertSchema(oracleConnections).pick({
+  userId: true,
+  connectionName: true,
+  host: true,
+  port: true,
+  serviceName: true,
+  username: true,
+  encryptedPassword: true,
+});
+
+export const insertOracleQueryHistorySchema = createInsertSchema(oracleQueryHistory).pick({
+  userId: true,
+  connectionId: true,
+  queryText: true,
+  queryHash: true,
+});
+
+export const insertOracleSecurityAuditSchema = createInsertSchema(oracleSecurityAudits).pick({
+  connectionId: true,
+  auditType: true,
+  userId: true,
+  oracleUser: true,
+  operation: true,
+  objectName: true,
+  riskLevel: true,
+});
+
+// Relations for Oracle administration
+export const oracleConnectionsRelations = relations(oracleConnections, ({ one, many }) => ({
+  user: one(users, { fields: [oracleConnections.userId], references: [users.id] }),
+  schemas: many(oracleSchemas),
+  queryHistory: many(oracleQueryHistory),
+  securityAudits: many(oracleSecurityAudits),
+  performanceMetrics: many(oraclePerformanceMetrics),
+}));
+
+export const oracleSchemasRelations = relations(oracleSchemas, ({ one, many }) => ({
+  connection: one(oracleConnections, { fields: [oracleSchemas.connectionId], references: [oracleConnections.id] }),
+  objects: many(oracleObjects),
+}));
+
+export const oracleObjectsRelations = relations(oracleObjects, ({ one }) => ({
+  schema: one(oracleSchemas, { fields: [oracleObjects.schemaId], references: [oracleSchemas.id] }),
+}));
+
+export const oracleQueryHistoryRelations = relations(oracleQueryHistory, ({ one }) => ({
+  user: one(users, { fields: [oracleQueryHistory.userId], references: [users.id] }),
+  connection: one(oracleConnections, { fields: [oracleQueryHistory.connectionId], references: [oracleConnections.id] }),
+}));
+
+export const oracleSecurityAuditsRelations = relations(oracleSecurityAudits, ({ one }) => ({
+  connection: one(oracleConnections, { fields: [oracleSecurityAudits.connectionId], references: [oracleConnections.id] }),
+  user: one(users, { fields: [oracleSecurityAudits.userId], references: [users.id] }),
+}));
+
+export const oraclePerformanceMetricsRelations = relations(oraclePerformanceMetrics, ({ one }) => ({
+  connection: one(oracleConnections, { fields: [oraclePerformanceMetrics.connectionId], references: [oracleConnections.id] }),
+}));
+
+// Type exports
+export type OracleConnection = typeof oracleConnections.$inferSelect;
+export type InsertOracleConnection = typeof oracleConnections.$inferInsert;
+export type OracleSchema = typeof oracleSchemas.$inferSelect;
+export type OracleObject = typeof oracleObjects.$inferSelect;
+export type OracleQueryHistory = typeof oracleQueryHistory.$inferSelect;
+export type OracleSecurityAudit = typeof oracleSecurityAudits.$inferSelect;
+export type OraclePerformanceMetric = typeof oraclePerformanceMetrics.$inferSelect;
 
 // Types
 export type User = typeof users.$inferSelect;

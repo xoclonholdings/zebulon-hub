@@ -107,13 +107,19 @@ export default function ZedConfigPanel({ userId }: ZedConfigPanelProps) {
   // Fetch user configuration
   const { data: config, isLoading: configLoading } = useQuery<UserConfig>({
     queryKey: ['/api/config', userId],
-    queryFn: () => apiRequest(`/api/config/${userId}`)
+    queryFn: async () => {
+      const res = await apiRequest(`/api/config/${userId}`);
+      return await res.json();
+    }
   });
 
   // Fetch pending authorizations
   const { data: authorizations, isLoading: authLoading } = useQuery<any[]>({
     queryKey: ['/api/authorizations', userId],
-    queryFn: () => apiRequest(`/api/authorizations/${userId}`)
+    queryFn: async () => {
+      const res = await apiRequest(`/api/authorizations/${userId}`);
+      return await res.json();
+    }
   });
 
   // Update configuration mutation

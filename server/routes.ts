@@ -629,6 +629,129 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Oracle Administration Routes
+  app.post('/api/oracle/connections', async (req, res) => {
+    try {
+      const { oracleAdminService } = await import('./services/oracle-admin');
+      const { insertOracleConnectionSchema } = await import('@shared/schema');
+      
+      const validatedData = insertOracleConnectionSchema.parse(req.body);
+      const connection = await oracleAdminService.createConnection(validatedData.userId, {
+        connectionName: validatedData.connectionName,
+        host: validatedData.host,
+        port: validatedData.port || 1521,
+        serviceName: validatedData.serviceName,
+        username: validatedData.username,
+        password: req.body.password // Raw password, will be encrypted
+      });
+      
+      res.json(connection);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ message: errorMessage });
+    }
+  });
+
+  app.get('/api/oracle/connections/:userId', async (req, res) => {
+    try {
+      const { db } = await import('./db');
+      const { oracleConnections } = await import('@shared/schema');
+      const { eq } = await import('drizzle-orm');
+      
+      const userId = parseInt(req.params.userId);
+      const connections = await db.select().from(oracleConnections).where(eq(oracleConnections.userId, userId));
+      res.json(connections);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ message: errorMessage });
+    }
+  });
+
+  app.post('/api/oracle/execute', async (req, res) => {
+    try {
+      const { oracleAdminService } = await import('./services/oracle-admin');
+      const { userId, connectionId, query, timeout } = req.body;
+      
+      const result = await oracleAdminService.executeQuery(userId, connectionId, query, { timeout });
+      res.json(result);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ message: errorMessage });
+    }
+  });
+
+  app.get('/api/oracle/schemas/:connectionId', async (req, res) => {
+    try {
+      const { db } = await import('./db');
+      const { oracleSchemas } = await import('@shared/schema');
+      const { eq } = await import('drizzle-orm');
+      
+      const connectionId = parseInt(req.params.connectionId);
+      const schemas = await db.select().from(oracleSchemas).where(eq(oracleSchemas.connectionId, connectionId));
+      res.json(schemas);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ message: errorMessage });
+    }
+  });
+
+  app.get('/api/oracle/history/:userId', async (req, res) => {
+    try {
+      const { db } = await import('./db');
+      const { oracleQueryHistory } = await import('@shared/schema');
+      const { eq, desc } = await import('drizzle-orm');
+      
+      const userId = parseInt(req.params.userId);
+      const limit = parseInt(req.query.limit as string) || 50;
+      
+      const history = await db.select()
+        .from(oracleQueryHistory)
+        .where(eq(oracleQueryHistory.userId, userId))
+        .orderBy(desc(oracleQueryHistory.executedAt))
+        .limit(limit);
+      
+      res.json(history);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ message: errorMessage });
+    }
+  });
+
+  app.get('/api/oracle/security-audits/:userId', async (req, res) => {
+    try {
+      const { db } = await import('./db');
+      const { oracleSecurityAudits } = await import('@shared/schema');
+      const { eq, desc } = await import('drizzle-orm');
+      
+      const userId = parseInt(req.params.userId);
+      const limit = parseInt(req.query.limit as string) || 20;
+      
+      const audits = await db.select()
+        .from(oracleSecurityAudits)
+        .where(eq(oracleSecurityAudits.userId, userId))
+        .orderBy(desc(oracleSecurityAudits.timestamp))
+        .limit(limit);
+      
+      res.json(audits);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ message: errorMessage });
+    }
+  });
+
+  app.get('/api/oracle/dashboard/:userId', async (req, res) => {
+    try {
+      const { oracleAdminService } = await import('./services/oracle-admin');
+      const userId = parseInt(req.params.userId);
+      
+      const metrics = await oracleAdminService.getDashboardMetrics(userId);
+      res.json(metrics);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ message: errorMessage });
+    }
+  });
+
   // Serve static assets
   app.use('/attached_assets', express.static('attached_assets'));
 

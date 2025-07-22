@@ -29,6 +29,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useWebSocket } from '@/hooks/use-websocket';
 import { useVoice } from '@/hooks/use-voice';
+import { OracleAdminPanel } from './OracleAdminPanel';
 
 interface ChatMessage {
   id: number;
@@ -77,7 +78,7 @@ interface ZebulonCommandCenterProps {
 const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, systemStatus }) => {
   const [message, setMessage] = useState('');
   const [activeCore, setActiveCore] = useState<'zed' | 'zeta' | 'fantasma'>('zed');
-  const [activeFeature, setActiveFeature] = useState<'chat' | 'calendar' | 'notes' | 'music' | 'photos' | 'status'>('chat');
+  const [activeFeature, setActiveFeature] = useState<'chat' | 'calendar' | 'notes' | 'music' | 'photos' | 'status' | 'oracle'>('chat');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
 
@@ -361,6 +362,13 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
           </div>
         );
 
+      case 'oracle':
+        return (
+          <div className="w-full h-full -m-6">
+            <OracleAdminPanel userId={userId} />
+          </div>
+        );
+
       default:
         return (
           <div className="text-center text-white text-opacity-75 py-8">
@@ -445,15 +453,15 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
             </Button>
           </div>
 
-          {/* Feature Navigation Buttons - 3x2 grid */}
-          <div className="grid grid-cols-3 gap-2">
+          {/* Feature Navigation Buttons - 3x3 grid */}
+          <div className="grid grid-cols-3 gap-1">
             <Button
               variant={activeFeature === 'chat' ? 'secondary' : 'ghost'}
               size="sm"
               onClick={() => setActiveFeature('chat')}
-              className="h-12 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 flex-col p-1"
+              className="h-10 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 flex-col p-1"
             >
-              <Brain className="h-4 w-4 mb-1" />
+              <Brain className="h-3 w-3 mb-1" />
               <span className="text-xs">Chat</span>
             </Button>
             
@@ -461,19 +469,29 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
               variant={activeFeature === 'status' ? 'secondary' : 'ghost'}
               size="sm"
               onClick={() => setActiveFeature('status')}
-              className="h-12 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 flex-col p-1"
+              className="h-10 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 flex-col p-1"
             >
-              <BarChart3 className="h-4 w-4 mb-1" />
+              <BarChart3 className="h-3 w-3 mb-1" />
               <span className="text-xs">Status</span>
+            </Button>
+            
+            <Button
+              variant={activeFeature === 'oracle' ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => setActiveFeature('oracle')}
+              className="h-10 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 flex-col p-1"
+            >
+              <Database className="h-3 w-3 mb-1" />
+              <span className="text-xs">Oracle</span>
             </Button>
             
             <Button
               variant={activeFeature === 'calendar' ? 'secondary' : 'ghost'}
               size="sm"
               onClick={() => setActiveFeature('calendar')}
-              className="h-12 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 flex-col p-1"
+              className="h-10 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 flex-col p-1"
             >
-              <Calendar className="h-4 w-4 mb-1" />
+              <Calendar className="h-3 w-3 mb-1" />
               <span className="text-xs">Calendar</span>
             </Button>
             
@@ -481,9 +499,9 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
               variant={activeFeature === 'notes' ? 'secondary' : 'ghost'}
               size="sm"
               onClick={() => setActiveFeature('notes')}
-              className="h-12 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 flex-col p-1"
+              className="h-10 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 flex-col p-1"
             >
-              <FileText className="h-4 w-4 mb-1" />
+              <FileText className="h-3 w-3 mb-1" />
               <span className="text-xs">Notes</span>
             </Button>
             
@@ -491,9 +509,9 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
               variant={activeFeature === 'music' ? 'secondary' : 'ghost'}
               size="sm"
               onClick={() => setActiveFeature('music')}
-              className="h-12 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 flex-col p-1"
+              className="h-10 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 flex-col p-1"
             >
-              <Music className="h-4 w-4 mb-1" />
+              <Music className="h-3 w-3 mb-1" />
               <span className="text-xs">Music</span>
             </Button>
             
@@ -501,10 +519,20 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
               variant={activeFeature === 'photos' ? 'secondary' : 'ghost'}
               size="sm"
               onClick={() => setActiveFeature('photos')}
-              className="h-12 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 flex-col p-1"
+              className="h-10 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 flex-col p-1"
             >
-              <Camera className="h-4 w-4 mb-1" />
+              <Camera className="h-3 w-3 mb-1" />
               <span className="text-xs">Photos</span>
+            </Button>
+            
+            <Button
+              variant={activeFeature === 'calendar' ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => setActiveFeature('calendar')}
+              className="h-10 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 flex-col p-1"
+            >
+              <Settings className="h-3 w-3 mb-1" />
+              <span className="text-xs">Config</span>
             </Button>
           </div>
         </CardHeader>
@@ -513,24 +541,40 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
           {renderFeatureContent()}
         </CardContent>
 
-        {/* Chat Input Area */}
-        <div className="p-4 border-t border-white border-opacity-10">
-          <div className="flex items-center space-x-2">
-            <div className="flex-1 relative">
-              <input
-                type="text"
-                placeholder="Ask Zebulon anything..."
-                className="w-full bg-white bg-opacity-10 border border-white border-opacity-20 rounded-full px-4 py-2 text-white placeholder-white placeholder-opacity-60 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
-              />
+        {/* Chat Input Area - Only show when not in chat mode */}
+        {activeFeature !== 'chat' && (
+          <div className="p-4 border-t border-white border-opacity-10">
+            <div className="flex items-center space-x-2">
+              <div className="flex-1 relative">
+                <input
+                  type="text"
+                  placeholder="Ask Zebulon anything..."
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  className="w-full bg-white bg-opacity-10 border border-white border-opacity-20 rounded-full px-4 py-2 text-white placeholder-white placeholder-opacity-60 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                />
+              </div>
+              <button 
+                className="p-2 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 rounded-full transition-all"
+                onClick={handleVoiceRecording}
+              >
+                {isRecording ? (
+                  <MicOff className="h-4 w-4 text-red-400" />
+                ) : (
+                  <Mic className="h-4 w-4 text-white" />
+                )}
+              </button>
+              <button 
+                className="p-2 bg-primary hover:bg-primary/80 rounded-full transition-all"
+                onClick={handleSendMessage}
+                disabled={!message.trim() || sendMessageMutation.isPending}
+              >
+                <Send className="h-4 w-4 text-white" />
+              </button>
             </div>
-            <button className="p-2 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 rounded-full transition-all">
-              <Mic className="h-4 w-4 text-white" />
-            </button>
-            <button className="p-2 bg-primary hover:bg-primary/80 rounded-full transition-all">
-              <Send className="h-4 w-4 text-white" />
-            </button>
           </div>
-        </div>
+        )}
       </Card>
     </div>
   );

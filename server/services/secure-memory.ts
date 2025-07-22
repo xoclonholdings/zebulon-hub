@@ -66,7 +66,7 @@ export class SecureMemoryService {
       
       // Decrypt context tags
       const decryptedTags = memory.contextTags ? 
-        memory.contextTags.map((encTag: string) => {
+        memory.contextTags.map((encTag: any) => {
           try {
             return encryptionService.decrypt({
               encryptedData: encTag,
