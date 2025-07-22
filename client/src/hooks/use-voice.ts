@@ -27,6 +27,14 @@ export function useVoice() {
       setIsRecording(true);
     } catch (error) {
       console.error('Failed to start recording:', error);
+      // Show Zebulon-specific error message
+      if (error instanceof Error && error.name === 'NotAllowedError') {
+        alert('Zebulon™️ needs microphone access to process voice commands. Please allow microphone access and try again.');
+      } else if (error instanceof Error && error.name === 'NotFoundError') {
+        alert('Zebulon™️ could not detect a microphone. Please check your device settings.');
+      } else {
+        alert('Zebulon™️ voice system encountered an error. Please try again.');
+      }
     }
   }, []);
 

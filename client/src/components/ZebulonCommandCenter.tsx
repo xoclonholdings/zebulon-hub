@@ -196,6 +196,8 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
         setMessage("Voice input processed by Zed Core");
       } catch (error) {
         console.error('Voice recording failed:', error);
+        // Show Zebulon-specific error message
+        setMessage('Zed Core: Voice processing is currently unavailable. Please type your request.');
       }
     } else {
       await startRecording();
