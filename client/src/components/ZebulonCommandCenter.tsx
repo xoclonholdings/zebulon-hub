@@ -47,6 +47,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useWebSocket } from '@/hooks/use-websocket';
 import { useVoice } from '@/hooks/use-voice';
+import { useToast } from '@/hooks/use-toast';
 import { OracleAdminPanel } from './OracleAdminPanel';
 import ZebulonConfigPanel from './ZebulonConfigPanel';
 import { AdminLoginModal } from './AdminLoginModal';
@@ -98,6 +99,7 @@ interface ZebulonCommandCenterProps {
 }
 
 const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, systemStatus }) => {
+  const { toast } = useToast();
   const [message, setMessage] = useState('');
   const [activeCore, setActiveCore] = useState<'zed' | 'zeta' | 'fantasma'>('zed');
   const [activeFeature, setActiveFeature] = useState<'chat' | 'calendar' | 'music' | 'photos' | 'status' | 'oracle' | 'config' | 'files' | 'admin' | 'notes'>('chat');
@@ -598,14 +600,44 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
   // Photos Interface
   const renderPhotosInterface = () => {
     const createAlbum = () => {
-      if (newAlbumName.trim()) {
-        setPhotoAlbums([...photoAlbums, {
+      console.log('Create album clicked:', { newAlbumName, currentAlbums: photoAlbums.length });
+      
+      if (!newAlbumName.trim()) {
+        console.warn('Album name is empty, cannot create album');
+        return;
+      }
+      
+      try {
+        const newAlbum = {
           id: Date.now(),
-          name: newAlbumName,
+          name: newAlbumName.trim(),
           photos: [],
           date: new Date().toISOString().split('T')[0]
-        }]);
+        };
+        
+        console.log('Creating new album:', newAlbum);
+        
+        setPhotoAlbums(prevAlbums => {
+          const updatedAlbums = [...prevAlbums, newAlbum];
+          console.log('Albums updated:', updatedAlbums);
+          return updatedAlbums;
+        });
+        
         setNewAlbumName('');
+        console.log('Album creation completed successfully');
+        
+        toast({
+          title: "Album Created",
+          description: `"${newAlbum.name}" has been created successfully`,
+          duration: 3000,
+        });
+      } catch (error) {
+        console.error('Error creating album:', error);
+        toast({
+          title: "Error",
+          description: "Failed to create album. Please try again.",
+          variant: "destructive",
+        });
       }
     };
 
@@ -647,11 +679,21 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
                 placeholder="Album name..."
                 value={newAlbumName}
                 onChange={(e) => setNewAlbumName(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && newAlbumName.trim()) {
+                    createAlbum();
+                  }
+                }}
                 className="flex-1 bg-white/10 border-white/20 text-white placeholder:text-gray-400"
               />
               <Button 
-                onClick={createAlbum} 
-                className="bg-gradient-to-r from-pink-500 to-blue-500 text-white whitespace-nowrap px-4"
+                onClick={(e) => {
+                  e.preventDefault();
+                  console.log('Button clicked, album name:', newAlbumName);
+                  createAlbum();
+                }} 
+                disabled={!newAlbumName.trim()}
+                className="bg-gradient-to-r from-pink-500 to-blue-500 text-white whitespace-nowrap px-4 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Create Album
