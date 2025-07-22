@@ -99,7 +99,7 @@ interface ZebulonCommandCenterProps {
 const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, systemStatus }) => {
   const [message, setMessage] = useState('');
   const [activeCore, setActiveCore] = useState<'zed' | 'zeta' | 'fantasma'>('zed');
-  const [activeFeature, setActiveFeature] = useState<'chat' | 'calendar' | 'notes' | 'music' | 'photos' | 'status' | 'oracle' | 'config' | 'files' | 'admin'>('chat');
+  const [activeFeature, setActiveFeature] = useState<'chat' | 'calendar' | 'music' | 'photos' | 'status' | 'oracle' | 'config' | 'files' | 'admin'>('chat');
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [uploadProgress, setUploadProgress] = useState<{[key: string]: number}>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -109,10 +109,7 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
   const [currentAdmin, setCurrentAdmin] = useState<any>(null);
   const [userPermissions, setUserPermissions] = useState<any>({});
   
-  // Notes functionality
-  const [notes, setNotes] = useState<Array<{id: number, title: string, content: string, date: string}>>([]);
-  const [newNote, setNewNote] = useState({title: '', content: ''});
-  const [editingNote, setEditingNote] = useState<number | null>(null);
+
   
   // Calendar functionality  
   const [calendarEvents, setCalendarEvents] = useState<Array<{id: number, title: string, date: string, time: string, description: string}>>([]);
@@ -441,100 +438,7 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
     );
   };
 
-  // Notes Interface
-  const renderNotesInterface = () => {
-    const addNote = () => {
-      if (newNote.title.trim() && newNote.content.trim()) {
-        setNotes([...notes, {
-          id: Date.now(),
-          title: newNote.title,
-          content: newNote.content,
-          date: new Date().toISOString().split('T')[0]
-        }]);
-        setNewNote({title: '', content: ''});
-      }
-    };
 
-    const deleteNote = (id: number) => {
-      setNotes(notes.filter(note => note.id !== id));
-      if (editingNote === id) setEditingNote(null);
-    };
-
-    return (
-      <div className="w-full h-full -m-6 p-6 bg-black bg-opacity-95 rounded-lg text-white overflow-hidden">
-        <div className="flex items-center justify-between mb-6 border-b border-white/10 pb-4">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-gradient-to-r from-pink-500 to-blue-500 rounded-lg">
-              <FileText className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <h2 className="font-bold text-xl bg-gradient-to-r from-pink-400 to-blue-400 bg-clip-text text-transparent">
-                Personal Notes
-              </h2>
-              <p className="text-sm text-gray-400">Capture thoughts and ideas with Zebulon</p>
-            </div>
-          </div>
-          <Badge className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-300 border border-green-400/30">
-            {notes.length} Notes
-          </Badge>
-        </div>
-
-        <div className="flex flex-col h-full space-y-6">
-          {/* Add Note Form */}
-          <div className="bg-white/10 rounded-lg p-4 space-y-4">
-            <Input
-              placeholder="Note title..."
-              value={newNote.title}
-              onChange={(e) => setNewNote({...newNote, title: e.target.value})}
-              className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
-            />
-            <textarea
-              placeholder="Write your note content here..."
-              value={newNote.content}
-              onChange={(e) => setNewNote({...newNote, content: e.target.value})}
-              rows={3}
-              className="w-full bg-white/10 border border-white/20 rounded-lg p-3 text-white placeholder:text-gray-400 resize-none focus:ring-2 focus:ring-pink-400 focus:border-transparent"
-            />
-            <Button onClick={addNote} className="bg-gradient-to-r from-pink-500 to-blue-500 text-white">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Note
-            </Button>
-          </div>
-
-          {/* Notes List */}
-          <ScrollArea className="flex-1">
-            {notes.length === 0 ? (
-              <div className="text-center text-gray-500 py-8">
-                <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>No notes yet</p>
-                <p className="text-sm mt-1">Create your first note above</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {notes.map((note) => (
-                  <div key={note.id} className="bg-white/10 rounded-lg p-4 hover:bg-white/20 transition-all">
-                    <div className="flex items-start justify-between mb-2">
-                      <h3 className="font-medium text-white">{note.title}</h3>
-                      <div className="flex space-x-2">
-                        <Button variant="ghost" size="sm" onClick={() => setEditingNote(note.id)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => deleteNote(note.id)} className="text-red-400 hover:text-red-300">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                    <p className="text-gray-300 text-sm mb-2">{note.content}</p>
-                    <p className="text-xs text-gray-500">{note.date}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </ScrollArea>
-        </div>
-      </div>
-    );
-  };
 
   // Calendar Interface
   const renderCalendarInterface = () => {
@@ -1453,8 +1357,7 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
       case 'files':
         return renderFileUploadInterface();
 
-      case 'notes':
-        return renderNotesInterface();
+
 
       case 'calendar':
         return renderCalendarInterface();
@@ -1613,20 +1516,6 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setActiveFeature('notes')}
-              className={`h-12 flex-col p-2 transition-all duration-200 ${
-                activeFeature === 'notes' 
-                  ? 'bg-gradient-to-r from-pink-500/30 to-blue-500/30 text-white border border-pink-400/50' 
-                  : 'bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white border border-transparent hover:border-white/20'
-              }`}
-            >
-              <FileText className="h-4 w-4 mb-1" />
-              <span className="text-xs font-medium">Notes</span>
-            </Button>
-            
-            <Button
-              variant="ghost"
-              size="sm"
               onClick={() => setActiveFeature('music')}
               className={`h-12 flex-col p-2 transition-all duration-200 ${
                 activeFeature === 'music' 
@@ -1678,20 +1567,6 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
             >
               <Upload className="h-4 w-4 mb-1" />
               <span className="text-xs font-medium">Files</span>
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setActiveFeature('notes')}
-              className={`h-12 flex-col p-2 transition-all duration-200 ${
-                activeFeature === 'notes' 
-                  ? 'bg-gradient-to-r from-pink-500/30 to-blue-500/30 text-white border border-pink-400/50' 
-                  : 'bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white border border-transparent hover:border-white/20'
-              }`}
-            >
-              <FileText className="h-4 w-4 mb-1" />
-              <span className="text-xs font-medium">Notes</span>
             </Button>
 
             {/* Admin Button - only show if logged in as admin */}
