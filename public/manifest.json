@@ -1,0 +1,79 @@
+{
+  "name": "Zebulon",
+  "short_name": "Zebulon",
+  "description": "Zebulon AI Oracle System - Your personal AI assistant with Oracle database capabilities",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en",
+  "categories": ["productivity", "business", "utilities"],
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-512x512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Chat with Zed",
+      "short_name": "Chat",
+      "description": "Start a conversation with Zed AI",
+      "url": "/?feature=chat",
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.svg",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Oracle Database",
+      "short_name": "Oracle",
+      "description": "Access Oracle database features",
+      "url": "/?feature=oracle",
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.svg",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "System Status",
+      "short_name": "Status",
+      "description": "Check system status and performance",
+      "url": "/?feature=status",
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.svg",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/desktop-1.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    },
+    {
+      "src": "/screenshots/mobile-1.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ]
+}
