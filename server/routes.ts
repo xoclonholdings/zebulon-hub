@@ -381,5 +381,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Periodic status updates
   setInterval(broadcastStatusUpdate, 30000); // Every 30 seconds
 
+  // User Configuration Management API
+  app.get("/api/config/:userId", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const { zedAuthService } = await import("./services/zed-authorization");
+      const config = await zedAuthService.getUserConfig(userId);
+      res.json(config);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to get user configuration" });
+    }
+  });
+
+  app.put("/api/config/:userId", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const { zedAuthService } = await import("./services/zed-authorization");
+      const updatedConfig = await zedAuthService.updateUserConfig(userId, req.body);
+      res.json(updatedConfig);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update user configuration" });
+    }
+  });
+
+  // Process Authorization Management API
+  app.post("/api/authorize", async (req, res) => {
+    try {
+      const { userId, processType, description, parameters, priority } = req.body;
+      const { zedAuthService } = await import("./services/zed-authorization");
+      
+      const authorization = await zedAuthService.requestAuthorization(
+        userId,
+        processType,
+        description,
+        parameters,
+        priority
+      );
+      
+      res.json(authorization);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to request authorization" });
+    }
+  });
+
+  app.get("/api/authorizations/:userId", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const { zedAuthService } = await import("./services/zed-authorization");
+      const authorizations = await zedAuthService.getPendingAuthorizations(userId);
+      res.json(authorizations);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to get authorizations" });
+    }
+  });
+
+  app.post("/api/authorize/:authId/approve", async (req, res) => {
+    try {
+      const authId = parseInt(req.params.authId);
+      const { approverId } = req.body;
+      const { zedAuthService } = await import("./services/zed-authorization");
+      
+      const authorization = await zedAuthService.approveAuthorization(authId, approverId);
+      res.json(authorization);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to approve authorization" });
+    }
+  });
+
+  app.post("/api/authorize/:authId/reject", async (req, res) => {
+    try {
+      const authId = parseInt(req.params.authId);
+      const { approverId } = req.body;
+      const { zedAuthService } = await import("./services/zed-authorization");
+      
+      const authorization = await zedAuthService.rejectAuthorization(authId, approverId);
+      res.json(authorization);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to reject authorization" });
+    }
+  });
+
   return httpServer;
 }

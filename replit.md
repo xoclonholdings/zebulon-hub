@@ -35,18 +35,25 @@ Preferred communication style: Simple, everyday language.
 ## Key Components
 
 ### AI Cores
-1. **Zed Core (cZED)**: Primary conversational AI assistant powered by ChatGPT
+1. **Zed Core (cZED)**: Primary conversational AI assistant with configurable authorization system
    - Handles user interactions, task management, and productivity guidance
    - Processes natural language queries for Oracle database operations
+   - **NEW**: Fully configurable permission system with user authorization workflow
+   - **NEW**: Process authorization requests for sensitive operations
+   - **NEW**: Auto-approval settings for trusted operations
    - Provides contextual responses and recommendations
 
-2. **Zeta Core (cZETA)**: Security-focused AI sentinel
+2. **Zeta Core (cZETA)**: Security-focused AI sentinel with real-time monitoring
    - Memory protection and pattern auditing
    - Behavioral cloaking and metadata vaulting
+   - **NEW**: Configurable security monitoring levels
+   - **NEW**: Real-time threat detection with customizable alerts
    - Security monitoring and threat detection
 
-3. **Fantasma Firewall**: Native security subsystem
+3. **Fantasma Firewall**: Native security subsystem with advanced protection
    - Background scanning and anomaly detection
+   - **NEW**: Configurable scan intervals and deep scan options
+   - **NEW**: Stealth mode with behavior cloaking and traffic obfuscation
    - Automated log purging ("Fanflux")
    - System-triggered security events (airplane mode, dark mode, device events)
 

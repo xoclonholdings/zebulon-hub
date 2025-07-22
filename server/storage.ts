@@ -4,6 +4,8 @@ import {
   type OracleQuery, type InsertOracleQuery, type UserTask, type InsertTask,
   type UserNote, type InsertNote, type SystemStatus
 } from "@shared/schema";
+import { db } from "./db";
+import { eq, desc } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -424,4 +426,182 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Database Storage Implementation
+export class DatabaseStorage implements IStorage {
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
+    return user;
+  }
+
+  async updateUser(id: number, updates: Partial<User>): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ ...updates, updatedAt: new Date() } as any)
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  async createChatMessage(message: InsertChatMessage & { response?: string; metadata?: any }): Promise<ChatMessage> {
+    const [chatMessage] = await db
+      .insert(chatMessages)
+      .values(message)
+      .returning();
+    return chatMessage;
+  }
+
+  async getChatMessages(userId: number, limit: number = 50): Promise<ChatMessage[]> {
+    return await db
+      .select()
+      .from(chatMessages)
+      .where(eq(chatMessages.userId, userId))
+      .orderBy(desc(chatMessages.timestamp))
+      .limit(limit);
+  }
+
+  async createOracleQuery(query: InsertOracleQuery & { sqlQuery?: string; results?: any; executionTime?: number }): Promise<OracleQuery> {
+    const [oracleQuery] = await db
+      .insert(oracleQueries)
+      .values(query)
+      .returning();
+    return oracleQuery;
+  }
+
+  async getOracleQueries(userId: number, limit: number = 50): Promise<OracleQuery[]> {
+    return await db
+      .select()
+      .from(oracleQueries)
+      .where(eq(oracleQueries.userId, userId))
+      .orderBy(desc(oracleQueries.timestamp))
+      .limit(limit);
+  }
+
+  async getUserTasks(userId: number): Promise<UserTask[]> {
+    return await db
+      .select()
+      .from(userTasks)
+      .where(eq(userTasks.userId, userId))
+      .orderBy(desc(userTasks.createdAt));
+  }
+
+  async createTask(task: InsertTask): Promise<UserTask> {
+    const [userTask] = await db
+      .insert(userTasks)
+      .values(task)
+      .returning();
+    return userTask;
+  }
+
+  async updateTask(id: number, updates: Partial<UserTask>): Promise<UserTask> {
+    const [userTask] = await db
+      .update(userTasks)
+      .set(updates)
+      .where(eq(userTasks.id, id))
+      .returning();
+    return userTask;
+  }
+
+  async deleteTask(id: number): Promise<boolean> {
+    const result = await db
+      .delete(userTasks)
+      .where(eq(userTasks.id, id));
+    return (result.rowCount || 0) > 0;
+  }
+
+  async getUserNotes(userId: number): Promise<UserNote[]> {
+    return await db
+      .select()
+      .from(userNotes)
+      .where(eq(userNotes.userId, userId))
+      .orderBy(desc(userNotes.updatedAt));
+  }
+
+  async createNote(note: InsertNote): Promise<UserNote> {
+    const [userNote] = await db
+      .insert(userNotes)
+      .values(note)
+      .returning();
+    return userNote;
+  }
+
+  async updateNote(id: number, updates: Partial<UserNote>): Promise<UserNote> {
+    const [userNote] = await db
+      .update(userNotes)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(userNotes.id, id))
+      .returning();
+    return userNote;
+  }
+
+  async deleteNote(id: number): Promise<boolean> {
+    const result = await db
+      .delete(userNotes)
+      .where(eq(userNotes.id, id));
+    return (result.rowCount || 0) > 0;
+  }
+
+  async updateSystemStatus(component: string, status: string, metrics?: any): Promise<SystemStatus> {
+    // First try to update existing record
+    const existing = await db
+      .select()
+      .from(systemStatus)
+      .where(eq(systemStatus.component, component))
+      .limit(1);
+
+    if (existing.length > 0) {
+      const [updated] = await db
+        .update(systemStatus)
+        .set({ status, metrics, lastCheck: new Date() })
+        .where(eq(systemStatus.component, component))
+        .returning();
+      return updated;
+    } else {
+      // Insert new record
+      const [newRecord] = await db
+        .insert(systemStatus)
+        .values({ component, status, metrics })
+        .returning();
+      return newRecord;
+    }
+  }
+
+  async getSystemStatus(component?: string): Promise<SystemStatus[]> {
+    if (component) {
+      return await db
+        .select()
+        .from(systemStatus)
+        .where(eq(systemStatus.component, component));
+    }
+    return await db.select().from(systemStatus);
+  }
+
+  async getUserActivity(userId: number): Promise<any> {
+    // Get recent activity across all user data
+    const tasks = await this.getUserTasks(userId);
+    const notes = await this.getUserNotes(userId);
+    const chats = await this.getChatMessages(userId, 10);
+    const queries = await this.getOracleQueries(userId, 10);
+    
+    return {
+      recentTasks: tasks.slice(0, 5),
+      recentNotes: notes.slice(0, 5),
+      recentChats: chats.slice(0, 5),
+      recentQueries: queries.slice(0, 5)
+    };
+  }
+}
+
+export const storage = new DatabaseStorage();

@@ -14,6 +14,7 @@ import NotesToDoWidget from "@/components/widgets/NotesToDoWidget";
 import MusicPlayerWidget from "@/components/widgets/MusicPlayerWidget";
 import PhotoCarouselWidget from "@/components/widgets/PhotoCarouselWidget";
 import ZebulonLiteWidget from "@/components/widgets/ZebulonLiteWidget";
+import ZedConfigPanel from "@/components/ZedConfigPanel";
 
 import { UserProfile, SystemStatus } from "@/lib/types";
 import { useWebSocket } from "@/hooks/use-websocket";
@@ -27,6 +28,8 @@ export default function Dashboard() {
     role: 'Oracle Administrator',
     theme: 'light'
   });
+
+  const [showConfigPanel, setShowConfigPanel] = useState(false);
 
   const [stats] = useState({
     activeSessions: 3,
@@ -58,7 +61,7 @@ export default function Dashboard() {
   };
 
   const handleSettingsClick = () => {
-    console.log('Settings clicked');
+    setShowConfigPanel(true);
   };
 
   const mockSystemStatus: SystemStatus = {
@@ -138,6 +141,26 @@ export default function Dashboard() {
           <Plus className="w-6 h-6" />
         </Button>
       </div>
+
+      {/* Configuration Panel Modal */}
+      {showConfigPanel && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-start justify-center overflow-y-auto">
+          <div className="bg-background border border-border rounded-lg m-4 max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-4 border-b border-border">
+              <h2 className="text-xl font-bold">Zebulon Configuration</h2>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setShowConfigPanel(false)}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                ×
+              </Button>
+            </div>
+            <ZedConfigPanel userId={user.id} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
