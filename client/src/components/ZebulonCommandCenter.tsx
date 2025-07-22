@@ -376,11 +376,11 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
       <Card className="bg-black bg-opacity-95 border border-primary border-opacity-20 zebulon-glow text-white h-full flex flex-col min-h-[80vh] rounded-xl backdrop-blur-lg">
         <CardHeader className="pb-3 space-y-3">
           <div className="flex justify-center">
-            <div className="w-12 h-12 rounded-lg overflow-hidden zebulon-glow flex items-center justify-center bg-gradient-to-br from-pink-500 to-blue-500 p-1">
+            <div className="w-16 h-16 flex items-center justify-center">
               <img 
                 src={logoSrc} 
                 alt="Zebulon Logo" 
-                className="w-full h-full object-contain filter brightness-110"
+                className="w-full h-full object-contain"
                 onError={(e) => {
                   console.error('Logo failed to load:', e);
                   const fallback = e.currentTarget.nextElementSibling as HTMLElement;
@@ -391,7 +391,7 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
                 }}
                 onLoad={() => console.log('Logo loaded successfully')}
               />
-              <div className="w-full h-full flex items-center justify-center text-white font-bold text-lg" style={{display: 'none'}}>
+              <div className="w-full h-full flex items-center justify-center text-white font-bold text-xl zebulon-text-gradient" style={{display: 'none'}}>
                 Z?
               </div>
             </div>
