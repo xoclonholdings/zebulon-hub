@@ -4,16 +4,16 @@
 
 Zebulon is a next-generation personal AI ecosystem designed as a modular, full-stack application featuring multiple AI cores with specialized functions. The system serves as a unified platform for Oracle database management, security monitoring, and AI-powered assistance through a sophisticated web interface.
 
-**Recent Update (July 22, 2025):** Comprehensive mobile-first responsive design implementation with integrated chat interface:
+**Recent Update (July 22, 2025):** Simplified mobile-first design with streamlined navigation:
 - Complete mobile-first UI restructuring with header, navigation, and content areas
 - Touch-optimized navigation with 44px minimum touch targets  
 - Mobile viewport handling with safe area support for notched devices
 - Responsive typography and spacing optimized for mobile screens
-- Bottom tab navigation for easy thumb access on mobile devices
-- **NEW**: Integrated chat interface with built-in file upload, AI core selection, and settings
+- **NEW**: Simplified single-row navigation (6 main features: Chat, Config, Music, Oracle, Status, Admin)
+- **NEW**: Integrated chat interface with built-in file upload and AI core selection
 - **NEW**: Streamlined file upload directly in chat (like modern messaging apps)
-- **NEW**: AI core switching (Zed/Zeta/Fantasma) directly in chat interface
-- **NEW**: Quick settings access within chat for immediate configuration
+- **NEW**: Clean AI core switching (Zed/Zeta/Fantasma) in chat without redundant controls
+- **NEW**: Eliminated redundancy - Config settings only in dedicated Config tab
 - Dynamic viewport height support for mobile browsers
 - Touch manipulation optimization for all interactive elements
 

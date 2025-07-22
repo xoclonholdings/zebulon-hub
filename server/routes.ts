@@ -14,6 +14,8 @@ import { knowledgeUpdater } from "./services/knowledge-updater";
 import { adminControlService } from "./services/admin-control";
 import { storageOptimizer } from "./services/storage-optimizer";
 import { securityManager } from "./security/security-manager";
+import { securityHardening } from "./security/securityHardening";
+import securityRoutes from "./routes/security";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -872,6 +874,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Permission check failed" });
     }
   });
+
+  // Security Management Routes
+  app.use('/api/security', securityRoutes);
 
   // Knowledge Update System API (Permission-gated)
   app.get("/api/system/updates/check", async (req, res) => {

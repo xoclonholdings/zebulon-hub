@@ -1,361 +1,375 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
   Shield, 
   AlertTriangle, 
   CheckCircle, 
-  XCircle, 
-  Search, 
-  RefreshCw,
-  Lock,
-  Unlock,
+  Clock, 
+  Zap,
   Eye,
-  EyeOff
-} from 'lucide-react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
+  Lock,
+  RefreshCw,
+  Activity
+} from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
+import { toast } from "@/hooks/use-toast";
 
 interface SecurityVulnerability {
   id: string;
   severity: 'critical' | 'high' | 'medium' | 'low';
   category: string;
+  title: string;
   description: string;
-  location: string;
   recommendation: string;
-  cve?: string;
+  cwe_id?: string;
+  affected_components: string[];
+  risk_score: number;
+  detected_at: string;
 }
 
-interface SecurityReport {
-  timestamp: string;
-  totalVulnerabilities: number;
-  critical: number;
-  high: number;
-  medium: number;
-  low: number;
+interface SecurityScanResult {
+  scan_id: string;
+  started_at: string;
+  completed_at: string;
+  total_vulnerabilities: number;
+  critical_count: number;
+  high_count: number;
+  medium_count: number;
+  low_count: number;
+  overall_risk_score: number;
   vulnerabilities: SecurityVulnerability[];
-  systemHealth: {
-    encryptionStatus: boolean;
-    authenticationStrength: number;
-    dataIntegrity: boolean;
-    accessControls: boolean;
-  };
+  recommendations: string[];
 }
 
-interface SecurityStatus {
-  securityLevel: 'high' | 'medium' | 'low';
-  vulnerabilities: number;
-  encrypted: boolean;
-  lastScan: string;
-  systemHealth: {
-    encryptionStatus: boolean;
-    authenticationStrength: number;
-    dataIntegrity: boolean;
-    accessControls: boolean;
+interface SecurityDashboardData {
+  securityLevel: string;
+  lastScanDate: string | null;
+  vulnerabilityCount: number;
+  criticalIssues: number;
+  highPriorityIssues: number;
+  riskScore: number;
+  securityFeatures: {
+    rateLimiting: boolean;
+    securityHeaders: boolean;
+    inputValidation: boolean;
+    passwordPolicy: boolean;
+    sessionSecurity: boolean;
   };
+  recommendations: string[];
 }
 
 const SecurityDashboard: React.FC = () => {
-  const queryClient = useQueryClient();
-  const [showDetails, setShowDetails] = useState(false);
+  const [dashboard, setDashboard] = useState<SecurityDashboardData | null>(null);
+  const [scanResult, setScanResult] = useState<SecurityScanResult | null>(null);
+  const [isScanning, setIsScanning] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch security status
-  const { data: securityStatus, isLoading: statusLoading } = useQuery<SecurityStatus>({
-    queryKey: ['/api/security/status'],
-    refetchInterval: 30000, // Refresh every 30 seconds
-  });
+  useEffect(() => {
+    loadDashboard();
+    loadLastScan();
+  }, []);
 
-  // Fetch full security report
-  const { data: securityReport, isLoading: reportLoading } = useQuery<SecurityReport>({
-    queryKey: ['/api/security/scan'],
-    enabled: showDetails, // Only fetch when details are requested
-  });
-
-  // Run security scan mutation
-  const scanMutation = useMutation({
-    mutationFn: () => apiRequest('/api/security/scan', 'POST'),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/security/status'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/security/scan'] });
+  const loadDashboard = async () => {
+    try {
+      const response = await apiRequest('/api/security/dashboard', 'GET', { adminId: 1 });
+      setDashboard(response.dashboard);
+    } catch (error) {
+      console.error('Failed to load security dashboard:', error);
+      toast({
+        title: "Security Dashboard Error",
+        description: "Failed to load security dashboard",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
-  });
+  };
+
+  const loadLastScan = async () => {
+    try {
+      const response = await apiRequest('/api/security/scan/latest', 'GET', { adminId: 1 });
+      setScanResult(response.scan);
+    } catch (error) {
+      // No previous scan results
+      console.log('No previous scan results found');
+    }
+  };
+
+  const performSecurityScan = async () => {
+    setIsScanning(true);
+    try {
+      toast({
+        title: "Security Scan Started",
+        description: "Performing comprehensive security vulnerability assessment...",
+      });
+
+      const response = await apiRequest('/api/security/scan', 'POST', { adminId: 1 });
+      
+      setScanResult(response.scan);
+      await loadDashboard(); // Refresh dashboard data
+      
+      toast({
+        title: "Security Scan Complete",
+        description: `Found ${response.scan.total_vulnerabilities} vulnerabilities`,
+        variant: response.scan.critical_count > 0 ? "destructive" : "default",
+      });
+    } catch (error) {
+      console.error('Security scan failed:', error);
+      toast({
+        title: "Security Scan Failed",
+        description: "Failed to perform security scan",
+        variant: "destructive",
+      });
+    } finally {
+      setIsScanning(false);
+    }
+  };
+
+  const enableEmergencyMode = async () => {
+    try {
+      await apiRequest('/api/security/emergency', 'POST', { adminId: 1 });
+      
+      toast({
+        title: "Emergency Security Mode",
+        description: "Maximum security protocols activated",
+        variant: "destructive",
+      });
+      
+      await loadDashboard();
+    } catch (error) {
+      toast({
+        title: "Emergency Mode Failed",
+        description: "Failed to activate emergency security mode",
+        variant: "destructive",
+      });
+    }
+  };
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case 'critical': return 'text-red-500';
-      case 'high': return 'text-orange-500';
-      case 'medium': return 'text-yellow-500';
-      case 'low': return 'text-blue-500';
-      default: return 'text-gray-500';
+      case 'critical': return 'text-red-400 bg-red-500/20';
+      case 'high': return 'text-orange-400 bg-orange-500/20';
+      case 'medium': return 'text-yellow-400 bg-yellow-500/20';
+      case 'low': return 'text-blue-400 bg-blue-500/20';
+      default: return 'text-gray-400 bg-gray-500/20';
     }
   };
 
-  const getSeverityBadgeVariant = (severity: string) => {
-    switch (severity) {
-      case 'critical': return 'destructive' as const;
-      case 'high': return 'destructive' as const;
-      case 'medium': return 'secondary' as const;
-      case 'low': return 'outline' as const;
-      default: return 'outline' as const;
-    }
+  const getRiskScoreColor = (score: number) => {
+    if (score >= 8) return 'text-red-400';
+    if (score >= 6) return 'text-orange-400';
+    if (score >= 4) return 'text-yellow-400';
+    return 'text-green-400';
   };
 
-  const getSecurityLevelColor = (level: string) => {
-    switch (level) {
-      case 'high': return 'text-green-500';
-      case 'medium': return 'text-yellow-500';
-      case 'low': return 'text-red-500';
-      default: return 'text-gray-500';
-    }
-  };
-
-  if (statusLoading) {
+  if (isLoading) {
     return (
-      <Card className="zebulon-card">
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Shield className="h-5 w-5" />
-            <span>Security Dashboard</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center h-32">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex items-center justify-center h-64">
+        <RefreshCw className="h-8 w-8 animate-spin text-primary" />
+      </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Security Overview Card */}
-      <Card className="zebulon-card">
+      {/* Security Overview */}
+      <Card className="bg-black/50 border-primary/30">
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center space-x-2">
-              <Shield className="h-5 w-5 text-primary" />
-              <span>Security Status</span>
-            </CardTitle>
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => scanMutation.mutate()}
-                disabled={scanMutation.isPending}
-              >
-                {scanMutation.isPending ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
-                ) : (
-                  <RefreshCw className="h-4 w-4" />
-                )}
-                Scan
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowDetails(!showDetails)}
-              >
-                {showDetails ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                Details
-              </Button>
-            </div>
-          </div>
-          <CardDescription>
-            Real-time security monitoring and vulnerability assessment
-          </CardDescription>
+          <CardTitle className="text-primary flex items-center space-x-2">
+            <Shield className="h-5 w-5" />
+            <span>Security Overview</span>
+            {dashboard?.securityLevel === 'enhanced' && (
+              <Badge className="bg-green-500/20 text-green-300">Enhanced</Badge>
+            )}
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center">
-              <div className={`text-2xl font-bold ${getSecurityLevelColor(securityStatus?.securityLevel || 'low')}`}>
-                {securityStatus?.securityLevel?.toUpperCase() || 'UNKNOWN'}
-              </div>
-              <div className="text-sm text-muted-foreground">Security Level</div>
+              <div className="text-2xl font-bold text-red-400">{dashboard?.criticalIssues || 0}</div>
+              <div className="text-sm text-gray-400">Critical Issues</div>
             </div>
-            
             <div className="text-center">
-              <div className="text-2xl font-bold">
-                {securityStatus?.vulnerabilities || 0}
-              </div>
-              <div className="text-sm text-muted-foreground">Vulnerabilities</div>
+              <div className="text-2xl font-bold text-orange-400">{dashboard?.highPriorityIssues || 0}</div>
+              <div className="text-sm text-gray-400">High Priority</div>
             </div>
-            
             <div className="text-center">
-              <div className="flex justify-center mb-1">
-                {securityStatus?.encrypted ? (
-                  <Lock className="h-6 w-6 text-green-500" />
-                ) : (
-                  <Unlock className="h-6 w-6 text-red-500" />
-                )}
-              </div>
-              <div className="text-sm text-muted-foreground">Encryption</div>
+              <div className="text-2xl font-bold text-blue-400">{dashboard?.vulnerabilityCount || 0}</div>
+              <div className="text-sm text-gray-400">Total Vulnerabilities</div>
             </div>
-            
             <div className="text-center">
-              <div className="text-2xl font-bold">
-                {securityStatus?.systemHealth?.authenticationStrength || 0}
+              <div className={`text-2xl font-bold ${getRiskScoreColor(dashboard?.riskScore || 0)}`}>
+                {dashboard?.riskScore?.toFixed(1) || '0.0'}
               </div>
-              <div className="text-sm text-muted-foreground">Auth Score</div>
+              <div className="text-sm text-gray-400">Risk Score</div>
             </div>
           </div>
 
-          {/* System Health Indicators */}
-          <div className="grid grid-cols-2 gap-4 mt-6">
-            <div className="flex items-center justify-between p-3 rounded-lg border">
-              <span className="text-sm font-medium">Data Encryption</span>
-              {securityStatus?.systemHealth?.encryptionStatus ? (
-                <CheckCircle className="h-5 w-5 text-green-500" />
-              ) : (
-                <XCircle className="h-5 w-5 text-red-500" />
-              )}
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <span>Overall Security Level</span>
+              <Progress 
+                value={dashboard?.riskScore ? Math.max(0, 100 - (dashboard.riskScore * 10)) : 100} 
+                className="w-32" 
+              />
             </div>
             
-            <div className="flex items-center justify-between p-3 rounded-lg border">
-              <span className="text-sm font-medium">Data Integrity</span>
-              {securityStatus?.systemHealth?.dataIntegrity ? (
-                <CheckCircle className="h-5 w-5 text-green-500" />
-              ) : (
-                <XCircle className="h-5 w-5 text-red-500" />
-              )}
-            </div>
-            
-            <div className="flex items-center justify-between p-3 rounded-lg border">
-              <span className="text-sm font-medium">Access Controls</span>
-              {securityStatus?.systemHealth?.accessControls ? (
-                <CheckCircle className="h-5 w-5 text-green-500" />
-              ) : (
-                <XCircle className="h-5 w-5 text-red-500" />
-              )}
-            </div>
-            
-            <div className="flex items-center justify-between p-3 rounded-lg border">
-              <span className="text-sm font-medium">Authentication</span>
-              <div className="flex items-center space-x-2">
-                <Progress 
-                  value={securityStatus?.systemHealth?.authenticationStrength || 0} 
-                  className="w-16 h-2" 
-                />
-                <span className="text-xs">
-                  {securityStatus?.systemHealth?.authenticationStrength || 0}/10
+            {dashboard?.lastScanDate && (
+              <div className="flex items-center space-x-2 text-sm text-gray-400">
+                <Clock className="h-4 w-4" />
+                <span>Last scan: {new Date(dashboard.lastScanDate).toLocaleString()}</span>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Security Features Status */}
+      <Card className="bg-black/50 border-blue-500/30">
+        <CardHeader>
+          <CardTitle className="text-blue-400 flex items-center space-x-2">
+            <CheckCircle className="h-5 w-5" />
+            <span>Security Features</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {dashboard?.securityFeatures && Object.entries(dashboard.securityFeatures).map(([feature, enabled]) => (
+              <div key={feature} className="flex items-center justify-between">
+                <span className="capitalize text-white">
+                  {feature.replace(/([A-Z])/g, ' $1').trim()}
                 </span>
+                <Badge variant={enabled ? "default" : "destructive"}>
+                  {enabled ? "Enabled" : "Disabled"}
+                </Badge>
               </div>
-            </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Scan Controls */}
+      <Card className="bg-black/50 border-purple-500/30">
+        <CardHeader>
+          <CardTitle className="text-purple-400 flex items-center space-x-2">
+            <Eye className="h-5 w-5" />
+            <span>Security Assessment</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex space-x-3">
+            <Button 
+              onClick={performSecurityScan}
+              disabled={isScanning}
+              className="bg-purple-600 hover:bg-purple-700"
+            >
+              {isScanning ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Scanning...
+                </>
+              ) : (
+                <>
+                  <Eye className="h-4 w-4 mr-2" />
+                  Run Security Scan
+                </>
+              )}
+            </Button>
+            
+            <Button 
+              onClick={enableEmergencyMode}
+              variant="destructive"
+              className="bg-red-600 hover:bg-red-700"
+            >
+              <Zap className="h-4 w-4 mr-2" />
+              Emergency Mode
+            </Button>
           </div>
 
-          {securityStatus?.lastScan && (
-            <div className="text-xs text-muted-foreground mt-4">
-              Last scan: {new Date(securityStatus.lastScan).toLocaleString()}
-            </div>
+          {scanResult && (
+            <Alert>
+              <Activity className="h-4 w-4" />
+              <AlertDescription>
+                Last scan completed on {new Date(scanResult.completed_at).toLocaleString()}
+                {scanResult.critical_count > 0 && (
+                  <span className="text-red-400 font-bold">
+                    {" "}• {scanResult.critical_count} critical issues found
+                  </span>
+                )}
+              </AlertDescription>
+            </Alert>
           )}
         </CardContent>
       </Card>
 
-      {/* Detailed Vulnerability Report */}
-      {showDetails && (
-        <Card className="zebulon-card">
+      {/* Vulnerability Details */}
+      {scanResult && scanResult.vulnerabilities.length > 0 && (
+        <Card className="bg-black/50 border-red-500/30">
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Search className="h-5 w-5" />
-              <span>Vulnerability Report</span>
+            <CardTitle className="text-red-400 flex items-center space-x-2">
+              <AlertTriangle className="h-5 w-5" />
+              <span>Security Vulnerabilities</span>
             </CardTitle>
-            <CardDescription>
-              Comprehensive security vulnerability analysis
-            </CardDescription>
           </CardHeader>
           <CardContent>
-            {reportLoading ? (
-              <div className="flex items-center justify-center h-32">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              </div>
-            ) : securityReport ? (
-              <Tabs defaultValue="summary" className="w-full">
-                <TabsList>
-                  <TabsTrigger value="summary">Summary</TabsTrigger>
-                  <TabsTrigger value="vulnerabilities">Vulnerabilities</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="summary" className="space-y-4">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="text-center p-4 border rounded-lg">
-                      <div className="text-2xl font-bold text-red-500">
-                        {securityReport.critical}
+            <ScrollArea className="h-64 w-full">
+              <div className="space-y-3">
+                {scanResult.vulnerabilities.map((vuln) => (
+                  <div key={vuln.id} className="bg-white/5 rounded-lg p-3">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <Badge className={getSeverityColor(vuln.severity)}>
+                            {vuln.severity.toUpperCase()}
+                          </Badge>
+                          <span className="font-medium text-white">{vuln.title}</span>
+                        </div>
+                        <p className="text-sm text-gray-400 mb-2">{vuln.description}</p>
+                        <div className="text-xs text-blue-400">
+                          Components: {vuln.affected_components.join(', ')}
+                        </div>
                       </div>
-                      <div className="text-sm text-muted-foreground">Critical</div>
+                      <div className="text-right">
+                        <div className={`text-sm font-bold ${getRiskScoreColor(vuln.risk_score)}`}>
+                          {vuln.risk_score.toFixed(1)}
+                        </div>
+                        <div className="text-xs text-gray-500">Risk Score</div>
+                      </div>
                     </div>
-                    
-                    <div className="text-center p-4 border rounded-lg">
-                      <div className="text-2xl font-bold text-orange-500">
-                        {securityReport.high}
-                      </div>
-                      <div className="text-sm text-muted-foreground">High</div>
-                    </div>
-                    
-                    <div className="text-center p-4 border rounded-lg">
-                      <div className="text-2xl font-bold text-yellow-500">
-                        {securityReport.medium}
-                      </div>
-                      <div className="text-sm text-muted-foreground">Medium</div>
-                    </div>
-                    
-                    <div className="text-center p-4 border rounded-lg">
-                      <div className="text-2xl font-bold text-blue-500">
-                        {securityReport.low}
-                      </div>
-                      <div className="text-sm text-muted-foreground">Low</div>
+                    <div className="bg-white/5 rounded p-2 text-xs text-gray-300">
+                      <strong>Recommendation:</strong> {vuln.recommendation}
                     </div>
                   </div>
-                </TabsContent>
-                
-                <TabsContent value="vulnerabilities">
-                  <ScrollArea className="h-96">
-                    <div className="space-y-3">
-                      {securityReport.vulnerabilities.map((vuln) => (
-                        <div key={vuln.id} className="p-4 border rounded-lg space-y-2">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-2">
-                              <AlertTriangle className={`h-4 w-4 ${getSeverityColor(vuln.severity)}`} />
-                              <span className="font-medium">{vuln.id}</span>
-                            </div>
-                            <Badge variant={getSeverityBadgeVariant(vuln.severity)}>
-                              {vuln.severity.toUpperCase()}
-                            </Badge>
-                          </div>
-                          
-                          <div>
-                            <div className="font-medium">{vuln.category}</div>
-                            <div className="text-sm text-muted-foreground">{vuln.description}</div>
-                          </div>
-                          
-                          <div className="text-xs text-muted-foreground">
-                            Location: {vuln.location}
-                          </div>
-                          
-                          <div className="text-xs">
-                            <span className="font-medium">Recommendation: </span>
-                            {vuln.recommendation}
-                          </div>
-                          
-                          {vuln.cve && (
-                            <div className="text-xs text-blue-600">
-                              CVE: {vuln.cve}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </ScrollArea>
-                </TabsContent>
-              </Tabs>
-            ) : (
-              <div className="text-center text-muted-foreground">
-                No security report available. Click "Scan" to run a security assessment.
+                ))}
               </div>
-            )}
+            </ScrollArea>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Security Recommendations */}
+      {dashboard?.recommendations && dashboard.recommendations.length > 0 && (
+        <Card className="bg-black/50 border-green-500/30">
+          <CardHeader>
+            <CardTitle className="text-green-400 flex items-center space-x-2">
+              <Lock className="h-5 w-5" />
+              <span>Security Recommendations</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {dashboard.recommendations.map((recommendation, index) => (
+                <div key={index} className="flex items-start space-x-2">
+                  <CheckCircle className="h-4 w-4 text-green-400 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm text-gray-300">{recommendation}</span>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       )}

@@ -53,6 +53,9 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useWebSocket } from '@/hooks/use-websocket';
+import VoiceActivationPanel from './VoiceActivationPanel';
+import SecurityDashboard from './SecurityDashboard';
+import { voiceActivationService } from '@/services/voiceActivation';
 import { useVoice } from '@/hooks/use-voice';
 import { useToast } from '@/hooks/use-toast';
 import { OracleAdminPanel } from './OracleAdminPanel';
@@ -109,7 +112,7 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
   const { toast } = useToast();
   const [message, setMessage] = useState('');
   const [activeCore, setActiveCore] = useState<'zed' | 'zeta' | 'fantasma'>('zed');
-  const [activeFeature, setActiveFeature] = useState<'chat' | 'calendar' | 'music' | 'photos' | 'status' | 'oracle' | 'config' | 'files' | 'admin' | 'notes'>('chat');
+  const [activeFeature, setActiveFeature] = useState<'chat' | 'calendar' | 'music' | 'photos' | 'status' | 'oracle' | 'config' | 'files' | 'admin' | 'notes' | 'security'>('chat');
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [uploadProgress, setUploadProgress] = useState<{[key: string]: number}>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -1352,14 +1355,14 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
               </div>
             </ScrollArea>
 
-            {/* AI Core Selection & Quick Settings */}
-            <div className="flex items-center justify-between mb-3 p-3 bg-white/5 rounded-lg">
-              <div className="flex items-center space-x-2">
+            {/* AI Core Selection */}
+            <div className="flex items-center justify-between mb-3 p-2 bg-white/5 rounded-lg">
+              <div className="flex items-center space-x-1">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setActiveCore('zed')}
-                  className={`text-xs px-3 py-1 ${activeCore === 'zed' ? 'bg-blue-500/20 text-blue-300' : 'text-gray-400 hover:text-white'}`}
+                  className={`text-xs px-2 py-1 ${activeCore === 'zed' ? 'bg-blue-500/20 text-blue-300' : 'text-gray-400 hover:text-white'}`}
                 >
                   <Brain className="h-3 w-3 mr-1" />
                   Zed
@@ -1368,7 +1371,7 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
                   variant="ghost"
                   size="sm"
                   onClick={() => setActiveCore('zeta')}
-                  className={`text-xs px-3 py-1 ${activeCore === 'zeta' ? 'bg-green-500/20 text-green-300' : 'text-gray-400 hover:text-white'}`}
+                  className={`text-xs px-2 py-1 ${activeCore === 'zeta' ? 'bg-green-500/20 text-green-300' : 'text-gray-400 hover:text-white'}`}
                 >
                   <Shield className="h-3 w-3 mr-1" />
                   Zeta
@@ -1377,27 +1380,16 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
                   variant="ghost"
                   size="sm"
                   onClick={() => setActiveCore('fantasma')}
-                  className={`text-xs px-3 py-1 ${activeCore === 'fantasma' ? 'bg-purple-500/20 text-purple-300' : 'text-gray-400 hover:text-white'}`}
+                  className={`text-xs px-2 py-1 ${activeCore === 'fantasma' ? 'bg-purple-500/20 text-purple-300' : 'text-gray-400 hover:text-white'}`}
                 >
                   <Lock className="h-3 w-3 mr-1" />
                   Fantasma
                 </Button>
               </div>
               
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setActiveFeature('config')}
-                  className="text-gray-400 hover:text-white p-1"
-                  title="Chat Settings"
-                >
-                  <Settings className="h-4 w-4" />
-                </Button>
-                <Badge className="bg-green-500/20 text-green-300 text-xs">
-                  {currentCoreInfo.name}
-                </Badge>
-              </div>
+              <Badge className="bg-green-500/20 text-green-300 text-xs">
+                {currentCoreInfo.name}
+              </Badge>
             </div>
 
             {/* File Upload Area - Show if files are being uploaded */}
@@ -1870,6 +1862,19 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
                 </CardContent>
               </Card>
 
+              {/* Voice Activation Security */}
+              <Card className="bg-white/10 border border-white/20">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2 text-blue-400">
+                    <Mic className="h-5 w-5" />
+                    <span>Enhanced Voice Activation</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <VoiceActivationPanel userId={user?.id || 1} />
+                </CardContent>
+              </Card>
+
               {/* Interface Theme */}
               <Card className="bg-white/10 border border-white/20">
                 <CardHeader>
@@ -1938,6 +1943,13 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
 
       case 'admin':
         return renderAdminInterface();
+
+      case 'security':
+        return (
+          <div className="w-full h-full overflow-y-auto zebulon-scrollable">
+            <SecurityDashboard />
+          </div>
+        );
 
       case 'notes':
         return (
@@ -2136,9 +2148,9 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
             </Button>
           </div>
 
-      {/* Mobile Navigation - Bottom Tab Bar */}
+      {/* Mobile Navigation - Single Row Clean Layout for 7 features */}
       <nav className="bg-black/95 backdrop-blur-sm border-t border-white/10 safe-bottom">
-        <div className="grid grid-cols-6 gap-1 p-2">
+        <div className="grid grid-cols-7 gap-1 p-2">
           <Button
             variant="ghost"
             size="sm"
@@ -2151,20 +2163,6 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
           >
             <Brain className="h-4 w-4 mb-1" />
             <span className="text-mobile-xs font-medium">Chat</span>
-          </Button>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setActiveFeature('notes')}
-            className={`mobile-button flex-col p-2 transition-all duration-200 rounded-lg touch-manipulation ${
-              activeFeature === 'notes' 
-                ? 'bg-primary/20 text-primary' 
-                : 'text-white/75 hover:text-white hover:bg-white/10'
-            }`}
-          >
-            <FileText className="h-4 w-4 mb-1" />
-            <span className="text-mobile-xs font-medium">Notes</span>
           </Button>
           
           <Button
@@ -2222,50 +2220,19 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
             <BarChart3 className="h-4 w-4 mb-1" />
             <span className="text-mobile-xs font-medium">Status</span>
           </Button>
-        </div>
-        
-        {/* Secondary Navigation Row for Additional Features */}
-        <div className="grid grid-cols-4 gap-1 p-2 border-t border-white/5">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setActiveFeature('calendar')}
-            className={`mobile-button flex-col p-2 transition-all duration-200 rounded-lg touch-manipulation ${
-              activeFeature === 'calendar' 
-                ? 'bg-primary/20 text-primary' 
-                : 'text-white/75 hover:text-white hover:bg-white/10'
-            }`}
-          >
-            <Calendar className="h-4 w-4 mb-1" />
-            <span className="text-mobile-xs font-medium">Calendar</span>
-          </Button>
           
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setActiveFeature('photos')}
+            onClick={() => setActiveFeature('security')}
             className={`mobile-button flex-col p-2 transition-all duration-200 rounded-lg touch-manipulation ${
-              activeFeature === 'photos' 
+              activeFeature === 'security' 
                 ? 'bg-primary/20 text-primary' 
                 : 'text-white/75 hover:text-white hover:bg-white/10'
             }`}
           >
-            <Camera className="h-4 w-4 mb-1" />
-            <span className="text-mobile-xs font-medium">Photos</span>
-          </Button>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setActiveFeature('notes')}
-            className={`mobile-button flex-col p-2 transition-all duration-200 rounded-lg touch-manipulation ${
-              activeFeature === 'notes' 
-                ? 'bg-primary/20 text-primary' 
-                : 'text-white/75 hover:text-white hover:bg-white/10'
-            }`}
-          >
-            <FileText className="h-4 w-4 mb-1" />
-            <span className="text-mobile-xs font-medium">Notes</span>
+            <Shield className="h-4 w-4 mb-1" />
+            <span className="text-mobile-xs font-medium">Security</span>
           </Button>
           
           <Button
