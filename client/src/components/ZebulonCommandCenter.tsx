@@ -123,6 +123,21 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
   const [photoAlbums, setPhotoAlbums] = useState<Array<{id: number, name: string, photos: File[], date: string}>>([]);
   const [selectedAlbum, setSelectedAlbum] = useState<number | null>(null);
   const [newAlbumName, setNewAlbumName] = useState('');
+  
+  // Debug photo albums state
+  useEffect(() => {
+    console.log('Photo albums state updated:', photoAlbums);
+  }, [photoAlbums]);
+  
+  // Component mount debugging
+  useEffect(() => {
+    console.log('ZebulonCommandCenter mounted/updated');
+  }, []);
+  
+  // Debug active feature changes
+  useEffect(() => {
+    console.log('Active feature changed to:', activeFeature);
+  }, [activeFeature]);
   const photoInputRef = useRef<HTMLInputElement>(null);
 
   // Music interface state - moved outside render functions to avoid hooks error
@@ -689,7 +704,10 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
               <Button 
                 onClick={(e) => {
                   e.preventDefault();
-                  console.log('Button clicked, album name:', newAlbumName);
+                  console.log('CREATE ALBUM BUTTON CLICKED!');
+                  console.log('Button event:', e);
+                  console.log('Album name:', newAlbumName);
+                  console.log('Current albums before creation:', photoAlbums);
                   createAlbum();
                 }} 
                 disabled={!newAlbumName.trim()}
@@ -1586,6 +1604,7 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
         return renderCalendarInterface();
 
       case 'photos':
+        console.log('Rendering photos interface, current albums:', photoAlbums);
         return renderPhotosInterface();
 
       case 'music':
