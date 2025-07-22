@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import logoSrc from '@assets/IMG_2227_1753155820979.png';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -375,12 +376,24 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
       <Card className="bg-black bg-opacity-95 border border-primary border-opacity-20 zebulon-glow text-white h-full flex flex-col min-h-[80vh] rounded-xl backdrop-blur-lg">
         <CardHeader className="pb-3 space-y-3">
           <div className="flex justify-center">
-            <div className="w-12 h-12 rounded-lg overflow-hidden zebulon-glow flex items-center justify-center">
+            <div className="w-12 h-12 rounded-lg overflow-hidden zebulon-glow flex items-center justify-center bg-gradient-to-br from-pink-500 to-blue-500 p-1">
               <img 
-                src="/attached_assets/IMG_2227_1753155820979.png" 
+                src={logoSrc} 
                 alt="Zebulon Logo" 
-                className="w-full h-full object-contain"
+                className="w-full h-full object-contain filter brightness-110"
+                onError={(e) => {
+                  console.error('Logo failed to load:', e);
+                  const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                  if (fallback) {
+                    fallback.style.display = 'flex';
+                  }
+                  e.currentTarget.style.display = 'none';
+                }}
+                onLoad={() => console.log('Logo loaded successfully')}
               />
+              <div className="w-full h-full flex items-center justify-center text-white font-bold text-lg" style={{display: 'none'}}>
+                Z?
+              </div>
             </div>
           </div>
           
