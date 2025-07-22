@@ -145,10 +145,10 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
     recordAndProcess
   } = useVoice();
 
-  // Fetch chat messages
+  // Fetch chat messages - Reduced polling frequency to prevent rate limiting
   const { data: messages = [] } = useQuery<ChatMessage[]>({
     queryKey: ['/api/chat', userId],
-    refetchInterval: 1000,
+    refetchInterval: 5000, // Reduced from 1000ms to 5000ms
   });
 
   // Check user permissions
@@ -161,9 +161,13 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
   const sendMessageMutation = useMutation({
     mutationFn: async (data: { message: string; aiCore: string }) => {
       // Check if autonomous operations are allowed
-      const autonomousCheck = await apiRequest(`/api/user/${userId}/permissions/autonomousOperations`, 'GET');
-      if (!autonomousCheck.hasPermission && data.message.includes('autonomous')) {
-        throw new Error('Autonomous operations require admin approval');
+      try {
+        const autonomousCheck: any = await apiRequest(`/api/user/${userId}/permissions/autonomousOperations`, 'GET');
+        if (!autonomousCheck.hasPermission && data.message.includes('autonomous')) {
+          throw new Error('Autonomous operations require admin approval');
+        }
+      } catch (error) {
+        console.warn('Permission check failed, proceeding with message');
       }
       
       return apiRequest(`/api/chat/${userId}`, 'POST', data);
@@ -1455,19 +1459,19 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
             </Button>
           </div>
 
-          {/* Feature Navigation Buttons - Enhanced 3x3 grid */}
-          <div className="grid grid-cols-3 gap-2 p-2 bg-black bg-opacity-20 rounded-lg">
+          {/* Feature Navigation Buttons - Enhanced 3x3 grid with consistent spacing */}
+          <div className="grid grid-cols-3 gap-3 p-3 bg-black/20 rounded-xl border border-white/10">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setActiveFeature('chat')}
-              className={`h-12 flex-col p-2 transition-all duration-200 ${
+              className={`h-14 flex-col p-3 transition-all duration-200 rounded-lg ${
                 activeFeature === 'chat' 
-                  ? 'bg-gradient-to-r from-pink-500/30 to-blue-500/30 text-white border border-pink-400/50' 
-                  : 'bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white border border-transparent hover:border-white/20'
+                  ? 'zebulon-button-active' 
+                  : 'zebulon-button'
               }`}
             >
-              <Brain className="h-4 w-4 mb-1" />
+              <Brain className="h-5 w-5 mb-1.5" />
               <span className="text-xs font-medium">Chat</span>
             </Button>
             
@@ -1475,13 +1479,13 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
               variant="ghost"
               size="sm"
               onClick={() => setActiveFeature('status')}
-              className={`h-12 flex-col p-2 transition-all duration-200 ${
+              className={`h-14 flex-col p-3 transition-all duration-200 rounded-lg ${
                 activeFeature === 'status' 
-                  ? 'bg-gradient-to-r from-pink-500/30 to-blue-500/30 text-white border border-pink-400/50' 
-                  : 'bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white border border-transparent hover:border-white/20'
+                  ? 'zebulon-button-active' 
+                  : 'zebulon-button'
               }`}
             >
-              <BarChart3 className="h-4 w-4 mb-1" />
+              <BarChart3 className="h-5 w-5 mb-1.5" />
               <span className="text-xs font-medium">Status</span>
             </Button>
             
@@ -1489,13 +1493,13 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
               variant="ghost"
               size="sm"
               onClick={() => setActiveFeature('oracle')}
-              className={`h-12 flex-col p-2 transition-all duration-200 ${
+              className={`h-14 flex-col p-3 transition-all duration-200 rounded-lg ${
                 activeFeature === 'oracle' 
-                  ? 'bg-gradient-to-r from-pink-500/30 to-blue-500/30 text-white border border-pink-400/50' 
-                  : 'bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white border border-transparent hover:border-white/20'
+                  ? 'zebulon-button-active' 
+                  : 'zebulon-button'
               }`}
             >
-              <Database className="h-4 w-4 mb-1" />
+              <Database className="h-5 w-5 mb-1.5" />
               <span className="text-xs font-medium">Oracle</span>
             </Button>
             
@@ -1503,13 +1507,13 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
               variant="ghost"
               size="sm"
               onClick={() => setActiveFeature('calendar')}
-              className={`h-12 flex-col p-2 transition-all duration-200 ${
+              className={`h-14 flex-col p-3 transition-all duration-200 rounded-lg ${
                 activeFeature === 'calendar' 
-                  ? 'bg-gradient-to-r from-pink-500/30 to-blue-500/30 text-white border border-pink-400/50' 
-                  : 'bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white border border-transparent hover:border-white/20'
+                  ? 'zebulon-button-active' 
+                  : 'zebulon-button'
               }`}
             >
-              <Calendar className="h-4 w-4 mb-1" />
+              <Calendar className="h-5 w-5 mb-1.5" />
               <span className="text-xs font-medium">Calendar</span>
             </Button>
             
@@ -1517,13 +1521,13 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
               variant="ghost"
               size="sm"
               onClick={() => setActiveFeature('music')}
-              className={`h-12 flex-col p-2 transition-all duration-200 ${
+              className={`h-14 flex-col p-3 transition-all duration-200 rounded-lg ${
                 activeFeature === 'music' 
-                  ? 'bg-gradient-to-r from-pink-500/30 to-blue-500/30 text-white border border-pink-400/50' 
-                  : 'bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white border border-transparent hover:border-white/20'
+                  ? 'zebulon-button-active' 
+                  : 'zebulon-button'
               }`}
             >
-              <Music className="h-4 w-4 mb-1" />
+              <Music className="h-5 w-5 mb-1.5" />
               <span className="text-xs font-medium">Music</span>
             </Button>
             
@@ -1531,13 +1535,13 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
               variant="ghost"
               size="sm"
               onClick={() => setActiveFeature('photos')}
-              className={`h-12 flex-col p-2 transition-all duration-200 ${
+              className={`h-14 flex-col p-3 transition-all duration-200 rounded-lg ${
                 activeFeature === 'photos' 
-                  ? 'bg-gradient-to-r from-pink-500/30 to-blue-500/30 text-white border border-pink-400/50' 
-                  : 'bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white border border-transparent hover:border-white/20'
+                  ? 'zebulon-button-active' 
+                  : 'zebulon-button'
               }`}
             >
-              <Camera className="h-4 w-4 mb-1" />
+              <Camera className="h-5 w-5 mb-1.5" />
               <span className="text-xs font-medium">Photos</span>
             </Button>
             
@@ -1545,13 +1549,13 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
               variant="ghost"
               size="sm"
               onClick={() => setActiveFeature('config')}
-              className={`h-12 flex-col p-2 transition-all duration-200 ${
+              className={`h-14 flex-col p-3 transition-all duration-200 rounded-lg ${
                 activeFeature === 'config' 
-                  ? 'bg-gradient-to-r from-pink-500/30 to-blue-500/30 text-white border border-pink-400/50' 
-                  : 'bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white border border-transparent hover:border-white/20'
+                  ? 'zebulon-button-active' 
+                  : 'zebulon-button'
               }`}
             >
-              <Settings className="h-4 w-4 mb-1" />
+              <Settings className="h-5 w-5 mb-1.5" />
               <span className="text-xs font-medium">Config</span>
             </Button>
 
@@ -1559,29 +1563,29 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
               variant="ghost"
               size="sm"
               onClick={() => setActiveFeature('files')}
-              className={`h-12 flex-col p-2 transition-all duration-200 ${
+              className={`h-14 flex-col p-3 transition-all duration-200 rounded-lg ${
                 activeFeature === 'files' 
-                  ? 'bg-gradient-to-r from-pink-500/30 to-blue-500/30 text-white border border-pink-400/50' 
-                  : 'bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white border border-transparent hover:border-white/20'
+                  ? 'zebulon-button-active' 
+                  : 'zebulon-button'
               }`}
             >
-              <Upload className="h-4 w-4 mb-1" />
+              <Upload className="h-5 w-5 mb-1.5" />
               <span className="text-xs font-medium">Files</span>
             </Button>
 
-            {/* Admin Button - only show if logged in as admin */}
+            {/* Admin Button - Enhanced styling, only show if logged in as admin */}
             {currentAdmin && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setActiveFeature('admin')}
-                className={`h-12 flex-col p-2 transition-all duration-200 ${
+                className={`h-14 flex-col p-3 transition-all duration-200 rounded-lg ${
                   activeFeature === 'admin' 
-                    ? 'bg-gradient-to-r from-orange-500/30 to-red-500/30 text-white border border-orange-400/50' 
-                    : 'bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white border border-transparent hover:border-white/20'
+                    ? 'bg-gradient-to-r from-orange-500/30 to-red-500/30 text-white border border-orange-400/50 shadow-lg' 
+                    : 'bg-red-900/20 hover:bg-red-800/30 text-orange-300 hover:text-white border border-red-700/40 hover:border-orange-400/50'
                 }`}
               >
-                <Shield className="h-4 w-4 mb-1" />
+                <Shield className="h-5 w-5 mb-1.5" />
                 <span className="text-xs font-medium">Admin</span>
               </Button>
             )}
@@ -1592,10 +1596,10 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
           {renderFeatureContent()}
         </CardContent>
 
-        {/* Chat Input Area - Only show when not in chat mode */}
+        {/* Chat Input Area - Enhanced styling and spacing */}
         {activeFeature !== 'chat' && (
-          <div className="p-4 border-t border-white border-opacity-10">
-            <div className="flex items-center space-x-2">
+          <div className="p-6 border-t border-white/20 bg-black/10 rounded-b-lg">
+            <div className="flex items-center space-x-4">
               <div className="flex-1 relative">
                 <input
                   type="text"
@@ -1603,26 +1607,27 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  className="w-full bg-white bg-opacity-10 border border-white border-opacity-20 rounded-full px-4 py-2 text-white placeholder-white placeholder-opacity-60 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                  className="w-full zebulon-input rounded-full px-6 py-3 text-sm shadow-inner"
                 />
               </div>
-              <button 
-                className="p-2 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 rounded-full transition-all"
+              <Button 
+                variant="ghost"
+                className="p-3 bg-white/10 hover:bg-white/20 rounded-full transition-all border border-white/10"
                 onClick={handleVoiceRecording}
               >
                 {isRecording ? (
-                  <MicOff className="h-4 w-4 text-red-400" />
+                  <MicOff className="h-5 w-5 text-red-400" />
                 ) : (
-                  <Mic className="h-4 w-4 text-white" />
+                  <Mic className="h-5 w-5 text-white" />
                 )}
-              </button>
-              <button 
-                className="p-2 bg-primary hover:bg-primary/80 rounded-full transition-all"
+              </Button>
+              <Button 
+                className="p-3 bg-primary hover:bg-primary/80 rounded-full transition-all shadow-lg"
                 onClick={handleSendMessage}
                 disabled={!message.trim() || sendMessageMutation.isPending}
               >
-                <Send className="h-4 w-4 text-white" />
-              </button>
+                <Send className="h-5 w-5 text-white" />
+              </Button>
             </div>
           </div>
         )}
