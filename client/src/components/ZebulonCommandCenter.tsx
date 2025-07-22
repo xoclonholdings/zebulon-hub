@@ -116,7 +116,7 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
     if (isRecording) {
       try {
         const audioBlob = await stopRecording();
-        await recordAndProcess(audioBlob, userId, (result) => {
+        await processVoiceCommand(audioBlob, userId, (result) => {
           if (result.transcription?.text) {
             setMessage(result.transcription.text);
           }

@@ -11,7 +11,7 @@ import {
   CheckCircle, 
   XCircle, 
   Search, 
-  Refresh,
+  RefreshCw,
   Lock,
   Unlock,
   Eye,
@@ -77,7 +77,7 @@ const SecurityDashboard: React.FC = () => {
 
   // Run security scan mutation
   const scanMutation = useMutation({
-    mutationFn: () => apiRequest('/api/security/scan'),
+    mutationFn: () => apiRequest('/api/security/scan', 'POST'),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/security/status'] });
       queryClient.invalidateQueries({ queryKey: ['/api/security/scan'] });
@@ -151,7 +151,7 @@ const SecurityDashboard: React.FC = () => {
                 {scanMutation.isPending ? (
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
                 ) : (
-                  <Refresh className="h-4 w-4" />
+                  <RefreshCw className="h-4 w-4" />
                 )}
                 Scan
               </Button>

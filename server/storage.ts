@@ -319,9 +319,9 @@ export class MemStorage implements IStorage {
     }
     
     // Keep only the latest 1000 messages per user
-    for (const [userId, messages] of userMessageCounts) {
+    for (const [userId, messages] of Array.from(userMessageCounts.entries())) {
       if (messages.length > 1000) {
-        messages.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+        messages.sort((a: any, b: any) => b.timestamp!.getTime() - a.timestamp!.getTime());
         const toDelete = messages.slice(1000);
         
         for (const message of toDelete) {
@@ -335,7 +335,7 @@ export class MemStorage implements IStorage {
 
   private cleanupSystemStatus(): void {
     const statuses = Array.from(this.systemStatuses.values())
-      .sort((a, b) => b.lastCheck.getTime() - a.lastCheck.getTime());
+      .sort((a, b) => b.lastCheck!.getTime() - a.lastCheck!.getTime());
     
     if (statuses.length > 100) {
       const toDelete = statuses.slice(100);
@@ -352,7 +352,7 @@ export class MemStorage implements IStorage {
     const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     let deletedCount = 0;
     
-    for (const [id, task] of this.tasks) {
+    for (const [id, task] of Array.from(this.tasks.entries())) {
       if (task.completed && task.updatedAt && task.updatedAt < oneWeekAgo) {
         this.tasks.delete(id);
         deletedCount++;
