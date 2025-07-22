@@ -135,6 +135,7 @@ interface ConfigPanelProps {
 
 export function ZebulonConfigPanel({ userId }: ConfigPanelProps) {
   const [activeSection, setActiveSection] = useState<string>('theme');
+  const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth < 768);
   const [unsavedChanges, setUnsavedChanges] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -153,6 +154,16 @@ export function ZebulonConfigPanel({ userId }: ConfigPanelProps) {
       setLocalConfig(config);
     }
   }, [config]);
+
+  // Handle mobile viewport changes
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Save configuration mutation
   const saveConfigMutation = useMutation({
@@ -249,65 +260,143 @@ export function ZebulonConfigPanel({ userId }: ConfigPanelProps) {
   }
 
   const renderThemeSection = () => (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label className="text-white text-sm">Primary Color</Label>
-          <Input
-            type="color"
-            value={localConfig.theme?.primaryColor || '#8b5cf6'}
-            onChange={(e) => updateConfig('theme', 'primaryColor', e.target.value)}
-            className="h-8 w-16"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label className="text-white text-sm">Secondary Color</Label>
-          <Input
-            type="color"
-            value={localConfig.theme?.secondaryColor || '#3b82f6'}
-            onChange={(e) => updateConfig('theme', 'secondaryColor', e.target.value)}
-            className="h-8 w-16"
-          />
-        </div>
+    <div className="space-y-6">
+      <div className="text-center pb-4 border-b border-white/10">
+        <h3 className="font-bold text-lg text-white mb-2">Visual Customization</h3>
+        <p className="text-sm text-gray-400">Customize Zebulon's appearance with magenta-blue gradient theme</p>
       </div>
       
-      <div className="space-y-2">
-        <Label className="text-white text-sm">Background Opacity: {localConfig.theme?.opacity || 95}%</Label>
-        <Slider
-          value={[localConfig.theme?.opacity || 95]}
-          onValueChange={(value) => updateConfig('theme', 'opacity', value[0])}
-          max={100}
-          min={10}
-          step={5}
-          className="w-full"
-        />
+      <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2'}`}>
+        <div className="p-3 bg-black/30 rounded-lg border border-white/10 space-y-3">
+          <Label className="text-white font-medium flex items-center gap-2 text-sm">
+            <Palette className="h-4 w-4 text-pink-400" />
+            Primary Color (Magenta)
+          </Label>
+          <div className="flex items-center space-x-3">
+            <Input
+              type="color"
+              value={localConfig.theme?.primaryColor || '#ff0080'}
+              onChange={(e) => updateConfig('theme', 'primaryColor', e.target.value)}
+              className="w-12 h-12 p-1 border-2 border-pink-400/30 rounded-lg cursor-pointer bg-transparent"
+            />
+            <Input
+              type="text"
+              value={localConfig.theme?.primaryColor || '#ff0080'}
+              onChange={(e) => updateConfig('theme', 'primaryColor', e.target.value)}
+              className="flex-1 h-10 bg-white/5 border border-white/20 text-white rounded-md font-mono text-sm"
+              placeholder="#ff0080"
+            />
+          </div>
+        </div>
+        
+        <div className="p-3 bg-black/30 rounded-lg border border-white/10 space-y-3">
+          <Label className="text-white font-medium flex items-center gap-2 text-sm">
+            <Palette className="h-4 w-4 text-blue-400" />
+            Secondary Color (Blue)
+          </Label>
+          <div className="flex items-center space-x-3">
+            <Input
+              type="color"
+              value={localConfig.theme?.secondaryColor || '#0080ff'}
+              onChange={(e) => updateConfig('theme', 'secondaryColor', e.target.value)}
+              className="w-12 h-12 p-1 border-2 border-blue-400/30 rounded-lg cursor-pointer bg-transparent"
+            />
+            <Input
+              type="text"
+              value={localConfig.theme?.secondaryColor || '#0080ff'}
+              onChange={(e) => updateConfig('theme', 'secondaryColor', e.target.value)}
+              className="flex-1 h-10 bg-white/5 border border-white/20 text-white rounded-md font-mono text-sm"
+              placeholder="#0080ff"
+            />
+          </div>
+        </div>
       </div>
 
-      <div className="space-y-2">
-        <Label className="text-white text-sm">Glow Intensity: {localConfig.theme?.glowIntensity || 50}%</Label>
-        <Slider
-          value={[localConfig.theme?.glowIntensity || 50]}
-          onValueChange={(value) => updateConfig('theme', 'glowIntensity', value[0])}
-          max={100}
-          min={0}
-          step={10}
-          className="w-full"
-        />
+      <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2'}`}>
+        <div className="p-3 bg-black/30 rounded-lg border border-white/10">
+          <div className="flex items-center justify-between mb-3">
+            <Label className="text-white font-medium text-sm">Background Opacity</Label>
+            <Badge variant="outline" className="text-white border-white/30">
+              {localConfig.theme?.opacity || 95}%
+            </Badge>
+          </div>
+          <Slider
+            value={[localConfig.theme?.opacity || 95]}
+            onValueChange={(value) => updateConfig('theme', 'opacity', value[0])}
+            max={100}
+            min={10}
+            step={5}
+            className="w-full"
+          />
+          <div className="flex justify-between text-xs text-gray-400 mt-2">
+            <span>10%</span>
+            <span>50%</span>
+            <span>100%</span>
+          </div>
+        </div>
+
+        <div className="p-3 bg-black/30 rounded-lg border border-white/10">
+          <div className="flex items-center justify-between mb-3">
+            <Label className="text-white font-medium text-sm">Glow Intensity</Label>
+            <Badge variant="outline" className="text-white border-white/30">
+              {localConfig.theme?.glowIntensity || 50}%
+            </Badge>
+          </div>
+          <Slider
+            value={[localConfig.theme?.glowIntensity || 50]}
+            onValueChange={(value) => updateConfig('theme', 'glowIntensity', value[0])}
+            max={100}
+            min={0}
+            step={10}
+            className="w-full"
+          />
+          <div className="flex justify-between text-xs text-gray-400 mt-2">
+            <span>Off</span>
+            <span>Normal</span>
+            <span>Maximum</span>
+          </div>
+        </div>
       </div>
 
-      <div className="space-y-2">
-        <Label className="text-white text-sm">Animation Speed</Label>
+      <div className="p-4 bg-black/30 rounded-lg border border-white/10 space-y-3">
+        <Label className="text-white font-medium">Animation Speed</Label>
         <Select value={localConfig.theme?.animationSpeed || 'normal'} onValueChange={(value) => updateConfig('theme', 'animationSpeed', value)}>
-          <SelectTrigger className="bg-white bg-opacity-10 border-white border-opacity-20">
+          <SelectTrigger className="bg-white/5 border-white/20 text-white h-10">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-black border-white/20">
             <SelectItem value="slow">Slow</SelectItem>
             <SelectItem value="normal">Normal</SelectItem>
             <SelectItem value="fast">Fast</SelectItem>
             <SelectItem value="off">Disabled</SelectItem>
           </SelectContent>
         </Select>
+      </div>
+
+      {/* Live Preview */}
+      <div className="p-4 bg-black/30 rounded-lg border border-white/10">
+        <Label className="text-white font-medium mb-3 block">Live Preview</Label>
+        <div 
+          className="p-6 rounded-lg border-2 transition-all duration-300 text-center"
+          style={{
+            backgroundColor: `rgba(0, 0, 0, ${(localConfig.theme?.opacity || 95) / 100})`,
+            borderColor: localConfig.theme?.primaryColor || '#ff0080',
+            boxShadow: `0 0 ${(localConfig.theme?.glowIntensity || 50) / 5}px ${localConfig.theme?.primaryColor || '#ff0080'}66`
+          }}
+        >
+          <div 
+            className="font-bold text-xl mb-2"
+            style={{
+              background: `linear-gradient(45deg, ${localConfig.theme?.primaryColor || '#ff0080'}, ${localConfig.theme?.secondaryColor || '#0080ff'})`,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}
+          >
+            ZEBULON™ PREVIEW
+          </div>
+          <p className="text-white/75 text-sm">Your customized theme in action</p>
+        </div>
       </div>
     </div>
   );
@@ -532,16 +621,21 @@ export function ZebulonConfigPanel({ userId }: ConfigPanelProps) {
   };
 
   return (
-    <div className="w-full h-full bg-black bg-opacity-20 rounded-lg p-4 text-white space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-white border-opacity-10 pb-3">
-        <div className="flex items-center space-x-2">
-          <Settings className="h-5 w-5 text-purple-400" />
-          <span className="font-semibold text-lg">Zebulon Configuration</span>
+    <div className="w-full h-full bg-black bg-opacity-95 rounded-lg text-white flex flex-col overflow-hidden">
+      {/* Enhanced Header with gradient accent */}
+      <div className="flex items-center justify-between p-6 border-b border-gradient-to-r from-pink-500/20 to-blue-500/20 bg-gradient-to-r from-pink-500/5 to-blue-500/5">
+        <div className="flex items-center space-x-3">
+          <div className="p-2 bg-gradient-to-r from-pink-500 to-blue-500 rounded-lg shadow-lg">
+            <Settings className="h-5 w-5 text-white" />
+          </div>
+          <div>
+            <span className="font-bold text-xl bg-gradient-to-r from-pink-400 to-blue-400 bg-clip-text text-transparent">Zebulon Configuration</span>
+            <p className="text-sm text-gray-400 mt-0.5">Customize your AI ecosystem to maximum potential</p>
+          </div>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-3">
           {unsavedChanges && (
-            <Badge className="bg-yellow-900 bg-opacity-30 text-yellow-400 border-yellow-500 border-opacity-30 text-xs">
+            <Badge className="bg-gradient-to-r from-orange-500/20 to-yellow-500/20 text-orange-300 border border-orange-400/30 text-xs px-3 py-1 animate-pulse">
               Unsaved Changes
             </Badge>
           )}
@@ -549,63 +643,144 @@ export function ZebulonConfigPanel({ userId }: ConfigPanelProps) {
             variant="ghost"
             size="sm"
             onClick={() => exportConfigMutation.mutate()}
-            className="h-8 px-2 text-xs bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20"
+            className="h-9 px-3 text-sm bg-white/10 hover:bg-white/20 border border-white/20 transition-all duration-200"
           >
-            <Download className="h-3 w-3 mr-1" />
+            <Download className="h-4 w-4 mr-2" />
             Export
           </Button>
         </div>
       </div>
 
-      <div className="flex space-x-4 h-96">
-        {/* Section Navigation */}
-        <div className="w-48 space-y-1">
-          {sections.map((section) => {
-            const Icon = section.icon;
-            return (
+      {/* Main Content Area with improved layout */}
+      <div className="flex flex-1 flex-col overflow-hidden">
+        {/* Mobile/Desktop Navigation */}
+        {isMobile ? (
+          /* Mobile: Horizontal scrollable tabs */
+          <div className="p-3 border-b border-white/10 bg-black/20">
+            <ScrollArea className="w-full">
+              <div className="flex space-x-2 pb-2">
+                {sections.map((section) => {
+                  const Icon = section.icon;
+                  const isActive = activeSection === section.id;
+                  return (
+                    <Button
+                      key={section.id}
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setActiveSection(section.id)}
+                      className={`flex-shrink-0 h-8 px-3 text-xs font-medium transition-all duration-200 ${
+                        isActive 
+                          ? 'bg-gradient-to-r from-pink-500/20 to-blue-500/20 text-white border border-pink-400/30' 
+                          : 'bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-transparent hover:border-white/20'
+                      }`}
+                    >
+                      <Icon className="h-3 w-3 mr-1" />
+                      <span className="whitespace-nowrap">{section.label}</span>
+                    </Button>
+                  );
+                })}
+              </div>
+            </ScrollArea>
+          </div>
+        ) : (
+          /* Desktop: Side navigation */
+          <div className="flex flex-1 overflow-hidden">
+            <div className="w-64 p-4 border-r border-white/10 bg-black/20">
+              <div className="space-y-2">
+                {sections.map((section) => {
+                  const Icon = section.icon;
+                  const isActive = activeSection === section.id;
+                  return (
+                    <Button
+                      key={section.id}
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setActiveSection(section.id)}
+                      className={`w-full justify-start h-12 px-4 text-sm font-medium transition-all duration-200 ${
+                        isActive 
+                          ? 'bg-gradient-to-r from-pink-500/20 to-blue-500/20 text-white border border-pink-400/30' 
+                          : 'bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-transparent hover:border-white/20'
+                      }`}
+                    >
+                      <Icon className="h-4 w-4 mr-3" />
+                      {section.label}
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Configuration Content with better spacing */}
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <div className="flex-1 p-6 overflow-hidden">
+                <ScrollArea className="h-full pr-2">
+                  <div className="space-y-6">
+                    {renderCurrentSection()}
+                  </div>
+                </ScrollArea>
+              </div>
+
+              {/* Action Buttons with enhanced styling */}
+              <div className="flex items-center justify-between p-6 border-t border-white/10 bg-black/20">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleReset}
+                  disabled={resetConfigMutation.isPending}
+                  className="h-10 px-4 text-sm bg-red-900/20 hover:bg-red-900/30 text-red-300 hover:text-red-200 border border-red-500/30 transition-all duration-200"
+                >
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Reset to Defaults
+                </Button>
+                
+                <Button
+                  onClick={handleSave}
+                  disabled={!unsavedChanges || saveConfigMutation.isPending}
+                  className="h-10 px-6 text-sm bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  {saveConfigMutation.isPending ? 'Saving...' : 'Save Changes'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Mobile: Configuration Content (full width) */}
+        {isMobile && (
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex-1 p-3 overflow-hidden">
+              <ScrollArea className="h-full pr-2">
+                <div className="space-y-4">
+                  {renderCurrentSection()}
+                </div>
+              </ScrollArea>
+            </div>
+
+            {/* Action Buttons with enhanced styling */}
+            <div className={`flex items-center justify-between border-t border-white/10 bg-black/20 ${isMobile ? 'p-3 space-x-2' : 'p-6'}`}>
               <Button
-                key={section.id}
-                variant={activeSection === section.id ? 'secondary' : 'ghost'}
-                size="sm"
-                onClick={() => setActiveSection(section.id)}
-                className="w-full justify-start h-8 px-3 text-xs bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20"
+                variant="ghost"
+                size={isMobile ? "sm" : "default"}
+                onClick={handleReset}
+                disabled={resetConfigMutation.isPending}
+                className={`bg-red-900/20 hover:bg-red-900/30 text-red-300 hover:text-red-200 border border-red-500/30 transition-all duration-200 ${isMobile ? 'h-8 px-3 text-xs' : 'h-10 px-4 text-sm'}`}
               >
-                <Icon className="h-3 w-3 mr-2" />
-                {section.label}
+                <RotateCcw className={`mr-1 ${isMobile ? 'h-3 w-3' : 'h-4 w-4 mr-2'}`} />
+                {isMobile ? 'Reset' : 'Reset to Defaults'}
               </Button>
-            );
-          })}
-        </div>
-
-        {/* Configuration Content */}
-        <div className="flex-1 bg-black bg-opacity-30 rounded-lg p-4">
-          <ScrollArea className="h-full">
-            {renderCurrentSection()}
-          </ScrollArea>
-        </div>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="flex items-center justify-between pt-3 border-t border-white border-opacity-10">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleReset}
-          disabled={resetConfigMutation.isPending}
-          className="h-8 px-3 text-xs bg-red-900 bg-opacity-20 hover:bg-red-900 hover:bg-opacity-30 text-red-400"
-        >
-          <RotateCcw className="h-3 w-3 mr-1" />
-          Reset to Defaults
-        </Button>
-        
-        <Button
-          onClick={handleSave}
-          disabled={!unsavedChanges || saveConfigMutation.isPending}
-          className="h-8 px-4 text-xs bg-green-900 bg-opacity-30 hover:bg-green-900 hover:bg-opacity-50 text-green-400"
-        >
-          <Save className="h-3 w-3 mr-1" />
-          {saveConfigMutation.isPending ? 'Saving...' : 'Save Changes'}
-        </Button>
+              
+              <Button
+                onClick={handleSave}
+                disabled={!unsavedChanges || saveConfigMutation.isPending}
+                className={`bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${isMobile ? 'h-8 px-4 text-xs' : 'h-10 px-6 text-sm'}`}
+              >
+                <Save className={`mr-1 ${isMobile ? 'h-3 w-3' : 'h-4 w-4 mr-2'}`} />
+                {saveConfigMutation.isPending ? 'Saving...' : (isMobile ? 'Save' : 'Save Changes')}
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

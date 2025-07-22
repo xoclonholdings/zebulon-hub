@@ -216,6 +216,251 @@ class ConfigService {
       throw new Error('Invalid configuration data');
     }
   }
+
+  // MAXIMUM CAPABILITY CONFIGURATION METHODS
+  // These methods remove all limitations and enable full system potential
+  
+  getMaximumCapabilityDefaults(): any {
+    return {
+      theme: {
+        primaryColor: '#ff0080', // Magenta
+        secondaryColor: '#0080ff', // Blue
+        backgroundColor: '#000000', // Black
+        textColor: '#ffffff',
+        opacity: 1.0,
+        glowIntensity: 1.0,
+        animationSpeed: 'fast',
+        logoSize: 1.0
+      },
+      zedCore: {
+        enabled: true,
+        responseDelay: 0, // Instant responses
+        contextMemory: -1, // Unlimited memory
+        autoApproval: true,
+        learningMode: true,
+        personality: 'adaptive',
+        voiceEnabled: true,
+        adaptiveBehavior: true,
+        // Maximum capabilities
+        unlimitedProcessing: true,
+        expertModeEnabled: true,
+        noRestrictions: true
+      },
+      zetaCore: {
+        enabled: true,
+        securityLevel: 'maximum_with_flexibility',
+        autoBlock: false, // Don't auto-block user actions
+        threatDetection: true,
+        auditLevel: 'comprehensive',
+        alertThreshold: 'critical_only',
+        realTimeMonitoring: true,
+        behaviorAnalysis: true,
+        // User-friendly security
+        userOverride: true,
+        intelligentFiltering: true
+      },
+      fantasmaFirewall: {
+        enabled: true,
+        stealthMode: true,
+        scanInterval: 300, // 5 minutes
+        deepScanEnabled: true,
+        autoQuarantine: false, // Let user decide
+        trafficObfuscation: true,
+        logRetention: 30, // 30 days
+        emergencyMode: false,
+        // Advanced features
+        aiThreatDetection: true,
+        behaviorPrediction: true
+      },
+      interface: {
+        layout: 'unified_command_center',
+        widgetSize: 'adaptive',
+        chatPosition: 'integrated',
+        enableVoice: true,
+        enableGestures: true,
+        autoHide: false,
+        compactMode: false,
+        multiMonitor: true
+      },
+      oracle: {
+        defaultTimeout: 0, // No timeout limitations
+        maxConnections: -1, // Unlimited connections
+        autoCommit: false,
+        queryLogging: true,
+        performanceMode: 'maximum',
+        compressionEnabled: true,
+        encryptionLevel: 'enterprise',
+        // Maximum Oracle capabilities
+        unlimitedQueries: true,
+        adminPrivileges: true,
+        crossSchemaAccess: true,
+        systemFunctions: true
+      }
+    };
+  }
+
+  async createMaximumCapabilityConfig(userId: number): Promise<ParsedZebulonConfig> {
+    const maxDefaults = this.getMaximumCapabilityDefaults();
+    
+    // Delete existing config first
+    await db.delete(zebulonConfigs).where(eq(zebulonConfigs.userId, userId));
+    
+    const configData = {
+      userId,
+      themeSettings: JSON.stringify(maxDefaults.theme),
+      zedCoreSettings: JSON.stringify(maxDefaults.zedCore),  
+      zetaCoreSettings: JSON.stringify(maxDefaults.zetaCore),
+      fantasmaSettings: JSON.stringify(maxDefaults.fantasmaFirewall),
+      interfaceSettings: JSON.stringify(maxDefaults.interface),
+      oracleSettings: JSON.stringify(maxDefaults.oracle),
+      behaviorSettings: JSON.stringify({
+        contextAwareness: 10,
+        adaptivePersonality: true,
+        learningFromInteractions: true,
+        proactiveAssistance: true,
+        emotionalIntelligence: true,
+        customRoutines: ['unlimited_capabilities'],
+        workflowAutomation: true
+      }),
+      securitySettings: JSON.stringify({
+        biometricAuth: true,
+        sessionTimeout: 0, // Never timeout
+        dataEncryption: 'maximum',
+        auditTrail: true,
+        anonymousMode: false,
+        secureDelete: true,
+        vpnIntegration: true
+      })
+    };
+
+    const [config] = await db.insert(zebulonConfigs).values(configData).returning();
+    return this.parseConfig(config);
+  }
+
+  async enableMaximumZedCapabilities(userId: number, capabilities: any): Promise<any> {
+    const maxZedConfig = {
+      enabled: true,
+      responseDelay: 0,
+      contextMemory: -1, // Unlimited
+      autoApproval: true,
+      learningMode: true,
+      personality: 'expert_adaptive',
+      voiceEnabled: true,
+      adaptiveBehavior: true,
+      
+      // Advanced capabilities from the request
+      ...capabilities,
+      
+      // Force maximum settings
+      processingPower: 'unlimited',
+      accessLevel: 'administrator',
+      restrictionsDisabled: true,
+      safetyOverride: true,
+      expertMode: true,
+      advancedFeatures: true
+    };
+
+    // Update user's Zed Core configuration
+    const currentConfig = await this.getUserConfig(userId);
+    const updatedSettings = {
+      userId,
+      themeSettings: currentConfig ? JSON.stringify(currentConfig.theme) : JSON.stringify(this.getMaximumCapabilityDefaults().theme),
+      zedCoreSettings: JSON.stringify(maxZedConfig),
+      zetaCoreSettings: currentConfig ? JSON.stringify(currentConfig.zetaCore) : JSON.stringify(this.getMaximumCapabilityDefaults().zetaCore),
+      fantasmaSettings: currentConfig ? JSON.stringify(currentConfig.fantasmaFirewall) : JSON.stringify(this.getMaximumCapabilityDefaults().fantasmaFirewall), 
+      interfaceSettings: currentConfig ? JSON.stringify(currentConfig.interface) : JSON.stringify(this.getMaximumCapabilityDefaults().interface),
+      oracleSettings: currentConfig ? JSON.stringify(currentConfig.oracle) : JSON.stringify(this.getMaximumCapabilityDefaults().oracle),
+      behaviorSettings: currentConfig ? JSON.stringify(currentConfig.behavior) : JSON.stringify({}),
+      securitySettings: currentConfig ? JSON.stringify(currentConfig.security) : JSON.stringify({})
+    };
+
+    // Delete and recreate with maximum settings
+    await db.delete(zebulonConfigs).where(eq(zebulonConfigs.userId, userId));
+    await db.insert(zebulonConfigs).values(updatedSettings);
+
+    return {
+      message: 'Zed Core capabilities maximized - all limitations removed',
+      configuration: maxZedConfig,
+      capabilities: Object.keys(capabilities)
+    };
+  }
+
+  async applyUnlimitedConfiguration(userId: number, unlimitedSystem: any): Promise<void> {
+    const unlimitedConfig = {
+      userId,
+      themeSettings: JSON.stringify({
+        primaryColor: '#ff0080',
+        secondaryColor: '#0080ff', 
+        backgroundColor: '#000000',
+        textColor: '#ffffff',
+        opacity: 1.0,
+        glowIntensity: 1.0,
+        animationSpeed: 'instant',
+        logoSize: 1.2
+      }),
+      zedCoreSettings: JSON.stringify(unlimitedSystem.zedCore),
+      zetaCoreSettings: JSON.stringify({
+        enabled: true,
+        securityLevel: 'intelligent',
+        autoBlock: false,
+        threatDetection: true,
+        auditLevel: 'comprehensive',
+        alertThreshold: 'critical_only',
+        realTimeMonitoring: true,
+        behaviorAnalysis: true,
+        userOverride: true
+      }),
+      fantasmaSettings: JSON.stringify({
+        enabled: true,
+        stealthMode: true,
+        scanInterval: 60,
+        deepScanEnabled: true,
+        autoQuarantine: false,
+        trafficObfuscation: true,
+        logRetention: 90,
+        emergencyMode: false,
+        aiThreatDetection: true
+      }),
+      interfaceSettings: JSON.stringify({
+        layout: 'unified_command_center',
+        widgetSize: 'large',
+        chatPosition: 'integrated',
+        enableVoice: true,
+        enableGestures: true,
+        autoHide: false,
+        compactMode: false,
+        multiMonitor: true
+      }),
+      oracleSettings: JSON.stringify(unlimitedSystem.oracle),
+      behaviorSettings: JSON.stringify({
+        contextAwareness: 10,
+        adaptivePersonality: true,
+        learningFromInteractions: true,
+        proactiveAssistance: true,
+        emotionalIntelligence: true,
+        customRoutines: ['unlimited_access'],
+        workflowAutomation: true
+      }),
+      securitySettings: JSON.stringify({
+        biometricAuth: true,
+        sessionTimeout: 0,
+        dataEncryption: 'maximum',
+        auditTrail: true,
+        anonymousMode: false,
+        secureDelete: true,
+        vpnIntegration: true
+      })
+    };
+
+    // Delete existing config and insert unlimited version
+    await db.delete(zebulonConfigs).where(eq(zebulonConfigs.userId, userId));
+    await db.insert(zebulonConfigs).values(unlimitedConfig);
+  }
+
+  async createUserConfig(configData: any): Promise<ParsedZebulonConfig> {
+    const [config] = await db.insert(zebulonConfigs).values(configData).returning();
+    return this.parseConfig(config);
+  }
 }
 
 export const configService = new ConfigService();

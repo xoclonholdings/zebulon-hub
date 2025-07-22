@@ -31,6 +31,7 @@ import { useWebSocket } from '@/hooks/use-websocket';
 import { useVoice } from '@/hooks/use-voice';
 import { OracleAdminPanel } from './OracleAdminPanel';
 import { ZebulonConfigPanel } from './ZebulonConfigPanel';
+import ZedSystemNotifications from './ZedSystemNotifications';
 
 interface ChatMessage {
   id: number;
@@ -83,7 +84,7 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
 
-  const { addMessageHandler, removeMessageHandler } = useWebSocket();
+  const { socket, addMessageHandler, removeMessageHandler } = useWebSocket();
   const { 
     isRecording,
     isProcessing,
@@ -461,86 +462,118 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
             </Button>
           </div>
 
-          {/* Feature Navigation Buttons - 3x3 grid */}
-          <div className="grid grid-cols-3 gap-1">
+          {/* Feature Navigation Buttons - Enhanced 3x3 grid */}
+          <div className="grid grid-cols-3 gap-2 p-2 bg-black bg-opacity-20 rounded-lg">
             <Button
-              variant={activeFeature === 'chat' ? 'secondary' : 'ghost'}
+              variant="ghost"
               size="sm"
               onClick={() => setActiveFeature('chat')}
-              className="h-10 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 flex-col p-1"
+              className={`h-12 flex-col p-2 transition-all duration-200 ${
+                activeFeature === 'chat' 
+                  ? 'bg-gradient-to-r from-pink-500/30 to-blue-500/30 text-white border border-pink-400/50' 
+                  : 'bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white border border-transparent hover:border-white/20'
+              }`}
             >
-              <Brain className="h-3 w-3 mb-1" />
-              <span className="text-xs">Chat</span>
+              <Brain className="h-4 w-4 mb-1" />
+              <span className="text-xs font-medium">Chat</span>
             </Button>
             
             <Button
-              variant={activeFeature === 'status' ? 'secondary' : 'ghost'}
+              variant="ghost"
               size="sm"
               onClick={() => setActiveFeature('status')}
-              className="h-10 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 flex-col p-1"
+              className={`h-12 flex-col p-2 transition-all duration-200 ${
+                activeFeature === 'status' 
+                  ? 'bg-gradient-to-r from-pink-500/30 to-blue-500/30 text-white border border-pink-400/50' 
+                  : 'bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white border border-transparent hover:border-white/20'
+              }`}
             >
-              <BarChart3 className="h-3 w-3 mb-1" />
-              <span className="text-xs">Status</span>
+              <BarChart3 className="h-4 w-4 mb-1" />
+              <span className="text-xs font-medium">Status</span>
             </Button>
             
             <Button
-              variant={activeFeature === 'oracle' ? 'secondary' : 'ghost'}
+              variant="ghost"
               size="sm"
               onClick={() => setActiveFeature('oracle')}
-              className="h-10 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 flex-col p-1"
+              className={`h-12 flex-col p-2 transition-all duration-200 ${
+                activeFeature === 'oracle' 
+                  ? 'bg-gradient-to-r from-pink-500/30 to-blue-500/30 text-white border border-pink-400/50' 
+                  : 'bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white border border-transparent hover:border-white/20'
+              }`}
             >
-              <Database className="h-3 w-3 mb-1" />
-              <span className="text-xs">Oracle</span>
+              <Database className="h-4 w-4 mb-1" />
+              <span className="text-xs font-medium">Oracle</span>
             </Button>
             
             <Button
-              variant={activeFeature === 'calendar' ? 'secondary' : 'ghost'}
+              variant="ghost"
               size="sm"
               onClick={() => setActiveFeature('calendar')}
-              className="h-10 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 flex-col p-1"
+              className={`h-12 flex-col p-2 transition-all duration-200 ${
+                activeFeature === 'calendar' 
+                  ? 'bg-gradient-to-r from-pink-500/30 to-blue-500/30 text-white border border-pink-400/50' 
+                  : 'bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white border border-transparent hover:border-white/20'
+              }`}
             >
-              <Calendar className="h-3 w-3 mb-1" />
-              <span className="text-xs">Calendar</span>
+              <Calendar className="h-4 w-4 mb-1" />
+              <span className="text-xs font-medium">Calendar</span>
             </Button>
             
             <Button
-              variant={activeFeature === 'notes' ? 'secondary' : 'ghost'}
+              variant="ghost"
               size="sm"
               onClick={() => setActiveFeature('notes')}
-              className="h-10 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 flex-col p-1"
+              className={`h-12 flex-col p-2 transition-all duration-200 ${
+                activeFeature === 'notes' 
+                  ? 'bg-gradient-to-r from-pink-500/30 to-blue-500/30 text-white border border-pink-400/50' 
+                  : 'bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white border border-transparent hover:border-white/20'
+              }`}
             >
-              <FileText className="h-3 w-3 mb-1" />
-              <span className="text-xs">Notes</span>
+              <FileText className="h-4 w-4 mb-1" />
+              <span className="text-xs font-medium">Notes</span>
             </Button>
             
             <Button
-              variant={activeFeature === 'music' ? 'secondary' : 'ghost'}
+              variant="ghost"
               size="sm"
               onClick={() => setActiveFeature('music')}
-              className="h-10 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 flex-col p-1"
+              className={`h-12 flex-col p-2 transition-all duration-200 ${
+                activeFeature === 'music' 
+                  ? 'bg-gradient-to-r from-pink-500/30 to-blue-500/30 text-white border border-pink-400/50' 
+                  : 'bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white border border-transparent hover:border-white/20'
+              }`}
             >
-              <Music className="h-3 w-3 mb-1" />
-              <span className="text-xs">Music</span>
+              <Music className="h-4 w-4 mb-1" />
+              <span className="text-xs font-medium">Music</span>
             </Button>
             
             <Button
-              variant={activeFeature === 'photos' ? 'secondary' : 'ghost'}
+              variant="ghost"
               size="sm"
               onClick={() => setActiveFeature('photos')}
-              className="h-10 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 flex-col p-1"
+              className={`h-12 flex-col p-2 transition-all duration-200 ${
+                activeFeature === 'photos' 
+                  ? 'bg-gradient-to-r from-pink-500/30 to-blue-500/30 text-white border border-pink-400/50' 
+                  : 'bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white border border-transparent hover:border-white/20'
+              }`}
             >
-              <Camera className="h-3 w-3 mb-1" />
-              <span className="text-xs">Photos</span>
+              <Camera className="h-4 w-4 mb-1" />
+              <span className="text-xs font-medium">Photos</span>
             </Button>
             
             <Button
-              variant={activeFeature === 'config' ? 'secondary' : 'ghost'}
+              variant="ghost"
               size="sm"
               onClick={() => setActiveFeature('config')}
-              className="h-10 bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 flex-col p-1"
+              className={`h-12 flex-col p-2 transition-all duration-200 ${
+                activeFeature === 'config' 
+                  ? 'bg-gradient-to-r from-pink-500/30 to-blue-500/30 text-white border border-pink-400/50' 
+                  : 'bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white border border-transparent hover:border-white/20'
+              }`}
             >
-              <Settings className="h-3 w-3 mb-1" />
-              <span className="text-xs">Config</span>
+              <Settings className="h-4 w-4 mb-1" />
+              <span className="text-xs font-medium">Config</span>
             </Button>
           </div>
         </CardHeader>
@@ -584,6 +617,9 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
           </div>
         )}
       </Card>
+      
+      {/* System Notifications for Cross-App Ducking */}
+      <ZedSystemNotifications userId={1} websocket={socket} />
     </div>
   );
 };

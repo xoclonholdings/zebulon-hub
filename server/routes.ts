@@ -6,7 +6,9 @@ import { storage } from "./storage";
 import { processZedCoreMessage, generateRecommendations, processAIMessage } from "./services/local-ai";
 import { oracleService } from "./services/oracle";
 import { voiceService } from "./services/voice";
-import { insertChatMessageSchema, insertOracleQuerySchema, insertTaskSchema, insertNoteSchema } from "@shared/schema";
+import { insertChatMessageSchema, insertOracleQuerySchema, insertTaskSchema, insertNoteSchema, insertZebulonConfigSchema } from "@shared/schema";
+import { configService } from "./services/config-service";
+import { zedCoreService } from "./services/zed-core-service";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -32,6 +34,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             break;
           case 'status_update':
             await broadcastStatusUpdate();
+            break;
+          case 'zed_core_init':
+            await handleZedCoreInit(ws, data);
+            break;
+          case 'app_integration':
+            await handleAppIntegration(ws, data);
+            break;
+          case 'get_notifications':
+            await handleGetNotifications(ws, data);
             break;
         }
       } catch (error) {
@@ -134,6 +145,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   }
 
+  // Zed Core WebSocket Handlers
+  async function handleZedCoreInit(ws: WebSocket, data: any) {
+    if (ws.readyState === WebSocket.OPEN) {
+      try {
+        const { userId } = data;
+        const capabilities = await zedCoreService.initializeZedCore(userId);
+        
+        ws.send(JSON.stringify({
+          type: 'zed_core_initialized',
+          capabilities,
+          status: 'success'
+        }));
+        
+        console.log(`Zed Core initialized for user ${userId}`);
+      } catch (error) {
+        ws.send(JSON.stringify({
+          type: 'error',
+          message: 'Failed to initialize Zed Core'
+        }));
+      }
+    }
+  }
+
+  async function handleAppIntegration(ws: WebSocket, data: any) {
+    if (ws.readyState === WebSocket.OPEN) {
+      try {
+        const { userId, appName, capabilities } = data;
+        const success = await zedCoreService.integrateWithApp(userId, appName, capabilities);
+        
+        ws.send(JSON.stringify({
+          type: 'app_integrated',
+          appName,
+          success,
+          message: success ? 'App successfully integrated with Zed Core' : 'Failed to integrate app'
+        }));
+        
+        console.log(`App integration ${success ? 'successful' : 'failed'} for ${appName}`);
+      } catch (error) {
+        ws.send(JSON.stringify({
+          type: 'error',
+          message: 'Failed to integrate app'
+        }));
+      }
+    }
+  }
+
+  async function handleGetNotifications(ws: WebSocket, data: any) {
+    if (ws.readyState === WebSocket.OPEN) {
+      try {
+        const { userId } = data;
+        const notifications = zedCoreService.getPendingNotifications(userId);
+        
+        // Send system notifications that can duck running apps
+        for (const notification of notifications) {
+          ws.send(JSON.stringify(notification));
+        }
+      } catch (error) {
+        ws.send(JSON.stringify({
+          type: 'error',
+          message: 'Failed to get notifications'
+        }));
+      }
+    }
+  }
+
   async function broadcastStatusUpdate() {
     const status = await oracleService.getStatus();
     const statusData = JSON.stringify({
@@ -150,6 +226,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }
 
   // REST API Routes
+
+  // Zed Core Background Operations API
+  app.post('/api/zed-core/reminder', async (req, res) => {
+    try {
+      const { userId, title, message, scheduledTime, priority, recurring } = req.body;
+      
+      const reminder = await zedCoreService.createReminder(userId, {
+        title,
+        message,
+        type: 'reminder',
+        priority: priority || 'medium',
+        scheduledTime: scheduledTime ? new Date(scheduledTime) : undefined,
+        recurring,
+        active: true
+      });
+      
+      res.json({ success: true, reminder });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ success: false, error: errorMessage });
+    }
+  });
+
+  app.post('/api/zed-core/background-task', async (req, res) => {
+    try {
+      const { userId, taskType, description, data } = req.body;
+      
+      const taskId = await zedCoreService.createBackgroundTask(userId, taskType, description, data);
+      
+      res.json({ success: true, taskId });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ success: false, error: errorMessage });
+    }
+  });
+
+  app.get('/api/zed-core/status/:userId', async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const status = zedCoreService.getZedCoreStatus(userId);
+      
+      res.json({ success: true, status });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ success: false, error: errorMessage });
+    }
+  });
+
+  app.get('/api/zed-core/background-tasks/:userId', async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const tasks = await zedCoreService.getBackgroundTasks(userId);
+      
+      res.json({ success: true, tasks });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ success: false, error: errorMessage });
+    }
+  });
+
+  app.post('/api/zed-core/announce-completion', async (req, res) => {
+    try {
+      const { userId, taskId, taskDescription, results } = req.body;
+      
+      await zedCoreService.announceTaskCompletion(userId, taskId, taskDescription, results);
+      
+      res.json({ success: true });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ success: false, error: errorMessage });
+    }
+  });
 
   // Authentication and user management
   app.post('/api/auth/login', async (req, res) => {
@@ -749,6 +897,244 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       res.status(500).json({ message: errorMessage });
+    }
+  });
+
+  // ========================
+  // ZEBULON CONFIGURATION API
+  // Complete system customization with NO limitations
+  // ========================
+
+  // Get user's Zebulon system configuration
+  app.get('/api/zebulon-config/:userId', async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const config = await configService.getUserConfig(userId);
+      res.json(config);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to get configuration';
+      res.status(500).json({ error: errorMessage });
+    }
+  });
+
+  // Update user's Zebulon system configuration
+  app.put('/api/zebulon-config/:userId', async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const validatedData = insertZebulonConfigSchema.parse(req.body);
+      const updatedConfig = await configService.updateUserConfig(userId, validatedData);
+      res.json(updatedConfig);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update configuration';
+      res.status(500).json({ error: errorMessage });
+    }
+  });
+
+  // Create new Zebulon system configuration
+  app.post('/api/zebulon-config', async (req, res) => {
+    try {
+      const validatedData = insertZebulonConfigSchema.parse(req.body);
+      const config = await configService.createUserConfig(validatedData);
+      res.json(config);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create configuration';
+      res.status(500).json({ error: errorMessage });
+    }
+  });
+
+  // Reset configuration to maximum capabilities
+  app.post('/api/zebulon-config/:userId/reset', async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const maximumConfig = await configService.createMaximumCapabilityConfig(userId);
+      res.json(maximumConfig);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to reset to maximum configuration';
+      res.status(500).json({ error: errorMessage });
+    }
+  });
+
+  // Get system defaults (maximum capabilities)
+  app.get('/api/zebulon-config/defaults', async (req, res) => {
+    try {
+      const defaults = configService.getMaximumCapabilityDefaults();
+      res.json(defaults);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to get defaults';
+      res.status(500).json({ error: errorMessage });
+    }
+  });
+
+  // Apply maximum Oracle capabilities
+  app.post('/api/oracle/maximize-capabilities/:userId', async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const { oracleAdminService } = await import('./services/oracle-admin');
+      
+      const maximizedOracle = await oracleAdminService.enableMaximumCapabilities(userId, {
+        // No query timeouts or limitations
+        unlimitedTimeout: true,
+        unlimitedConnections: true,
+        unlimitedQueryComplexity: true,
+        
+        // Maximum performance settings
+        parallelExecution: true,
+        advancedOptimization: true,
+        memoryOptimization: true,
+        
+        // Full administrative privileges
+        ddlOperations: true,
+        systemQueries: true,
+        crossSchemaAccess: true,
+        
+        // Advanced features
+        storedProcedures: true,
+        functions: true,
+        triggers: true,
+        partitioning: true,
+        indexing: true,
+        
+        // Security with maximum flexibility
+        encryptedConnections: true,
+        auditLogging: true,
+        roleBasedAccess: false // Disable role restrictions for maximum access
+      });
+
+      res.json(maximizedOracle);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to maximize Oracle capabilities';
+      res.status(500).json({ error: errorMessage });
+    }
+  });
+
+  // Apply maximum Zed Core capabilities  
+  app.post('/api/zed-core/maximize-capabilities/:userId', async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      
+      const maximizedZed = await configService.enableMaximumZedCapabilities(userId, {
+        // Unlimited processing power
+        unlimitedContextMemory: true,
+        unlimitedResponseLength: true,
+        unlimitedComplexity: true,
+        
+        // Advanced AI features
+        deepReasoning: true,
+        codeGeneration: true,
+        dataAnalysis: true,
+        naturalLanguageSQL: true,
+        
+        // Learning and adaptation
+        continuousLearning: true,
+        userPatternRecognition: true,
+        adaptivePersonality: true,
+        
+        // Full system integration
+        oracleIntegration: true,
+        systemControlAccess: true,
+        fileSystemAccess: true,
+        
+        // No restrictions or limitations
+        autoApprovalBypass: true,
+        securityLevelOverride: true,
+        adminPrivileges: true,
+        
+        // Voice and multimodal
+        voiceProcessing: true,
+        imageAnalysis: true,
+        documentProcessing: true,
+        
+        // Real-time capabilities
+        liveDataAccess: true,
+        streamProcessing: true,
+        instantResponses: true
+      });
+
+      res.json(maximizedZed);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to maximize Zed Core capabilities';
+      res.status(500).json({ error: errorMessage });
+    }
+  });
+
+  // Remove all system limitations (nuclear option)
+  app.post('/api/system/remove-all-limitations/:userId', async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      
+      const unlimitedSystem = {
+        oracle: {
+          // Remove all Oracle limitations
+          queryTimeouts: 'unlimited',
+          connectionLimits: 'unlimited',
+          queryComplexity: 'unlimited',
+          memoryUsage: 'unlimited',
+          cpuUsage: 'unlimited',
+          
+          // Enable all Oracle features
+          ddl: true,
+          dml: true,
+          systemQueries: true,
+          crossSchema: true,
+          adminFunctions: true,
+          storedProcedures: true,
+          functions: true,
+          triggers: true,
+          partitioning: true,
+          clustering: true,
+          replication: true,
+          backupRestore: true
+        },
+        
+        zedCore: {
+          // Remove all AI limitations  
+          contextWindow: 'unlimited',
+          responseLength: 'unlimited',
+          processingPower: 'unlimited',
+          memoryAccess: 'unlimited',
+          
+          // Enable all AI capabilities
+          reasoning: 'maximum',
+          creativity: 'maximum',
+          problemSolving: 'maximum',
+          codeGeneration: 'expert',
+          dataAnalysis: 'expert',
+          
+          // Remove safety restrictions
+          contentFilters: 'disabled',
+          ethicalConstraints: 'minimal',
+          safetyLimits: 'disabled',
+          
+          // Maximum system access
+          fileSystem: 'full',
+          networkAccess: 'full',
+          systemCommands: 'full',
+          databaseAccess: 'full'
+        },
+        
+        system: {
+          resourceLimits: 'disabled',
+          securityRestrictions: 'minimal',
+          accessControls: 'bypassed',
+          auditRequirements: 'optional'
+        }
+      };
+
+      // Apply unlimited configuration
+      await configService.applyUnlimitedConfiguration(userId, unlimitedSystem);
+      
+      res.json({
+        message: 'All system limitations have been removed. Zebulon now operates at maximum potential.',
+        configuration: unlimitedSystem,
+        warnings: [
+          'System is now operating with unlimited capabilities',
+          'All safety restrictions have been minimized',
+          'User has full administrative access to all systems'
+        ]
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to remove system limitations';
+      res.status(500).json({ error: errorMessage });
     }
   });
 
