@@ -415,8 +415,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: userId
       });
       
-      // Process with Zed Core
-      const zedResponse = await processZedCoreMessage(validatedData.message);
+      // Process with Zed Core - add timestamp to prevent caching issues
+      const context = {
+        timestamp: new Date().toISOString(),
+        userId: userId,
+        messageId: Date.now()
+      };
+      const zedResponse = await processZedCoreMessage(validatedData.message, context);
       
       // Save user message
       const userMessage = await storage.createChatMessage({

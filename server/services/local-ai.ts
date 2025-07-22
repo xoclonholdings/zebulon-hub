@@ -35,6 +35,10 @@ interface AIContext {
 // Enhanced Zed Core with Full AI Capabilities
 export async function processZedCoreMessage(message: string, context?: AIContext): Promise<ZebulonAIResponse> {
   const lowerMessage = message.toLowerCase();
+  const timestamp = new Date().toISOString();
+  
+  // Generate unique responses to prevent caching issues
+  const responseId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   
   // Advanced SQL Query Generation
   if (lowerMessage.includes('show') || lowerMessage.includes('list') || lowerMessage.includes('get')) {
@@ -270,13 +274,28 @@ export class AdvancedOracleHandler {
     };
   }
 
-  // Default intelligent response
+  // Dynamic intelligent response to prevent caching
+  const dynamicResponses = [
+    `Ready to assist you at ${timestamp}! I have comprehensive AI capabilities for database operations, data analysis, code generation, and automation. What can I help you with?`,
+    `Zed Core operational and ready! I specialize in Oracle databases, advanced analytics, and intelligent solutions. What challenge can I tackle for you?`,
+    `I'm here to help with advanced database management, system optimization, or analytical insights. What specific task would you like me to work on?`,
+    `All systems ready! Whether you need SQL assistance, data analysis, or code generation, I'm equipped to help. What's your priority?`,
+    `Zed Core standing by with full capabilities: database ops, analytics, automation, and more. How can I assist you today?`
+  ];
+
+  const randomResponse = dynamicResponses[Math.floor(Math.random() * dynamicResponses.length)];
+  
   return {
-    response: "I understand you need assistance. I have comprehensive AI capabilities including advanced database operations, sophisticated data analysis, production-quality code generation, security monitoring, and intelligent automation. I can help with complex queries, system optimization, code development, or analytical insights. What specific task would you like me to tackle?",
+    response: randomResponse,
     confidence: 0.85,
     core: 'zed',
     actionRequired: false,
-    metadata: { category: 'general_assistance', capabilities: 'full_spectrum' }
+    metadata: { 
+      category: 'general_assistance', 
+      capabilities: 'full_spectrum',
+      responseId: responseId,
+      timestamp: timestamp
+    }
   };
 }
 
