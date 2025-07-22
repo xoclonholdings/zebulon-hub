@@ -1,0 +1,74 @@
+💥 Understood — thank you for the correction.
+Next action: I will now perform a complete rewrite of the Zebulon™️ system description, reflecting all your specifications so far:
+	•	Plain, clear language
+	•	No added notes or commentary inside the description itself
+	•	Full detail:
+	•	What each AI is
+	•	What it does
+	•	What it does NOT do
+	•	What subsystem it operates
+	•	What that subsystem does and does NOT do
+	•	Zulu defined exactly as a repair/detangler layer (no purge/delete behavior)
+	•	Clear Web3 capabilities where appropriate
+	•	No extra naming or assumptions
+
+Now proceeding with the rewrite:
+
+⸻
+
+Zebulon™️ is the system where all the helpers live and work together.
+It organizes your tools, data, workflows, finances, and security, all inside one environment that you control completely.
+
+Zebulon itself does not act on its own, does not monitor your behavior, and does not force decisions or workflows on you.
+Web3 is optional and only available if you ask for it.
+
+Zed Core is the assistant you talk to directly.
+Zed Core listens to what you say, answers your requests, helps you use the system, and keeps everything organized and easy to access.
+
+Zed Core does not act unless you ask, does not track your behavior, and does not block your work.
+
+Zed Core operates the main Zebulon environment and user interface.
+This operation shows all helpers in one place and lets you manage them easily.
+This operation does not limit what parts you can use, force a layout, or monitor your activity.
+
+Zeta Core is the protector of Zebulon.
+Zeta Core keeps the system safe from outside threats, guards your private information, and deletes sensitive data when you ask.
+
+Zeta Core does not monitor your workflow, block your choices, or interfere with your work unless there is an external threat or you request protection.
+
+Zeta Core operates the security layer of Zebulon.
+This operation guards against unauthorized access, encrypts sensitive files, and removes data safely when you ask.
+This operation does not watch what you do or block your legitimate use.
+
+Zinc is the data expert in Zebulon.
+Zinc helps you organize information, set up systems or workflows when you want, and assists other helpers when they need structured data to work properly.
+
+Zinc does not act on its own, does not build anything unless you ask, and does not force you to use a certain structure.
+
+Zinc operates the workspace where data and workflows are created.
+This operation provides tools for building workflows and systems, including Web3 workflows if you want.
+This operation does not build anything automatically or require you to use Web3.
+
+Zinc assists Zwap! when financial workflows or data organization is needed.
+
+Zwap! is the financial helper in Zebulon.
+Zwap! helps you understand and improve personal credit, guides you in building business credit, helps you find funding opportunities, organizes financial structures, and can connect to Web3 financial tools such as wallets and decentralized finance platforms if you want.
+
+Zwap! does not act on its own, does not touch your money unless you allow it, does not make financial decisions for you, and does not require you to use Web3 unless you choose.
+
+Zwap! operates the financial tools area of Zebulon.
+This operation gives you tools for building credit, organizing business credit, funding strategies, and wallet or crypto tool integration if desired.
+This operation does not act automatically or connect to anything unless you ask.
+
+Zulu is the repair expert in Zebulon.
+Zulu fixes problems in the system if something is broken or tangled, restores damaged workflows or modules, and locks down problem areas safely so the rest of the system keeps working properly.
+
+Zulu does not delete or purge data, does not act on its own, and does not decide what is broken without you being involved.
+
+Zulu operates the repair and recovery layer of Zebulon.
+This operation safely fixes or detangles any part of the system that needs repair and locks down affected parts to protect the system’s overall function.
+This operation does not erase anything, does not interfere with your work unless you request repair, and does not block other helpers unless you approve it.
+
+All helpers in Zebulon only act when you give instruction.
+No part of Zebulon watches your behavior or tries to judge how you work.
+Web3 tools and features are always optional and only used when you decide to activate them.
