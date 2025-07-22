@@ -18,6 +18,12 @@ try {
     fs.mkdirSync('dist/server', { recursive: true });
   }
   
+  // Ensure the server/public directory exists and copy assets there
+  console.log('📋 Copying client assets to server/public...');
+  if (!fs.existsSync('server/public')) {
+    fs.mkdirSync('server/public', { recursive: true });
+  }
+  
   // Copy server files directly (they work fine as TypeScript in development)
   console.log('📄 Copying server files...');
   const copyRecursively = (src, dest) => {
@@ -35,9 +41,25 @@ try {
     }
   };
   
-  // Copy all necessary files
+  // Copy built assets from dist/public to server/public for server compatibility
+  if (fs.existsSync('dist/public')) {
+    copyRecursively('dist/public', 'server/public');
+    console.log('✅ Client assets copied to server/public');
+  }
+  
+  // Copy all necessary files for production deployment
   copyRecursively('server', 'dist/server');
   copyRecursively('shared', 'dist/shared');
+  
+  // Also copy the client assets to dist/server/public for production consistency
+  if (fs.existsSync('dist/public')) {
+    const distServerPublic = 'dist/server/public';
+    if (!fs.existsSync(distServerPublic)) {
+      fs.mkdirSync(distServerPublic, { recursive: true });
+    }
+    copyRecursively('dist/public', distServerPublic);
+    console.log('✅ Client assets also copied to dist/server/public for production');
+  }
   
   // Copy configuration files
   fs.copyFileSync('package.json', 'dist/package.json');
