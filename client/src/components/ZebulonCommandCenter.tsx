@@ -1412,7 +1412,7 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
                 {/* Quick Oracle Commands */}
                 <div className="space-y-4">
                   <h4 className="text-md font-semibold text-white">Quick Oracle Commands</h4>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <Button
                       onClick={() => {
                         setMessage("Show all Oracle database tables and their structure");
@@ -1421,10 +1421,10 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
                       }}
                       className="zebulon-button text-left justify-start p-4 h-auto"
                     >
-                      <Database className="h-4 w-4 mr-2" />
-                      <div>
-                        <div className="text-sm font-medium">Show Tables</div>
-                        <div className="text-xs text-gray-400">List all database tables</div>
+                      <Database className="h-4 w-4 mr-2 shrink-0" />
+                      <div className="min-w-0">
+                        <div className="text-sm font-medium truncate">Show Tables</div>
+                        <div className="text-xs text-gray-400 truncate">List all database tables</div>
                       </div>
                     </Button>
                     
@@ -1436,10 +1436,10 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
                       }}
                       className="zebulon-button text-left justify-start p-4 h-auto"
                     >
-                      <BarChart3 className="h-4 w-4 mr-2" />
-                      <div>
-                        <div className="text-sm font-medium">Performance Check</div>
-                        <div className="text-xs text-gray-400">Analyze database performance</div>
+                      <BarChart3 className="h-4 w-4 mr-2 shrink-0" />
+                      <div className="min-w-0">
+                        <div className="text-sm font-medium truncate">Performance Check</div>
+                        <div className="text-xs text-gray-400 truncate">Analyze database performance</div>
                       </div>
                     </Button>
                     
@@ -1451,10 +1451,10 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
                       }}
                       className="zebulon-button text-left justify-start p-4 h-auto"
                     >
-                      <Shield className="h-4 w-4 mr-2" />
-                      <div>
-                        <div className="text-sm font-medium">Security Audit</div>
-                        <div className="text-xs text-gray-400">Check security status</div>
+                      <Shield className="h-4 w-4 mr-2 shrink-0" />
+                      <div className="min-w-0">
+                        <div className="text-sm font-medium truncate">Security Audit</div>
+                        <div className="text-xs text-gray-400 truncate">Check security status</div>
                       </div>
                     </Button>
                     
@@ -1466,10 +1466,10 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
                       }}
                       className="zebulon-button text-left justify-start p-4 h-auto"
                     >
-                      <Settings className="h-4 w-4 mr-2" />
-                      <div>
-                        <div className="text-sm font-medium">Maintenance</div>
-                        <div className="text-xs text-gray-400">Run maintenance tasks</div>
+                      <Settings className="h-4 w-4 mr-2 shrink-0" />
+                      <div className="min-w-0">
+                        <div className="text-sm font-medium truncate">Maintenance</div>
+                        <div className="text-xs text-gray-400 truncate">Run maintenance tasks</div>
                       </div>
                     </Button>
                   </div>
@@ -1480,7 +1480,7 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
                   <h4 className="text-md font-semibold text-white mb-4">Custom Oracle Query</h4>
                   <div className="space-y-3">
                     <Input
-                      placeholder="Ask Zed to execute Oracle queries in natural language..."
+                      placeholder="Ask Zed to execute Oracle queries..."
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                       onKeyPress={handleKeyPress}
