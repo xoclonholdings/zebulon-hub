@@ -1,0 +1,77 @@
+{
+  "name": "zebulon-ai-system",
+  "version": "1.0.0",
+  "description": "Zebulon AI Oracle System - Advanced AI-powered database management and security platform",
+  "type": "fullstack",
+  "runtime": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "environment": {
+    "production": {
+      "NODE_ENV": "production",
+      "PORT": 3000,
+      "DATABASE_URL": "${DATABASE_URL}",
+      "SESSION_SECRET": "${SESSION_SECRET}",
+      "OPENAI_API_KEY": "${OPENAI_API_KEY}",
+      "ANTHROPIC_API_KEY": "${ANTHROPIC_API_KEY}"
+    },
+    "development": {
+      "NODE_ENV": "development",
+      "PORT": 5000
+    }
+  },
+  "build": {
+    "frontend": {
+      "command": "npm run build:client",
+      "output": "dist/public",
+      "static": true
+    },
+    "backend": {
+      "command": "npm run build:server",
+      "output": "dist/index.js",
+      "entry": "server/index.ts"
+    }
+  },
+  "deployment": {
+    "type": "standalone",
+    "database": {
+      "type": "postgresql",
+      "migrations": "npm run db:push",
+      "required": true
+    },
+    "static_files": {
+      "serve": true,
+      "path": "/dist/public",
+      "fallback": "index.html"
+    },
+    "security": {
+      "https_only": true,
+      "hsts": true,
+      "content_security_policy": true,
+      "rate_limiting": true
+    },
+    "performance": {
+      "compression": true,
+      "caching": true,
+      "cdn_ready": true
+    }
+  },
+  "health_checks": {
+    "endpoint": "/api/health",
+    "database": "/api/health/db",
+    "security": "/api/health/security"
+  },
+  "scaling": {
+    "min_instances": 1,
+    "max_instances": 10,
+    "cpu_threshold": 70,
+    "memory_threshold": 80
+  },
+  "monitoring": {
+    "logs": true,
+    "metrics": true,
+    "alerts": true,
+    "uptime": true
+  }
+}
