@@ -1,73 +1,47 @@
 #!/bin/bash
-
-# Zebulon AI System - Production Build Script
-# Comprehensive build process for deployment
-
+# Zebulon Production Build Script
 set -e
 
-echo "🚀 Building Zebulon AI System for production deployment..."
-
-# Check prerequisites
-echo "📋 Checking prerequisites..."
-node --version || { echo "❌ Node.js not found"; exit 1; }
-npm --version || { echo "❌ npm not found"; exit 1; }
+echo "🚀 Starting Zebulon production build..."
 
 # Clean previous builds
 echo "🧹 Cleaning previous builds..."
-rm -rf dist/
-rm -rf build/
+rm -rf dist node_modules package-lock.json
+
+# Install dependencies with legacy peer deps to resolve conflicts
+echo "📦 Installing dependencies..."
+npm install --legacy-peer-deps
+
+# Update browserslist data
+echo "🌐 Updating browser compatibility data..."
+npx update-browserslist-db
+
+# Run TypeScript check (non-blocking for deployment)
+echo "🔍 Running TypeScript checks..."
+npm run check || echo "⚠️  TypeScript warnings found (non-blocking)"
+
+# Build frontend
+echo "🎨 Building frontend..."
+npm run build
+
+# Optimize for production
+echo "⚡ Optimizing for production..."
 mkdir -p dist/public
 
-# Install dependencies with production optimizations
-echo "📦 Installing dependencies..."
-npm ci --production=false
-npm audit fix --force || echo "⚠️ Some audit fixes may have conflicts"
-
-# Build client (frontend)
-echo "🔨 Building client application..."
-npm run build:client || {
-    echo "❌ Client build failed"
-    exit 1
-}
-
-# Build server (backend)
-echo "🔧 Building server application..."
-npm run build:server || {
-    echo "❌ Server build failed"
-    exit 1
-}
-
 # Copy static assets
-echo "📁 Copying static assets..."
-cp -r client/public/* dist/public/ 2>/dev/null || echo "No public assets to copy"
+cp -r public/* dist/public/ 2>/dev/null || echo "No public assets to copy"
 
-# Database preparation
-echo "🗄️ Preparing database schema..."
-npm run db:generate || echo "⚠️ Database generation skipped"
+# Create production start script
+cat > dist/start.sh << 'EOF'
+#!/bin/bash
+export NODE_ENV=production
+export PORT=${PORT:-5000}
+node index.js
+EOF
 
-# Security optimization
-echo "🔒 Running security optimizations..."
-npm run security:optimize || echo "⚠️ Security optimization skipped"
-
-# Performance optimization
-echo "⚡ Running performance optimizations..."
-npm run optimize:assets || echo "⚠️ Asset optimization skipped"
-
-# Create production package
-echo "📦 Creating production package..."
-tar -czf zebulon-production.tar.gz \
-    dist/ \
-    package.json \
-    package-lock.json \
-    deployment-config.json \
-    deployment-scripts/ \
-    README.md
+chmod +x dist/start.sh
 
 echo "✅ Build completed successfully!"
-echo "📊 Build summary:"
-echo "   - Client: dist/public/"
-echo "   - Server: dist/index.js"
-echo "   - Package: zebulon-production.tar.gz"
-echo "   - Size: $(du -h zebulon-production.tar.gz | cut -f1)"
-echo ""
-echo "🚀 Ready for deployment!"
+echo "📊 Build statistics:"
+ls -la dist/
+echo "🎯 Ready for deployment!"
