@@ -192,10 +192,45 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
   } = useVoice();
 
   // Fetch chat messages - Reduced polling frequency to prevent rate limiting
-  const { data: messages = [] } = useQuery<ChatMessage[]>({
+  const { data: chatData = [], isLoading: chatLoading } = useQuery({
     queryKey: ['/api/chat', userId],
     refetchInterval: 5000, // Reduced from 1000ms to 5000ms
   });
+
+  // Transform API data to ChatMessage format
+  const messages: ChatMessage[] = React.useMemo(() => {
+    if (!Array.isArray(chatData)) return [];
+    
+    const transformedMessages: ChatMessage[] = [];
+    
+    chatData.forEach((item: any) => {
+      // Each item can contain both user message and AI response
+      // User message (when isUser is true)
+      if (item.message && item.isUser) {
+        transformedMessages.push({
+          id: item.id,
+          content: item.message,
+          isUser: true,
+          timestamp: item.timestamp,
+          aiCore: item.aiCore
+        });
+      }
+      
+      // AI response (when isUser is false)
+      if (item.message && !item.isUser) {
+        transformedMessages.push({
+          id: item.id,
+          content: item.message,
+          isUser: false,
+          timestamp: item.timestamp,
+          aiCore: item.aiCore
+        });
+      }
+    });
+    
+    // Sort by ID to maintain chronological order
+    return transformedMessages.sort((a, b) => a.id - b.id);
+  }, [chatData]);
 
   // Check user permissions
   const { data: permissions } = useQuery({
