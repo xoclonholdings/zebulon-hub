@@ -6,12 +6,17 @@ import { z } from "zod";
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+  passwordHash: text("password_hash").notNull(), // Store hashed passwords only
   codename: text("codename").notNull(),
   role: text("role").notNull().default("User"),
   theme: text("theme").notNull().default("light"),
   voiceId: text("voice_id"),
+  isActive: boolean("is_active").default(true),
+  lastLogin: timestamp("last_login"),
+  failedLoginAttempts: integer("failed_login_attempts").default(0),
+  lockedUntil: timestamp("locked_until"),
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const chatMessages = pgTable("chat_messages", {
@@ -152,7 +157,7 @@ export const zedLearningPatterns = pgTable("zed_learning_patterns", {
 // Zod schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
-  password: true,
+  passwordHash: true,
   codename: true,
   role: true,
   theme: true,
@@ -182,7 +187,8 @@ export const insertNoteSchema = createInsertSchema(userNotes).pick({
 
 export const insertUserConfigurationSchema = createInsertSchema(userConfigurations).pick({
   userId: true,
-  configuration: true,
+  encryptedConfig: true,
+  configHash: true,
 });
 
 export const insertProcessAuthorizationSchema = createInsertSchema(processAuthorizations).pick({

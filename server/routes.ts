@@ -9,10 +9,24 @@ import { voiceService } from "./services/voice";
 import { insertChatMessageSchema, insertOracleQuerySchema, insertTaskSchema, insertNoteSchema, insertZebulonConfigSchema } from "@shared/schema";
 import { configService } from "./services/config-service";
 import { zedCoreService } from "./services/zed-core-service";
+import { knowledgeUpdater } from "./services/knowledge-updater";
+import { adminControlService } from "./services/admin-control";
+import { storageOptimizer } from "./services/storage-optimizer";
+import { securityManager } from "./security/security-manager";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
+
+  // Trust proxy for rate limiting
+  app.set('trust proxy', 1);
+  
+  // Apply security middleware
+  app.use(securityManager.securityHeaders());
+  
+  // Rate limiting
+  app.use('/api/', securityManager.createRateLimit(15 * 60 * 1000, 100)); // 100 requests per 15 minutes
+  app.use('/api/admin/', securityManager.createRateLimit(5 * 60 * 1000, 10)); // 10 admin requests per 5 minutes
 
   // WebSocket server for real-time communication
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
@@ -535,6 +549,353 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Periodic status updates
   setInterval(broadcastStatusUpdate, 30000); // Every 30 seconds
+
+  // Zed AI Extension API Endpoints
+  app.post("/api/extension/chat", async (req, res) => {
+    try {
+      const { type, message, context, userId = 1 } = req.body;
+      
+      // Permission check for extension access
+      if (!adminControlService.checkPermission(userId, 'canUseVoiceCommands')) {
+        return res.status(403).json({ error: "Extension access not permitted" });
+      }
+      
+      let response = '';
+      
+      switch (type) {
+        case 'ping':
+          response = 'Zed AI is online and ready to assist.';
+          break;
+          
+        case 'direct_chat':
+        case 'quick_action':
+          // Process message through Zed AI core
+          response = await processZedCoreMessage({
+            message: message,
+            context: {
+              source: 'browser_extension',
+              ...context
+            },
+            userId: userId
+          });
+          break;
+          
+        case 'analyze_text':
+          response = await processZedCoreMessage({
+            message: `Analyze this text: "${req.body.content}"`,
+            context: { source: 'browser_extension', action: 'text_analysis' },
+            userId: userId
+          });
+          break;
+          
+        case 'explain_page':
+          const { pageData } = req.body;
+          response = await processZedCoreMessage({
+            message: `Explain this webpage: Title: "${pageData.title}", URL: "${pageData.url}", Content: "${pageData.content}"`,
+            context: { source: 'browser_extension', action: 'page_explanation' },
+            userId: userId
+          });
+          break;
+          
+        case 'convert_to_oracle':
+          response = await processZedCoreMessage({
+            message: `Convert this natural language to an Oracle SQL query: "${req.body.naturalLanguage}"`,
+            context: { source: 'browser_extension', action: 'oracle_conversion' },
+            userId: userId
+          });
+          break;
+          
+        default:
+          response = 'Zed AI received your request but did not understand the command type.';
+      }
+      
+      // Store the extension interaction
+      await storage.createChatMessage({
+        userId: userId,
+        content: message,
+        isUser: true,
+        aiCore: 'zed',
+        timestamp: new Date().toISOString()
+      });
+      
+      await storage.createChatMessage({
+        userId: userId,
+        content: response,
+        isUser: false,
+        aiCore: 'zed',
+        timestamp: new Date().toISOString()
+      });
+      
+      res.json({
+        success: true,
+        message: response,
+        content: response,
+        timestamp: new Date().toISOString(),
+        source: 'zed_ai'
+      });
+      
+    } catch (error) {
+      console.error('Extension API error:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: "Zed AI temporarily unavailable",
+        message: "I'm having trouble processing your request right now. Please try again in a moment."
+      });
+    }
+  });
+
+  // Extension status endpoint
+  app.get("/api/extension/status", async (req, res) => {
+    try {
+      const systemStatus = await knowledgeUpdater.getSystemStatus();
+      res.json({
+        zedOnline: true,
+        zedulonSystemStatus: 'operational',
+        version: systemStatus.version,
+        capabilities: systemStatus.capabilities.map(cap => cap.name),
+        lastUpdate: systemStatus.lastUpdate
+      });
+    } catch (error) {
+      res.status(500).json({ 
+        zedOnline: false, 
+        error: error.message 
+      });
+    }
+  });
+
+  // Admin Authentication API
+  app.post("/api/admin/login", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      const admin = await adminControlService.authenticateAdmin(username, password);
+      
+      if (admin) {
+        res.json({ 
+          success: true, 
+          admin: {
+            id: admin.id,
+            username: admin.username,
+            role: admin.role,
+            permissions: admin.permissions
+          }
+        });
+      } else {
+        res.status(401).json({ success: false, error: "Invalid credentials" });
+      }
+    } catch (error) {
+      res.status(500).json({ error: "Authentication failed" });
+    }
+  });
+
+  // User Management API (Admin only)
+  app.get("/api/admin/users/:adminId", async (req, res) => {
+    try {
+      const adminId = parseInt(req.params.adminId);
+      const users = await adminControlService.getAllUsers(adminId);
+      res.json(users);
+    } catch (error) {
+      res.status(403).json({ error: "Admin permission required" });
+    }
+  });
+
+  app.post("/api/admin/users/:adminId", async (req, res) => {
+    try {
+      const adminId = parseInt(req.params.adminId);
+      const userData = req.body;
+      const newUser = await adminControlService.createUser(adminId, userData);
+      res.json(newUser);
+    } catch (error) {
+      res.status(403).json({ error: "Failed to create user" });
+    }
+  });
+
+  app.put("/api/admin/users/:adminId/:userId/permissions", async (req, res) => {
+    try {
+      const adminId = parseInt(req.params.adminId);
+      const userId = parseInt(req.params.userId);
+      const permissions = req.body;
+      const updatedUser = await adminControlService.updateUserPermissions(adminId, userId, permissions);
+      res.json(updatedUser);
+    } catch (error) {
+      res.status(403).json({ error: "Failed to update permissions" });
+    }
+  });
+
+  app.post("/api/admin/users/:adminId/:userId/suspend", async (req, res) => {
+    try {
+      const adminId = parseInt(req.params.adminId);
+      const userId = parseInt(req.params.userId);
+      const { reason } = req.body;
+      await adminControlService.suspendUser(adminId, userId, reason);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(403).json({ error: "Failed to suspend user" });
+    }
+  });
+
+  app.delete("/api/admin/users/:adminId/:userId", async (req, res) => {
+    try {
+      const adminId = parseInt(req.params.adminId);
+      const userId = parseInt(req.params.userId);
+      await adminControlService.deleteUser(adminId, userId);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(403).json({ error: "Failed to delete user" });
+    }
+  });
+
+  // System Settings API (Admin only)
+  app.get("/api/admin/settings/:adminId", async (req, res) => {
+    try {
+      const adminId = parseInt(req.params.adminId);
+      const settings = await adminControlService.getSystemSettings(adminId);
+      res.json(settings);
+    } catch (error) {
+      res.status(403).json({ error: "Admin permission required" });
+    }
+  });
+
+  app.put("/api/admin/settings/:adminId", async (req, res) => {
+    try {
+      const adminId = parseInt(req.params.adminId);
+      const settings = req.body;
+      const updatedSettings = await adminControlService.updateSystemSettings(adminId, settings);
+      res.json(updatedSettings);
+    } catch (error) {
+      res.status(403).json({ error: "Failed to update settings" });
+    }
+  });
+
+  // Emergency Controls (Admin only)
+  app.post("/api/admin/emergency-shutdown/:adminId", async (req, res) => {
+    try {
+      const adminId = parseInt(req.params.adminId);
+      const { reason } = req.body;
+      await adminControlService.emergencyShutdown(adminId, reason);
+      res.json({ success: true, message: "Emergency shutdown activated" });
+    } catch (error) {
+      res.status(403).json({ error: "Emergency shutdown failed" });
+    }
+  });
+
+  app.post("/api/admin/maximum-security/:adminId", async (req, res) => {
+    try {
+      const adminId = parseInt(req.params.adminId);
+      await adminControlService.enableMaximumSecurity(adminId);
+      res.json({ success: true, message: "Maximum security enabled" });
+    } catch (error) {
+      res.status(403).json({ error: "Failed to enable maximum security" });
+    }
+  });
+
+  // User Permission Check API
+  app.get("/api/user/:userId/permissions/:permission", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const permission = req.params.permission as keyof import("./services/admin-control").UserPermissions;
+      const hasPermission = adminControlService.checkPermission(userId, permission);
+      res.json({ hasPermission });
+    } catch (error) {
+      res.status(500).json({ error: "Permission check failed" });
+    }
+  });
+
+  // Knowledge Update System API (Permission-gated)
+  app.get("/api/system/updates/check", async (req, res) => {
+    try {
+      const userId = parseInt(req.query.userId as string);
+      if (!adminControlService.checkSystemOperationPermission(userId, 'update_system')) {
+        return res.status(403).json({ error: "Update permission required" });
+      }
+      
+      const availableUpdates = await knowledgeUpdater.checkForUpdates();
+      res.json(availableUpdates);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to check for updates" });
+    }
+  });
+
+  app.post("/api/system/updates/apply/:updateId", async (req, res) => {
+    try {
+      const updateId = req.params.updateId;
+      const userId = parseInt(req.body.userId);
+      
+      if (!adminControlService.checkSystemOperationPermission(userId, 'update_system')) {
+        return res.status(403).json({ error: "Update permission required" });
+      }
+      
+      const success = await knowledgeUpdater.applyUpdate(updateId);
+      
+      if (success) {
+        // Broadcast update completion to all connected clients
+        const updateMessage = JSON.stringify({
+          type: 'system_updated',
+          updateId,
+          timestamp: new Date().toISOString()
+        });
+        wss.clients.forEach((client) => {
+          if (client.readyState === WebSocket.OPEN) {
+            client.send(updateMessage);
+          }
+        });
+        res.json({ success: true, message: "Update applied successfully" });
+      } else {
+        res.status(400).json({ success: false, message: "Failed to apply update" });
+      }
+    } catch (error) {
+      res.status(500).json({ error: "Failed to apply update" });
+    }
+  });
+
+  app.get("/api/system/status/comprehensive", async (req, res) => {
+    try {
+      const systemStatus = await knowledgeUpdater.getSystemStatus();
+      const diagnostic = await knowledgeUpdater.performSelfDiagnostic();
+      
+      res.json({
+        ...systemStatus,
+        diagnostic,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to get system status" });
+    }
+  });
+
+  app.post("/api/system/self-update", async (req, res) => {
+    try {
+      // Trigger self-update process
+      const availableUpdates = await knowledgeUpdater.checkForUpdates();
+      const criticalUpdates = availableUpdates.filter(u => u.category === 'core_capabilities' || u.category === 'security_patterns');
+      
+      let appliedUpdates = 0;
+      for (const update of criticalUpdates) {
+        const success = await knowledgeUpdater.applyUpdate(update.id);
+        if (success) appliedUpdates++;
+      }
+      
+      const updateMessage = JSON.stringify({
+        type: 'self_update_complete',
+        appliedUpdates,
+        totalUpdates: criticalUpdates.length,
+        timestamp: new Date().toISOString()
+      });
+      wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(updateMessage);
+        }
+      });
+      
+      res.json({
+        success: true,
+        message: `Applied ${appliedUpdates} of ${criticalUpdates.length} critical updates`,
+        appliedUpdates,
+        totalUpdates: criticalUpdates.length
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Self-update failed" });
+    }
+  });
 
   // User Configuration Management API
   app.get("/api/config/:userId", async (req, res) => {
@@ -1135,6 +1496,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to remove system limitations';
       res.status(500).json({ error: errorMessage });
+    }
+  });
+
+  // Security Management API
+  app.get("/api/security/report", async (req, res) => {
+    try {
+      const report = securityManager.generateSecurityReport();
+      res.json(report);
+    } catch (error) {
+      console.error("Error generating security report:", error);
+      res.status(500).json({ message: "Failed to generate security report" });
+    }
+  });
+
+  app.post("/api/security/validate-password", async (req, res) => {
+    try {
+      const { password } = req.body;
+      if (!password) {
+        return res.status(400).json({ error: "Password is required" });
+      }
+      const validation = securityManager.validatePasswordStrength(password);
+      res.json(validation);
+    } catch (error) {
+      res.status(400).json({ error: "Password validation failed" });
+    }
+  });
+
+  app.post("/api/security/validate-oracle-query", async (req, res) => {
+    try {
+      const { query } = req.body;
+      if (!query) {
+        return res.status(400).json({ error: "Query is required" });
+      }
+      const sanitizedQuery = securityManager.sanitizeInput(query);
+      const validation = securityManager.validateOracleQuery(sanitizedQuery);
+      res.json({ ...validation, sanitizedQuery });
+    } catch (error) {
+      res.status(400).json({ error: "Query validation failed" });
+    }
+  });
+
+  // Storage optimization endpoints
+  app.get("/api/storage/stats", async (req, res) => {
+    try {
+      const stats = await storageOptimizer.getOptimizationStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching storage stats:", error);
+      res.status(500).json({ message: "Failed to fetch storage statistics" });
+    }
+  });
+
+  app.post("/api/storage/optimize", async (req, res) => {
+    try {
+      const { action, userId } = req.body;
+      
+      switch (action) {
+        case 'clear_cache':
+          storageOptimizer.clearAllCache();
+          res.json({ message: "All caches cleared successfully" });
+          break;
+          
+        case 'invalidate_user_cache':
+          if (!userId) {
+            return res.status(400).json({ error: "userId required for user cache invalidation" });
+          }
+          storageOptimizer.invalidateUserCache(parseInt(userId));
+          res.json({ message: `Cache invalidated for user ${userId}` });
+          break;
+          
+        case 'preload_user_data':
+          if (!userId) {
+            return res.status(400).json({ error: "userId required for preloading" });
+          }
+          await storageOptimizer.preloadUserData(parseInt(userId));
+          res.json({ message: `Data preloaded for user ${userId}` });
+          break;
+          
+        default:
+          res.status(400).json({ error: "Unknown optimization action" });
+      }
+    } catch (error) {
+      console.error("Storage optimization error:", error);
+      res.status(500).json({ message: "Storage optimization failed" });
     }
   });
 

@@ -65,23 +65,35 @@ export class MemStorage implements IStorage {
     this.notes = new Map();
     this.systemStatuses = new Map();
     
-    // Create default user
-    this.createDefaultUser();
+    // Create default user (async)
+    this.initializeStorage();
     
     // Initialize cleanup intervals for optimization
     this.initializeCleanupTasks();
   }
 
-  private createDefaultUser() {
+  private async initializeStorage() {
+    await this.createDefaultUser();
+  }
+
+  private async createDefaultUser() {
+    const { securityManager } = await import("./security/security-manager");
+    const hashedPassword = await securityManager.hashPassword('zebulon2025');
+    
     const defaultUser: User = {
       id: 1,
-      username: 'bugs',
-      password: 'password',
-      codename: 'Bugs',
-      role: 'Oracle Administrator',
-      theme: 'light',
+      username: 'admin',
+      passwordHash: hashedPassword,
+      codename: 'System Administrator',
+      role: 'Administrator',
+      theme: 'dark',
       voiceId: null,
-      createdAt: new Date()
+      isActive: true,
+      lastLogin: null,
+      failedLoginAttempts: 0,
+      lockedUntil: null,
+      createdAt: new Date(),
+      updatedAt: new Date()
     };
     this.users.set(1, defaultUser);
   }
@@ -311,7 +323,7 @@ export class MemStorage implements IStorage {
     const userMessageCounts = new Map<number, ChatMessage[]>();
     
     // Group messages by user
-    for (const message of this.chatMessages.values()) {
+    for (const message of Array.from(this.chatMessages.values())) {
       if (!userMessageCounts.has(message.userId)) {
         userMessageCounts.set(message.userId, []);
       }
@@ -353,7 +365,7 @@ export class MemStorage implements IStorage {
     let deletedCount = 0;
     
     for (const [id, task] of Array.from(this.tasks.entries())) {
-      if (task.completed && task.updatedAt && task.updatedAt < oneWeekAgo) {
+      if (task.completed && task.createdAt && task.createdAt < oneWeekAgo) {
         this.tasks.delete(id);
         deletedCount++;
       }

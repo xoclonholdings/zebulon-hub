@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      width: 350px;
+      min-height: 400px;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+      color: white;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+      padding: 16px;
+      text-align: center;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .subtitle {
+      font-size: 12px;
+      opacity: 0.9;
+      margin-top: 4px;
+    }
+
+    .content {
+      padding: 16px;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      margin-bottom: 16px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+
+    .status-dot.online { background: #4ecdc4; }
+    .status-dot.offline { background: #ff6b6b; }
+
+    .quick-actions {
+      margin-bottom: 20px;
+    }
+
+    .quick-actions h3 {
+      margin: 0 0 12px 0;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .action-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .action-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: white;
+      padding: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      text-align: center;
+      transition: all 0.2s ease;
+    }
+
+    .action-btn:hover {
+      background: rgba(255, 107, 107, 0.2);
+      border-color: rgba(255, 107, 107, 0.4);
+    }
+
+    .chat-input {
+      margin-bottom: 16px;
+    }
+
+    .chat-input input {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      padding: 10px;
+      color: white;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    .chat-input input::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .send-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+      border: none;
+      color: white;
+      padding: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+
+    .settings-link {
+      text-align: center;
+      margin-top: 16px;
+    }
+
+    .settings-link a {
+      color: #4ecdc4;
+      text-decoration: none;
+      font-size: 12px;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 10px;
+      opacity: 0.7;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">Zed AI</div>
+    <div class="subtitle">Intelligent Assistant Extension</div>
+  </div>
+
+  <div class="content">
+    <div class="status" id="connection-status">
+      <div class="status-dot offline" id="status-dot"></div>
+      <span id="status-text">Connecting to Zed...</span>
+    </div>
+
+    <div class="quick-actions">
+      <h3>Quick Actions</h3>
+      <div class="action-grid">
+        <button class="action-btn" id="explain-page">Explain Page</button>
+        <button class="action-btn" id="summarize">Summarize</button>
+        <button class="action-btn" id="oracle-help">Oracle Help</button>
+        <button class="action-btn" id="analyze-text">Analyze Selection</button>
+      </div>
+    </div>
+
+    <div class="chat-input">
+      <input type="text" id="message-input" placeholder="Ask Zed anything...">
+      <button class="send-btn" id="send-message">Send to Zed</button>
+    </div>
+
+    <div class="settings-link">
+      <a href="#" id="open-settings">Extension Settings</a>
+    </div>
+  </div>
+
+  <div class="footer">
+    Powered by Zebulon™ System
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

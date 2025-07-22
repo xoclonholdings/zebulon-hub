@@ -4,7 +4,16 @@
 
 Zebulon™️ is a next-generation personal AI ecosystem designed as a modular, full-stack application featuring multiple AI cores with specialized functions. The system serves as a unified platform for Oracle database management, security monitoring, and AI-powered assistance through a sophisticated web interface.
 
-**Recent Update (July 22, 2025):** Implemented complete Oracle administration capabilities with Zeta Core security oversight, including real-time database monitoring, secure query execution, and comprehensive security auditing.
+**Recent Update (July 22, 2025):** Implemented comprehensive security manager to address all identified vulnerabilities:
+- Secure password hashing with bcrypt (12 rounds)
+- Account lockout protection (5 attempts, 15-minute lockout)
+- Input sanitization and XSS prevention
+- SQL injection protection for Oracle queries
+- File upload security validation
+- Rate limiting with trust proxy configuration
+- Security headers implementation
+- Encrypted data storage with integrity verification
+- Complete admin control system with user management and permission controls
 
 ## User Preferences
 
@@ -36,26 +45,38 @@ Preferred communication style: Simple, everyday language.
 
 ## Key Components
 
+### Admin Control System (NEW)
+- **Complete User Management**: Create, suspend, delete users with granular permission controls
+- **NO Autonomous Operations**: All system operations require explicit admin or user approval
+- **Admin Login Interface**: Secure access through logo click with default credentials (admin/zebulon2025)
+- **Emergency Controls**: Immediate system shutdown and maximum security activation
+- **Permission Management**: Granular control over file access, Oracle operations, voice commands, system updates
+- **User Access Limitations**: Per-user file size limits, storage quotas, feature access controls
+- **Audit Logging**: Complete activity tracking for all admin actions and user operations
+- **System Settings**: Global controls for autonomous operations, self-updates, security levels
+
 ### AI Cores
-1. **Zed Core (cZED)**: Primary conversational AI assistant with configurable authorization system
+1. **Zed Core (cZED)**: Primary conversational AI assistant with strict authorization system
    - Handles user interactions, task management, and productivity guidance
    - Processes natural language queries for Oracle database operations
-   - **NEW**: Complete Oracle administration capabilities with secure query execution
-   - **NEW**: Real-time database connection management and monitoring
-   - Fully configurable permission system with user authorization workflow
-   - Process authorization requests for sensitive operations
-   - Auto-approval settings for trusted operations
-   - Provides contextual responses and recommendations
+   - **CRITICAL**: All operations require explicit permission - NO autonomous actions
+   - Complete Oracle administration capabilities with secure query execution
+   - Real-time database connection management and monitoring
+   - Fully configurable permission system with mandatory user authorization workflow
+   - All authorization requests require admin or user approval
+   - No auto-approval - all operations gated by permission system
+   - Provides contextual responses and recommendations only when authorized
 
 2. **Zeta Core (cZETA)**: Security-focused AI sentinel with real-time monitoring
-   - **NEW**: Advanced Oracle query security analysis and threat detection
-   - **NEW**: Real-time SQL injection prevention and risk assessment
-   - **NEW**: Database access auditing with automatic blocking of dangerous operations
+   - Advanced Oracle query security analysis and threat detection
+   - Real-time SQL injection prevention and risk assessment
+   - Database access auditing with automatic blocking of dangerous operations
+   - **CRITICAL**: All security operations require admin approval
    - Memory protection and pattern auditing
    - Behavioral cloaking and metadata vaulting
-   - Configurable security monitoring levels
-   - Real-time threat detection with customizable alerts
-   - Security monitoring and threat detection
+   - Configurable security monitoring levels with admin-only access
+   - Real-time threat detection with admin-controlled alerts
+   - Security monitoring and threat detection with permission gates
 
 3. **Fantasma Firewall**: Native security subsystem with advanced protection
    - Background scanning and anomaly detection
