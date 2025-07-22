@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import express from "express";
 import { createServer, type Server } from "http";
+import diagnosticsRouter from './routes/diagnostics';
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { processZedCoreMessage, generateRecommendations, processAIMessage } from "./services/local-ai";

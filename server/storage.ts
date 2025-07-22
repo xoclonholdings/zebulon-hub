@@ -442,6 +442,125 @@ export class MemStorage implements IStorage {
       memoryEstimate: `${Math.round(estimatedMemory / 1024)} KB`
     };
   }
+
+  // Advanced memory optimization
+  async optimizeStorage(): Promise<{
+    cleaned: {
+      messages: number;
+      queries: number;
+      tasks: number;
+      statuses: number;
+    };
+    beforeSize: string;
+    afterSize: string;
+  }> {
+    const beforeStats = await this.getStorageStats();
+    const beforeSize = beforeStats.memoryEstimate;
+    
+    let cleanedCounts = {
+      messages: 0,
+      queries: 0,
+      tasks: 0,
+      statuses: 0
+    };
+
+    // Clean old messages (keep last 500 per user)
+    const userMessageGroups = new Map<number, ChatMessage[]>();
+    for (const message of Array.from(this.chatMessages.values())) {
+      if (!userMessageGroups.has(message.userId)) {
+        userMessageGroups.set(message.userId, []);
+      }
+      userMessageGroups.get(message.userId)?.push(message);
+    }
+
+    for (const [userId, messages] of userMessageGroups.entries()) {
+      if (messages.length > 500) {
+        messages.sort((a, b) => b.timestamp!.getTime() - a.timestamp!.getTime());
+        const toDelete = messages.slice(500);
+        
+        for (const message of toDelete) {
+          this.chatMessages.delete(message.id);
+          cleanedCounts.messages++;
+        }
+      }
+    }
+
+    // Clean old queries (keep last 200 per user)
+    const userQueryGroups = new Map<number, OracleQuery[]>();
+    for (const query of Array.from(this.oracleQueries.values())) {
+      if (!userQueryGroups.has(query.userId)) {
+        userQueryGroups.set(query.userId, []);
+      }
+      userQueryGroups.get(query.userId)?.push(query);
+    }
+
+    for (const [userId, queries] of userQueryGroups.entries()) {
+      if (queries.length > 200) {
+        queries.sort((a, b) => b.timestamp!.getTime() - a.timestamp!.getTime());
+        const toDelete = queries.slice(200);
+        
+        for (const query of toDelete) {
+          this.oracleQueries.delete(query.id);
+          cleanedCounts.queries++;
+        }
+      }
+    }
+
+    // Clean completed tasks older than 14 days
+    const twoWeeksAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+    for (const [id, task] of Array.from(this.tasks.entries())) {
+      if (task.completed && task.createdAt && task.createdAt < twoWeeksAgo) {
+        this.tasks.delete(id);
+        cleanedCounts.tasks++;
+      }
+    }
+
+    // Clean old system statuses (keep last 50)
+    const statuses = Array.from(this.systemStatuses.values())
+      .sort((a, b) => b.lastCheck!.getTime() - a.lastCheck!.getTime());
+    
+    if (statuses.length > 50) {
+      const toDelete = statuses.slice(50);
+      for (const status of toDelete) {
+        this.systemStatuses.delete(status.id);
+        cleanedCounts.statuses++;
+      }
+    }
+
+    const afterStats = await this.getStorageStats();
+    const afterSize = afterStats.memoryEstimate;
+
+    console.log('Storage optimization completed:', {
+      cleaned: cleanedCounts,
+      beforeSize,
+      afterSize
+    });
+
+    return {
+      cleaned: cleanedCounts,
+      beforeSize,
+      afterSize
+    };
+  }
+
+  // Performance monitoring
+  async getPerformanceMetrics(): Promise<{
+    averageQueryTime: number;
+    totalOperations: number;
+    cacheHitRate: number;
+    memoryEfficiency: number;
+  }> {
+    // Simulate performance metrics based on storage size
+    const stats = await this.getStorageStats();
+    const totalOperations = stats.chatMessages + stats.oracleQueries + stats.tasks;
+    
+    return {
+      averageQueryTime: Math.max(10, Math.min(100, totalOperations / 100)), // ms
+      totalOperations,
+      cacheHitRate: Math.max(0.7, 1 - (totalOperations / 10000)), // Efficiency decreases with load
+      memoryEfficiency: Math.max(0.6, 1 - (parseInt(stats.memoryEstimate) / 10000)) // Efficiency based on memory usage
+    };
+  }
 }
 
 // Database Storage Implementation

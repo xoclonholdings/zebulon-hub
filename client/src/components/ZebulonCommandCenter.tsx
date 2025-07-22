@@ -5,6 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
 import { 
   Send, 
   Mic, 
@@ -38,10 +42,13 @@ import {
   SkipForward,
   SkipBack,
   Volume2,
-  AlbumIcon,
   Image,
   BookOpen,
-  HelpCircle
+  HelpCircle,
+  Palette,
+  Eye,
+  RotateCcw,
+  RefreshCw
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -109,6 +116,24 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
   
   // Admin controls
   const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(() => {
+    // Check for existing admin session
+    const session = localStorage.getItem('zebulon_admin_session');
+    const loginTime = localStorage.getItem('zebulon_admin_login_time');
+    
+    if (session === 'authenticated' && loginTime) {
+      const timeDiff = Date.now() - parseInt(loginTime);
+      // Session expires after 2 hours
+      if (timeDiff < 2 * 60 * 60 * 1000) {
+        return true;
+      } else {
+        // Clear expired session
+        localStorage.removeItem('zebulon_admin_session');
+        localStorage.removeItem('zebulon_admin_login_time');
+      }
+    }
+    return false;
+  });
   const [currentAdmin, setCurrentAdmin] = useState<any>(null);
   const [userPermissions, setUserPermissions] = useState<any>({});
   
@@ -2084,49 +2109,11 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
       </main>
 
       {/* Admin Login Modal */}
-      {showAdminLogin && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 safe-top safe-bottom">
-          <Card className="bg-black/95 border border-primary/30 max-w-sm w-full backdrop-blur-lg">
-            <CardHeader>
-              <CardTitle className="text-center text-primary text-mobile-lg">Zebulon Admin</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Input 
-                    type="text" 
-                    placeholder="Username" 
-                    className="bg-white/10 border-white/20 text-white"
-                  />
-                  <Input 
-                    type="password" 
-                    placeholder="Password" 
-                    className="bg-white/10 border-white/20 text-white"
-                  />
-                </div>
-                <div className="flex space-x-2">
-                  <Button 
-                    onClick={() => setShowAdminLogin(false)}
-                    variant="outline" 
-                    className="flex-1"
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    onClick={() => {
-                      setCurrentAdmin({ username: 'admin', role: 'admin' });
-                      setShowAdminLogin(false);
-                    }}
-                    className="flex-1 bg-gradient-to-r from-pink-500 to-blue-500"
-                  >
-                    Login
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+      <AdminLoginModal
+        isOpen={showAdminLogin}
+        onClose={() => setShowAdminLogin(false)}
+        onSuccess={() => setIsAdminLoggedIn(true)}
+      />
     </div>
   );
 };
