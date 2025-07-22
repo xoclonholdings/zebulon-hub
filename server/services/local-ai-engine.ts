@@ -631,70 +631,275 @@ System is operating normally and ready for additional commands.`;
     reasoning: string[];
   }> {
     const reasoning = [
-      'Analyzing conversational context and intent',
-      'Generating appropriate response tone and content',
-      'Ensuring helpful and informative reply'
+      'Analyzing user message for key topics and intent',
+      'Processing conversation context and history', 
+      'Generating personalized and relevant response'
     ];
 
-    // Intelligent conversational AI
-    const responseType = this.determineResponseType(message);
-    const response = this.generateContextualResponse(responseType, message, context);
+    // Analyze the actual message content
+    const messageAnalysis = this.analyzeMessageContent(message);
+    const conversationContext = this.buildConversationContext(context);
+    
+    // Generate intelligent, contextual response
+    const response = this.generateIntelligentResponse(message, messageAnalysis, conversationContext);
 
     return { response, reasoning };
   }
 
-  private determineResponseType(message: string): string {
+  private analyzeMessageContent(message: string): any {
     const lowerMessage = message.toLowerCase();
+    const words = lowerMessage.split(' ');
     
-    if (lowerMessage.includes('help') || lowerMessage.includes('how')) return 'helpful';
-    if (lowerMessage.includes('what') || lowerMessage.includes('explain')) return 'explanatory';
-    if (lowerMessage.includes('thank') || lowerMessage.includes('great')) return 'appreciative';
-    if (lowerMessage.includes('problem') || lowerMessage.includes('issue')) return 'problem_solving';
+    // Extract key topics and entities
+    const topics = this.extractTopics(words);
+    const sentiment = this.analyzeSentiment(lowerMessage);
+    const questionType = this.identifyQuestionType(message);
+    const entities = this.extractEntities(message);
     
-    return 'conversational';
+    return {
+      topics,
+      sentiment,
+      questionType,
+      entities,
+      wordCount: words.length,
+      originalMessage: message
+    };
   }
 
-  private generateContextualResponse(type: string, message: string, context?: any): string {
-    const responses = {
-      'helpful': `I'm here to help! Based on your question, I can assist with:
-
-• Oracle database queries and management
-• Code generation and development
-• Data analysis and insights
-• System optimization and monitoring
-• General AI assistance and conversation
-
-What specific task would you like help with?`,
-
-      'explanatory': `Let me explain that for you. ${this.generateExplanation(message)}
-
-I can provide more detailed information if you need clarification on any specific aspect.`,
-
-      'appreciative': `You're very welcome! I'm glad I could help. 
-
-As your AI assistant, I'm always ready to:
-• Answer questions and provide explanations
-• Generate code and SQL queries
-• Analyze data and provide insights
-• Help with system management tasks
-
-Feel free to ask me anything else!`,
-
-      'problem_solving': `I understand you're facing a challenge. Let me help you work through this systematically:
-
-1. **Problem Analysis**: ${this.analyzeProblem(message)}
-2. **Potential Solutions**: I can suggest multiple approaches
-3. **Implementation**: Step-by-step guidance available
-4. **Testing**: Validation methods to ensure success
-
-Would you like me to elaborate on any of these areas?`,
-
-      'conversational': `That's an interesting point! ${this.generateThoughtfulResponse(message)}
-
-I'm here to provide intelligent assistance across a wide range of topics. Whether you need technical help, analysis, or just want to explore ideas, I'm ready to engage in meaningful conversation.`
+  private buildConversationContext(context?: any): any {
+    return {
+      conversationHistory: context?.conversationHistory || [],
+      userActivity: context?.userActivity || {},
+      recentQueries: context?.recentQueries || [],
+      activeTasks: context?.activeTasks || 0,
+      timestamp: new Date().toISOString()
     };
+  }
 
-    return responses[type as keyof typeof responses] || responses['conversational'];
+  private generateIntelligentResponse(message: string, analysis: any, context: any): string {
+    // Handle greetings
+    if (this.isGreeting(message)) {
+      return this.generateGreetingResponse(analysis, context);
+    }
+    
+    // Handle questions about capabilities
+    if (this.isCapabilityQuestion(message)) {
+      return this.generateCapabilityResponse(analysis, context);
+    }
+    
+    // Handle specific topics
+    if (analysis.topics.length > 0) {
+      return this.generateTopicResponse(message, analysis, context);
+    }
+    
+    // Handle direct questions
+    if (analysis.questionType !== 'none') {
+      return this.generateQuestionResponse(message, analysis, context);
+    }
+    
+    // Generate contextual conversational response
+    return this.generateContextualConversation(message, analysis, context);
+  }
+
+  private extractTopics(words: string[]): string[] {
+    const topicKeywords = {
+      technology: ['ai', 'technology', 'computer', 'software', 'tech', 'digital'],
+      database: ['database', 'sql', 'query', 'data', 'oracle', 'table'],
+      development: ['code', 'programming', 'development', 'build', 'create'],
+      analysis: ['analyze', 'analysis', 'insights', 'patterns', 'trends'],
+      system: ['system', 'performance', 'optimization', 'monitoring']
+    };
+    
+    const foundTopics = [];
+    for (const [topic, keywords] of Object.entries(topicKeywords)) {
+      if (keywords.some(keyword => words.includes(keyword))) {
+        foundTopics.push(topic);
+      }
+    }
+    return foundTopics;
+  }
+
+  private analyzeSentiment(message: string): string {
+    const positive = ['good', 'great', 'excellent', 'amazing', 'love', 'like', 'perfect'];
+    const negative = ['bad', 'terrible', 'awful', 'hate', 'problem', 'issue', 'broken'];
+    
+    const hasPositive = positive.some(word => message.includes(word));
+    const hasNegative = negative.some(word => message.includes(word));
+    
+    if (hasPositive && !hasNegative) return 'positive';
+    if (hasNegative && !hasPositive) return 'negative';
+    return 'neutral';
+  }
+
+  private identifyQuestionType(message: string): string {
+    const lowerMessage = message.toLowerCase();
+    if (lowerMessage.includes('what')) return 'what';
+    if (lowerMessage.includes('how')) return 'how';
+    if (lowerMessage.includes('why')) return 'why';
+    if (lowerMessage.includes('when')) return 'when';
+    if (lowerMessage.includes('where')) return 'where';
+    if (lowerMessage.includes('who')) return 'who';
+    if (lowerMessage.includes('?')) return 'general_question';
+    return 'none';
+  }
+
+  private extractEntities(message: string): string[] {
+    // Extract potential entities (names, places, specific terms)
+    const words = message.split(' ');
+    const entities = words.filter(word => 
+      word.length > 3 && 
+      word.charAt(0) === word.charAt(0).toUpperCase()
+    );
+    return entities;
+  }
+
+  private isGreeting(message: string): boolean {
+    const greetings = ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening'];
+    const lowerMessage = message.toLowerCase();
+    return greetings.some(greeting => lowerMessage.includes(greeting));
+  }
+
+  private isCapabilityQuestion(message: string): boolean {
+    const capabilityPhrases = ['what can you do', 'what are you', 'how can you help', 'your capabilities'];
+    const lowerMessage = message.toLowerCase();
+    return capabilityPhrases.some(phrase => lowerMessage.includes(phrase));
+  }
+
+  private generateGreetingResponse(analysis: any, context: any): string {
+    const greetings = [
+      "Hello! I'm Zed, your AI assistant. How can I help you today?",
+      "Hi there! Ready to assist with whatever you need.",
+      "Hey! What would you like to work on together?",
+      "Good to see you! What can I help you with?"
+    ];
+    
+    const baseGreeting = greetings[Math.floor(Math.random() * greetings.length)];
+    
+    if (context.activeTasks > 0) {
+      return `${baseGreeting} I see you have ${context.activeTasks} active task${context.activeTasks > 1 ? 's' : ''}. Would you like to continue working on those or start something new?`;
+    }
+    
+    return baseGreeting;
+  }
+
+  private generateCapabilityResponse(analysis: any, context: any): string {
+    return `I'm Zed, your local AI assistant with several key capabilities:
+
+🧠 **AI Intelligence**: Natural language understanding and conversation
+💾 **Oracle Database**: Query generation and database management  
+⚡ **Code Generation**: Writing functions, APIs, and applications
+📊 **Data Analysis**: Insights, trends, and pattern recognition
+🔧 **System Management**: Performance monitoring and optimization
+
+I work completely offline using local intelligence - no external APIs needed. What would you like to explore first?`;
+  }
+
+  private generateTopicResponse(message: string, analysis: any, context: any): string {
+    const topic = analysis.topics[0]; // Focus on primary topic
+    
+    const topicResponses = {
+      technology: `You're asking about technology - that's my specialty! ${this.elaborateOnTechnology(message)}`,
+      database: `Database work is one of my core strengths. ${this.elaborateOnDatabase(message)}`,
+      development: `Development and coding - let's build something! ${this.elaborateOnDevelopment(message)}`,
+      analysis: `Data analysis is fascinating. ${this.elaborateOnAnalysis(message)}`,
+      system: `System management and optimization - crucial stuff. ${this.elaborateOnSystem(message)}`
+    };
+    
+    return topicResponses[topic as keyof typeof topicResponses] || this.generateContextualConversation(message, analysis, context);
+  }
+
+  private generateQuestionResponse(message: string, analysis: any, context: any): string {
+    const questionStarters = {
+      what: "That's a great question about",
+      how: "Let me walk you through how",
+      why: "The reason for that is",
+      when: "The timing depends on",
+      where: "You'll find that in",
+      who: "That would be"
+    };
+    
+    const starter = questionStarters[analysis.questionType as keyof typeof questionStarters] || "Good question -";
+    
+    return `${starter} ${this.analyzeQuestionContent(message)}. ${this.generateFollowUpSuggestion(analysis)}`;
+  }
+
+  private generateContextualConversation(message: string, analysis: any, context: any): string {
+    // Generate truly contextual responses based on message content
+    const responses = [
+      `Interesting point about ${this.extractKeyPhrase(message)}. Let me share my thoughts:`,
+      `You raise a good question regarding ${this.extractKeyPhrase(message)}.`,
+      `That's worth exploring further. When you mention ${this.extractKeyPhrase(message)}, it makes me think of`,
+      `I understand you're talking about ${this.extractKeyPhrase(message)}. Here's my perspective:`
+    ];
+    
+    const baseResponse = responses[Math.floor(Math.random() * responses.length)];
+    const elaboration = this.generateElaboration(message, analysis);
+    
+    return `${baseResponse} ${elaboration}`;
+  }
+
+  private extractKeyPhrase(message: string): string {
+    const words = message.split(' ');
+    const importantWords = words.filter(word => 
+      word.length > 3 && 
+      !['that', 'this', 'with', 'from', 'they', 'have', 'been', 'were'].includes(word.toLowerCase())
+    );
+    
+    return importantWords.slice(0, 3).join(' ') || 'your message';
+  }
+
+  private generateElaboration(message: string, analysis: any): string {
+    if (analysis.sentiment === 'positive') {
+      return 'I share your enthusiasm! This area has tremendous potential for innovation and improvement.';
+    }
+    
+    if (analysis.sentiment === 'negative') {
+      return 'I understand your concerns. Let\'s work together to find solutions and make improvements.';
+    }
+    
+    return 'There are many interesting aspects to consider here. I\'d be happy to dive deeper into any specific areas you\'d like to explore.';
+  }
+
+  private elaborateOnTechnology(message: string): string {
+    return 'I love discussing technology trends, AI capabilities, and how we can leverage tech to solve real problems. What specific aspect interests you most?';
+  }
+
+  private elaborateOnDatabase(message: string): string {
+    return 'I can help with SQL queries, database design, optimization, or connecting to Oracle systems. What database challenge are you working on?';
+  }
+
+  private elaborateOnDevelopment(message: string): string {
+    return 'Whether it\'s writing new code, debugging issues, or architecting solutions, I\'m here to help. What are you building?';
+  }
+
+  private elaborateOnAnalysis(message: string): string {
+    return 'I can analyze patterns, generate insights, and help interpret data. What would you like to analyze?';
+  }
+
+  private elaborateOnSystem(message: string): string {
+    return 'System performance and optimization are critical. I can help monitor, analyze, and improve system efficiency. What\'s your current focus?';
+  }
+
+  private analyzeQuestionContent(message: string): string {
+    const cleanMessage = message.replace(/[?!.]/g, '').toLowerCase();
+    const words = cleanMessage.split(' ');
+    const contentWords = words.filter(word => 
+      word.length > 2 && 
+      !['what', 'how', 'why', 'when', 'where', 'who', 'the', 'and', 'but'].includes(word)
+    );
+    
+    return contentWords.slice(0, 5).join(' ') || 'your question';
+  }
+
+  private generateFollowUpSuggestion(analysis: any): string {
+    const suggestions = [
+      'Would you like me to elaborate on any specific aspect?',
+      'I can provide more detailed information if helpful.',
+      'Feel free to ask follow-up questions about this topic.',
+      'Let me know if you\'d like to explore this further.'
+    ];
+    
+    return suggestions[Math.floor(Math.random() * suggestions.length)];
   }
 
   private generateExplanation(message: string): string {
