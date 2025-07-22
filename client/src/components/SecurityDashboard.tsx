@@ -76,12 +76,16 @@ const SecurityDashboard: React.FC = () => {
 
   const loadDashboard = async () => {
     try {
-      const response = await apiRequest('/api/security/dashboard', 'GET', { adminId: 1 });
-      setDashboard(response.dashboard);
+      const response = await fetch('/api/security/dashboard');
+      if (!response.ok) {
+        throw new Error('Dashboard API failed');
+      }
+      const data = await response.json();
+      setDashboard(data.dashboard);
     } catch (error) {
       console.error('Failed to load security dashboard:', error);
       toast({
-        title: "Security Dashboard Error",
+        title: "Security Dashboard Error", 
         description: "Failed to load security dashboard",
         variant: "destructive",
       });
@@ -92,8 +96,11 @@ const SecurityDashboard: React.FC = () => {
 
   const loadLastScan = async () => {
     try {
-      const response = await apiRequest('/api/security/scan/latest', 'GET', { adminId: 1 });
-      setScanResult(response.scan);
+      const response = await fetch('/api/security/scan/latest');
+      if (response.ok) {
+        const data = await response.json();
+        setScanResult(data.scan);
+      }
     } catch (error) {
       // No previous scan results
       console.log('No previous scan results found');
@@ -108,15 +115,19 @@ const SecurityDashboard: React.FC = () => {
         description: "Performing comprehensive security vulnerability assessment...",
       });
 
-      const response = await apiRequest('/api/security/scan', 'POST', { adminId: 1 });
+      const response = await fetch('/api/security/scan', { method: 'POST' });
+      if (!response.ok) {
+        throw new Error('Security scan failed');
+      }
+      const data = await response.json();
       
-      setScanResult(response.scan);
+      setScanResult(data.scan);
       await loadDashboard(); // Refresh dashboard data
       
       toast({
         title: "Security Scan Complete",
-        description: `Found ${response.scan.total_vulnerabilities} vulnerabilities`,
-        variant: response.scan.critical_count > 0 ? "destructive" : "default",
+        description: `Found ${data.scan.total_vulnerabilities} vulnerabilities`,
+        variant: data.scan.critical_count > 0 ? "destructive" : "default",
       });
     } catch (error) {
       console.error('Security scan failed:', error);
@@ -132,7 +143,10 @@ const SecurityDashboard: React.FC = () => {
 
   const enableEmergencyMode = async () => {
     try {
-      await apiRequest('/api/security/emergency', 'POST', { adminId: 1 });
+      const response = await fetch('/api/security/emergency', { method: 'POST' });
+      if (!response.ok) {
+        throw new Error('Emergency mode activation failed');
+      }
       
       toast({
         title: "Emergency Security Mode",
