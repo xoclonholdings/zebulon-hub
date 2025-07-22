@@ -377,7 +377,7 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
           <div className="flex justify-center">
             <div className="w-12 h-12 rounded-lg overflow-hidden zebulon-glow flex items-center justify-center">
               <img 
-                src="/attached_assets/B0D5FD57-DDBC-4F91-9877-81CD04F42684_1753150322908.png" 
+                src="/attached_assets/IMG_2227_1753155820979.png" 
                 alt="Zebulon Logo" 
                 className="w-full h-full object-contain"
               />
