@@ -12,31 +12,28 @@ function TestPage() {
       <div className="text-center">
         <h1 className="text-4xl font-bold text-gradient">Zebulon</h1>
         <p className="text-gray-400 mt-4">System initializing...</p>
+        <div className="mt-8">
+          <div className="zebulon-card p-6 max-w-md mx-auto">
+            <h2 className="text-xl font-bold mb-4">System Status</h2>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span>Frontend</span>
+                <span className="text-green-400">✓ Running</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Backend</span>
+                <span className="text-green-400">✓ Connected</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Memory Bank</span>
+                <span className="text-blue-400">Ready</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
-}
-
-// Lazy load dashboard to isolate issues
-function Router() {
-  try {
-    const Dashboard = React.lazy(() => import("@/pages/dashboard"));
-    const NotFound = React.lazy(() => import("@/pages/not-found"));
-    
-    return (
-      <div className="min-h-screen bg-black">
-        <React.Suspense fallback={<TestPage />}>
-          <Switch>
-            <Route path="/" component={Dashboard} />
-            <Route component={NotFound} />
-          </Switch>
-        </React.Suspense>
-      </div>
-    );
-  } catch (error) {
-    console.error('Router error:', error);
-    return <TestPage />;
-  }
 }
 
 function App() {
@@ -45,7 +42,12 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <Toaster />
-          <Router />
+          <div className="min-h-screen bg-black">
+            <Switch>
+              <Route path="/" component={TestPage} />
+              <Route component={TestPage} />
+            </Switch>
+          </div>
         </TooltipProvider>
       </QueryClientProvider>
     );

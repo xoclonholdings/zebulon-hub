@@ -24,7 +24,7 @@ import {
   Save,
   FileText,
   ChevronRight,
-  Memory,
+  HardDrive,
   Search,
   Trash2,
   Calendar,
@@ -91,9 +91,9 @@ const ZebulonConfigPanel: React.FC<ZebulonConfigPanelProps> = ({ userId }) => {
   });
 
   // Fetch memory bank data
-  const { data: memories = [], isLoading: memoriesLoading } = useQuery({
+  const { data: memories = [], isLoading: memoriesLoading } = useQuery<any[]>({
     queryKey: [`/api/memory/${userId}/search`, memorySearchQuery, memoryFilter, selectedMemoryType],
-    queryFn: () => {
+    queryFn: async () => {
       const params = new URLSearchParams({
         q: memorySearchQuery,
         sortBy: 'recent',
@@ -102,7 +102,8 @@ const ZebulonConfigPanel: React.FC<ZebulonConfigPanelProps> = ({ userId }) => {
       if (selectedMemoryType) {
         params.append('types', selectedMemoryType);
       }
-      return apiRequest(`/api/memory/${userId}/search?${params.toString()}`);
+      const response = await apiRequest(`/api/memory/${userId}/search?${params.toString()}`);
+      return Array.isArray(response) ? response : [];
     },
     enabled: activeSection === 'memory'
   });
@@ -211,7 +212,7 @@ const ZebulonConfigPanel: React.FC<ZebulonConfigPanelProps> = ({ userId }) => {
     { id: 'theme', icon: Palette, name: 'Theme', description: 'Visual customization' },
     { id: 'zed', icon: Brain, name: 'Zed Core', description: 'AI assistant settings' },
     { id: 'zeta', icon: Shield, name: 'Zeta Core', description: 'Security monitoring' },
-    { id: 'memory', icon: Memory, name: 'Memory Bank', description: 'Zed AI memory management' },
+    { id: 'memory', icon: HardDrive, name: 'Memory Bank', description: 'Zed AI memory management' },
     { id: 'fantasma', icon: Eye, name: 'Fantasma', description: 'Firewall protection' },
     { id: 'interface', icon: Monitor, name: 'Interface', description: 'Dashboard layout' },
     { id: 'oracle', icon: Database, name: 'Oracle', description: 'Database settings' },
@@ -592,7 +593,7 @@ const ZebulonConfigPanel: React.FC<ZebulonConfigPanelProps> = ({ userId }) => {
         <Card className="zebulon-card border border-white/20">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
-              <Memory className="h-5 w-5 text-blue-400" />
+              <HardDrive className="h-5 w-5 text-blue-400" />
               <span className="zebulon-text-gradient">Memory Bank Controls</span>
             </CardTitle>
           </CardHeader>
@@ -668,7 +669,7 @@ const ZebulonConfigPanel: React.FC<ZebulonConfigPanelProps> = ({ userId }) => {
                 </div>
               ) : memories.length === 0 ? (
                 <div className="text-center py-8 text-gray-400">
-                  <Memory className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <HardDrive className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p>No memories found</p>
                   <p className="text-sm mt-1">Try adjusting your search filters</p>
                 </div>
