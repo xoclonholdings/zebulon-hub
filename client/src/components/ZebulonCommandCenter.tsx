@@ -191,11 +191,11 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
     recordAndProcess
   } = useVoice();
 
-  // Fetch chat messages - Much more efficient polling to prevent rate limiting
+  // Fetch chat messages - Only when needed, rely on WebSocket for updates
   const { data: chatData = [], isLoading: chatLoading } = useQuery({
     queryKey: ['/api/chat', userId],
-    refetchInterval: 15000, // Increased to 15 seconds to prevent rate limiting
-    staleTime: 10000, // Cache data for 10 seconds
+    refetchInterval: false, // Disable automatic polling - use WebSocket updates instead
+    staleTime: 300000, // Cache data for 5 minutes
     refetchOnWindowFocus: false, // Don't refetch on window focus
   });
 
@@ -324,14 +324,15 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
   useEffect(() => {
     const handleChatResponse = (data: any) => {
       console.log('Received chat response:', data);
-      // Invalidate queries to refresh chat data
+      // Immediately invalidate and refetch chat data for instant updates
       queryClient.invalidateQueries({ queryKey: ['/api/chat', userId] });
+      queryClient.refetchQueries({ queryKey: ['/api/chat', userId] });
       
       // Show success toast for successful message processing
       if (data.userMessage && data.zedMessage) {
         toast({
-          title: "Message Processed",
-          description: `Zed responded to your message`,
+          title: "Zed Core Active",
+          description: `Message processed successfully`,
           variant: "default",
         });
       }

@@ -88,17 +88,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const validatedData = insertChatMessageSchema.parse(data);
         
-        // Save user message first
+        // Save user message first for immediate display
         const userMessage = await storage.createChatMessage({
           ...validatedData,
           isUser: true,
-          response: null,
-          metadata: null
+          response: undefined,
+          metadata: undefined
         });
 
-        // Process with Local AI Engine (100% offline)
+        // Send immediate acknowledgment that user message was received
+        ws.send(JSON.stringify({
+          type: 'message_received',
+          userMessage: userMessage,
+          status: 'processing'
+        }));
+
+        // Process with Local AI Engine (100% offline) - optimized for speed
         const { processZedCoreMessage } = await import('./services/local-ai');
+        const startTime = Date.now();
         const zedResponse = await processZedCoreMessage(validatedData.message, { userId: validatedData.userId });
+        const processingTime = Date.now() - startTime;
         
         // Save Zed's response as separate message
         const zedMessage = await storage.createChatMessage({
@@ -106,8 +115,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: zedResponse.response,
           aiCore: 'zed',
           isUser: false,
-          response: null,
-          metadata: zedResponse.metadata
+          response: undefined,
+          metadata: { ...zedResponse.metadata, processingTime }
         });
 
         // If there's an Oracle query, execute it
