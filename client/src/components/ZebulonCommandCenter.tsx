@@ -372,16 +372,20 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
 
   return (
     <div className="w-full h-full">
-      <Card className="zebulon-gradient border-0 text-white h-full flex flex-col min-h-[80vh]">
+      <Card className="bg-black bg-opacity-95 border border-primary border-opacity-20 zebulon-glow text-white h-full flex flex-col min-h-[80vh] rounded-xl backdrop-blur-lg">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-center mb-4">
-            <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-              <Target className="h-8 w-8 text-white" />
+            <div className="w-16 h-16 rounded-lg overflow-hidden zebulon-glow flex items-center justify-center">
+              <img 
+                src="/attached_assets/B0D5FD57-DDBC-4F91-9877-81CD04F42684_1753150322908.png" 
+                alt="Zebulon Logo" 
+                className="w-full h-full object-contain"
+              />
             </div>
           </div>
           
-          <CardTitle className="text-center text-2xl font-bold text-white mb-2">
-            Zebulon Command
+          <CardTitle className="text-center text-2xl font-bold zebulon-text-gradient mb-2">
+            ZEBULON™️ COMMAND
           </CardTitle>
           
           {/* Active Core Status */}

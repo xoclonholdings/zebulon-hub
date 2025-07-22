@@ -5,58 +5,59 @@
 @layer base {
   :root {
     /* Dark Zebulon theme - matching the logo colors */
-    --background: 0 0% 8%;
+    --background: 0 0% 0%; /* Pure black background */
     --foreground: 210 40% 98%;
-    --card: 0 0% 12%;
+    --card: 0 0% 8%; /* Slightly lighter for cards */
     --card-foreground: 210 40% 98%;
-    --popover: 0 0% 12%;
+    --popover: 0 0% 8%;
     --popover-foreground: 210 40% 98%;
-    --primary: 42 100% 50%; /* Golden yellow from logo */
-    --primary-foreground: 0 0% 8%;
-    --secondary: 0 0% 16%;
+    --primary: 300 100% 70%; /* Bright magenta from logo */
+    --primary-foreground: 0 0% 0%;
+    --secondary: 240 100% 60%; /* Blue from logo */
     --secondary-foreground: 210 40% 98%;
-    --muted: 0 0% 16%;
-    --muted-foreground: 215.4 16.3% 65%;
-    --accent: 42 100% 50%;
-    --accent-foreground: 0 0% 8%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 215.4 16.3% 70%;
+    --accent: 300 100% 70%; /* Magenta accent */
+    --accent-foreground: 0 0% 0%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 0 0% 20%;
-    --input: 0 0% 16%;
-    --ring: 42 100% 50%;
+    --border: 0 0% 15%; /* Subtle border */
+    --input: 0 0% 8%;
+    --ring: 300 100% 70%;
     --radius: 0.75rem;
     
-    /* Zebulon specific colors */
-    --zebulon-gold: 42 100% 50%;
-    --zebulon-orange: 20 100% 60%;
-    --zebulon-dark: 0 0% 8%;
-    --zebulon-card: 0 0% 12%;
-    --zebulon-border: 0 0% 20%;
+    /* Zebulon specific colors matching the logo */
+    --zebulon-magenta: 300 100% 70%; /* Bright magenta */
+    --zebulon-blue: 240 100% 60%; /* Blue */
+    --zebulon-cyan: 200 100% 70%; /* Light blue */
+    --zebulon-dark: 0 0% 0%; /* Pure black */
+    --zebulon-card: 0 0% 8%; /* Dark cards */
+    --zebulon-border: 0 0% 15%;
     --zebulon-text: 210 40% 98%;
-    --zebulon-muted: 215.4 16.3% 65%;
+    --zebulon-muted: 215.4 16.3% 70%;
   }
 
   .dark {
     /* Same as root for consistent dark theme */
-    --background: 0 0% 8%;
+    --background: 0 0% 0%;
     --foreground: 210 40% 98%;
-    --card: 0 0% 12%;
+    --card: 0 0% 8%;
     --card-foreground: 210 40% 98%;
-    --popover: 0 0% 12%;
+    --popover: 0 0% 8%;
     --popover-foreground: 210 40% 98%;
-    --primary: 42 100% 50%;
-    --primary-foreground: 0 0% 8%;
-    --secondary: 0 0% 16%;
+    --primary: 300 100% 70%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 240 100% 60%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 0 0% 16%;
-    --muted-foreground: 215.4 16.3% 65%;
-    --accent: 42 100% 50%;
-    --accent-foreground: 0 0% 8%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 215.4 16.3% 70%;
+    --accent: 300 100% 70%;
+    --accent-foreground: 0 0% 0%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 0 0% 20%;
-    --input: 0 0% 16%;
-    --ring: 42 100% 50%;
+    --border: 0 0% 15%;
+    --input: 0 0% 8%;
+    --ring: 300 100% 70%;
   }
 }
 
@@ -66,36 +67,40 @@
   }
   body {
     @apply bg-background text-foreground;
-    background: #121212; /* Ensure solid black background */
+    background: #000000; /* Pure black background */
   }
   
   html {
-    background: #121212;
+    background: #000000;
   }
 }
 
-/* Custom Zebulon styling */
+/* Custom Zebulon styling matching the logo */
 @layer components {
   .zebulon-gradient {
-    @apply bg-gradient-to-r from-yellow-500 via-orange-500 to-yellow-600;
+    background: linear-gradient(135deg, #ff00ff 0%, #8000ff 50%, #0080ff 100%);
   }
   
   .zebulon-card {
     @apply bg-card backdrop-blur-sm border border-border rounded-xl;
-    background-color: hsl(var(--card) / 0.8);
-    border-color: hsl(var(--border) / 0.5);
+    background-color: hsl(var(--card) / 0.9);
+    border-color: hsl(var(--border) / 0.3);
   }
   
   .zebulon-glow {
-    box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+    box-shadow: 0 0 30px hsl(300 100% 70% / 0.4), 0 0 60px hsl(240 100% 60% / 0.2);
   }
   
   .zebulon-text-gradient {
-    background: linear-gradient(to right, hsl(var(--primary)), hsl(20 100% 60%));
+    background: linear-gradient(135deg, #ff00ff 0%, #8000ff 50%, #0080ff 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
     color: transparent;
+  }
+  
+  .zebulon-logo-gradient {
+    background: linear-gradient(135deg, #ff00ff 0%, #8000ff 50%, #0080ff 100%);
   }
 }
 
