@@ -620,14 +620,17 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
         <div className="flex flex-col h-full space-y-6">
           {/* Create Album */}
           <div className="bg-white/10 rounded-lg p-4 space-y-4">
-            <div className="flex space-x-2">
+            <div className="flex space-x-2 w-full">
               <Input
                 placeholder="Album name..."
                 value={newAlbumName}
                 onChange={(e) => setNewAlbumName(e.target.value)}
-                className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                className="flex-1 bg-white/10 border-white/20 text-white placeholder:text-gray-400"
               />
-              <Button onClick={createAlbum} className="bg-gradient-to-r from-pink-500 to-blue-500 text-white">
+              <Button 
+                onClick={createAlbum} 
+                className="bg-gradient-to-r from-pink-500 to-blue-500 text-white whitespace-nowrap px-4"
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Create Album
               </Button>
@@ -643,7 +646,7 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
                 <p className="text-sm mt-1">Create your first album above</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {photoAlbums.map((album) => (
                   <div 
                     key={album.id} 

@@ -593,7 +593,7 @@ const ZebulonConfigPanel: React.FC<ZebulonConfigPanelProps> = ({ userId }) => {
 
       <div className="flex flex-1 overflow-hidden">
         {/* Enhanced Side Navigation */}
-        <div className="w-72 bg-gradient-to-b from-black/50 to-black/80 border-r border-white/10 flex flex-col">
+        <div className="w-64 md:w-72 bg-gradient-to-b from-black/50 to-black/80 border-r border-white/10 flex flex-col flex-shrink-0">
           <div className="p-4 border-b border-white/10">
             <h3 className="font-semibold text-white text-sm mb-2">Configuration Sections</h3>
             <p className="text-xs text-gray-500">Select a category to customize</p>
@@ -616,11 +616,11 @@ const ZebulonConfigPanel: React.FC<ZebulonConfigPanelProps> = ({ userId }) => {
                   >
                     <div className="flex items-center w-full">
                       <IconComponent className="h-5 w-5 mr-3 shrink-0" />
-                      <div className="flex-1 text-left">
-                        <div className="font-medium text-sm">{item.name}</div>
-                        <div className="text-xs text-gray-500 mt-0.5">{item.description}</div>
+                      <div className="flex-1 text-left min-w-0">
+                        <div className="font-medium text-sm truncate">{item.name}</div>
+                        <div className="text-xs text-gray-500 mt-0.5 truncate">{item.description}</div>
                       </div>
-                      <ChevronRight className={`h-4 w-4 transition-transform duration-200 ${
+                      <ChevronRight className={`h-4 w-4 transition-transform duration-200 shrink-0 ${
                         activeSection === item.id ? 'rotate-90' : ''
                       }`} />
                     </div>
@@ -653,9 +653,9 @@ const ZebulonConfigPanel: React.FC<ZebulonConfigPanelProps> = ({ userId }) => {
         </div>
 
         {/* Main Configuration Content */}
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden min-w-0">
           <ScrollArea className="h-full">
-            <div className="p-6">
+            <div className="p-4 md:p-6">
               <div className="mb-6 pb-4 border-b border-white/10">
                 {(() => {
                   const currentItem = navigationItems.find(item => item.id === activeSection);
@@ -665,9 +665,9 @@ const ZebulonConfigPanel: React.FC<ZebulonConfigPanelProps> = ({ userId }) => {
                       <div className="p-2 bg-gradient-to-r from-pink-500/20 to-blue-500/20 rounded-lg border border-pink-400/30">
                         <IconComponent className="h-5 w-5 text-white" />
                       </div>
-                      <div>
-                        <h2 className="font-bold text-xl text-white">{currentItem?.name || 'Configuration'}</h2>
-                        <p className="text-sm text-gray-400">{currentItem?.description || 'Customize settings'}</p>
+                      <div className="min-w-0">
+                        <h2 className="font-bold text-lg md:text-xl text-white truncate">{currentItem?.name || 'Configuration'}</h2>
+                        <p className="text-sm text-gray-400 truncate">{currentItem?.description || 'Customize settings'}</p>
                       </div>
                     </div>
                   );
