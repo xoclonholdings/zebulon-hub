@@ -1,46 +1,8 @@
-# Zebulon Oracle AI System
+# Zebulon AI System
 
 ## Overview
 
-Zebulon is a next-generation personal AI ecosystem designed as a modular, full-stack application featuring multiple AI cores with specialized functions. The system serves as a unified platform for Oracle database management, security monitoring, and AI-powered assistance through a sophisticated web interface.
-
-**Recent Update (July 22, 2025):** TRUE LOCAL AI IMPLEMENTATION COMPLETED:
-- ✅ **BREAKTHROUGH (5:42 PM)**: Real AI capabilities without external dependencies
-  - **REVOLUTIONARY**: Zebulon Intelligence Engine providing true offline AI
-  - **FULLY AUTONOMOUS**: No OpenAI API required - 100% local intelligence
-  - **ADVANCED**: Natural language to SQL generation with schema awareness
-  - **INTELLIGENT**: Code generation, data analysis, and conversational AI
-  - **MULTI-CORE**: Zed (general), Zeta (security), Fantasma (firewall) AI cores
-  - **CONTEXT-AWARE**: Memory and conversation history integration
-  - **SOPHISTICATED**: Intent analysis, entity extraction, and pattern recognition
-  - **REAL-TIME**: Local processing with performance monitoring
-  - **PRODUCTION-READY**: Advanced error handling and optimization
-- ✅ Oracle Database Engine implemented with PostgreSQL/MySQL support
-- ✅ Natural language to SQL translation with schema discovery
-- ✅ Advanced storage optimization system with intelligent caching
-- ✅ Complete deployment automation and production configuration
-- ✅ Security hardening with comprehensive vulnerability protection
-- ✅ All TypeScript compilation errors resolved - system running cleanly
-- ✅ **VERIFIED OFFLINE**: System operates completely without internet connectivity
-
-**Previous Update:** Simplified mobile-first design with streamlined navigation:
-- Complete mobile-first UI restructuring with header, navigation, and content areas
-- Touch-optimized navigation with 44px minimum touch targets  
-- Mobile viewport handling with safe area support for notched devices
-- Responsive typography and spacing optimized for mobile screens
-- **NEW**: Simplified single-row navigation (6 main features: Chat, Config, Music, Oracle, Status, Admin)
-- **NEW**: Integrated chat interface with built-in file upload and AI core selection
-- **NEW**: Streamlined file upload directly in chat (like modern messaging apps)
-- **NEW**: Clean AI core switching (Zed/Zeta/Fantasma) in chat without redundant controls
-- **NEW**: Eliminated redundancy - Config settings only in dedicated Config tab
-- Dynamic viewport height support for mobile browsers
-- Touch manipulation optimization for all interactive elements
-
-**Previous Update:** Implemented comprehensive security manager:
-- Secure password hashing with bcrypt, account lockout protection
-- Input sanitization, XSS prevention, SQL injection protection
-- Rate limiting, security headers, encrypted data storage
-- Complete admin control system with user management
+Zebulon is a next-generation personal AI ecosystem that operates completely offline with full AI capabilities, admin controls, and real-time communication. The system features multiple AI cores (Zed, Zeta, Fantasma) with specialized functions, natural language to SQL conversion, and comprehensive security management.
 
 ## User Preferences
 
@@ -49,147 +11,99 @@ Preferred communication style: Simple, everyday language.
 ## System Architecture
 
 ### Frontend Architecture
-- **Framework**: React 18 with TypeScript and Vite for development
-- **UI Framework**: Shadcn/ui components with Radix UI primitives
-- **Styling**: Tailwind CSS with custom Zebulon theming
-- **State Management**: TanStack Query for server state management
+- **Framework**: React 18 with TypeScript
+- **Build Tool**: Vite with custom configuration for replit compatibility
+- **Styling**: Tailwind CSS with custom mobile-first optimizations
+- **UI Components**: Shadcn/ui components with dark theme
+- **State Management**: React Query for server state, local state with React hooks
 - **Routing**: Wouter for lightweight client-side routing
-- **Real-time Communication**: WebSocket integration for live updates
 
 ### Backend Architecture
-- **Runtime**: Node.js with Express.js framework
-- **Language**: TypeScript with ES modules
-- **Database ORM**: Drizzle ORM for type-safe database operations
-- **Database**: PostgreSQL (via Neon Database serverless)
-- **Real-time**: WebSocket server for bidirectional communication
-- **AI Integration**: Zebulon Intelligence Engine for local AI processing
-
-### Build System
-- **Bundler**: Vite for frontend development and building
-- **Build Target**: ESBuild for production server bundling
-- **Development**: Hot module replacement with Vite middleware
-- **Production**: Static file serving with Express
+- **Runtime**: Node.js with Express framework
+- **Language**: TypeScript with ESM modules
+- **API Design**: RESTful endpoints with WebSocket support for real-time features
+- **Local AI**: Custom AI engine with pattern recognition and natural language processing
+- **Security**: Comprehensive middleware stack with rate limiting, input sanitization, and vulnerability scanning
 
 ## Key Components
 
-### Admin Control System (NEW)
-- **Complete User Management**: Create, suspend, delete users with granular permission controls
-- **NO Autonomous Operations**: All system operations require explicit admin or user approval
-- **Admin Login Interface**: Secure access through logo click with default credentials (admin/zebulon2025)
-- **Emergency Controls**: Immediate system shutdown and maximum security activation
-- **Permission Management**: Granular control over file access, Oracle operations, voice commands, system updates
-- **User Access Limitations**: Per-user file size limits, storage quotas, feature access controls
-- **Audit Logging**: Complete activity tracking for all admin actions and user operations
-- **System Settings**: Global controls for autonomous operations, self-updates, security levels
-
 ### AI Cores
-1. **Zed Core (cZED)**: Primary conversational AI assistant with strict authorization system
-   - Handles user interactions, task management, and productivity guidance
-   - Processes natural language queries for Oracle database operations
-   - **CRITICAL**: All operations require explicit permission - NO autonomous actions
-   - Complete Oracle administration capabilities with secure query execution
-   - Real-time database connection management and monitoring
-   - Fully configurable permission system with mandatory user authorization workflow
-   - All authorization requests require admin or user approval
-   - No auto-approval - all operations gated by permission system
-   - Provides contextual responses and recommendations only when authorized
+1. **Zed Core**: Primary conversational AI assistant with Oracle database management
+2. **Zeta Core**: Security-focused AI for threat detection and system protection
+3. **Fantasma Firewall**: Automated security scanning and anomaly detection
 
-2. **Zeta Core (cZETA)**: Security-focused AI sentinel with real-time monitoring
-   - Advanced Oracle query security analysis and threat detection
-   - Real-time SQL injection prevention and risk assessment
-   - Database access auditing with automatic blocking of dangerous operations
-   - **CRITICAL**: All security operations require admin approval
-   - Memory protection and pattern auditing
-   - Behavioral cloaking and metadata vaulting
-   - Configurable security monitoring levels with admin-only access
-   - Real-time threat detection with admin-controlled alerts
-   - Security monitoring and threat detection with permission gates
+### Database Layer
+- **Primary Database**: PostgreSQL via Neon Database service
+- **ORM**: Drizzle ORM with schema-first approach
+- **Connection Pool**: Managed connection pooling for performance
+- **Migration System**: Drizzle Kit for database migrations
 
-3. **Fantasma Firewall**: Native security subsystem with advanced protection
-   - Background scanning and anomaly detection
-   - Configurable scan intervals and deep scan options
-   - Stealth mode with behavior cloaking and traffic obfuscation
-   - Automated log purging ("Fanflux")
-   - System-triggered security events (airplane mode, dark mode, device events)
+### Security System
+- **Authentication**: Bcrypt password hashing with account lockout protection
+- **Authorization**: Role-based access control with granular permissions
+- **Input Sanitization**: Comprehensive XSS and injection prevention
+- **Rate Limiting**: Multi-tier rate limiting for different endpoint types
+- **Vulnerability Scanner**: Automated security assessment and remediation
 
-### Database Schema
-- **Users**: Authentication and user profiles with codenames and roles
-- **Chat Messages**: Conversation history with AI cores
-- **Oracle Queries**: Natural language to SQL translation history
-- **System Status**: Real-time monitoring of all system components
-- **User Tasks & Notes**: Personal productivity management
-- **Audio Processing**: Voice authentication and command processing
-- **NEW**: **Oracle Administration Tables**:
-  - **Oracle Connections**: Secure database connection management with encrypted credentials
-  - **Oracle Schemas**: Schema discovery and metadata with privilege tracking
-  - **Oracle Objects**: Database object catalog (tables, views, procedures, functions)
-  - **Oracle Query History**: Complete query execution history with performance metrics
-  - **Oracle Security Audits**: Zeta Core security analysis and threat detection logs
-  - **Oracle Performance Metrics**: Real-time database performance monitoring
-
-### UI Components
-- **Dashboard Grid**: Brady Bunch-style widget layout
-- **Command Chat**: Central communication interface with Zebulon™️
-- **Status Widgets**: Real-time monitoring of Oracle, security, and system health
-- **Profile Management**: User authentication and preferences
-- **Voice Interface**: Audio recording and processing capabilities
+### Storage and Caching
+- **Enhanced Storage**: Intelligent caching with compression and access pattern analysis
+- **Memory Management**: Encrypted memory service for sensitive data
+- **Performance Optimization**: Query caching and batch operations
 
 ## Data Flow
 
-1. **User Input**: Voice or text commands through the dashboard interface
-2. **WebSocket Communication**: Real-time bidirectional data exchange
-3. **AI Processing**: Route to appropriate AI core (Zed/Zeta) via OpenAI API
-4. **Database Operations**: Drizzle ORM handles all database interactions
-5. **Oracle Integration**: Natural language to SQL conversion and execution
-6. **Response Generation**: AI-generated responses with context awareness
-7. **Real-time Updates**: WebSocket broadcasts for live status updates
+1. **User Input**: Mobile-optimized interface captures user interactions
+2. **Request Processing**: Express middleware handles authentication, sanitization, and rate limiting
+3. **AI Processing**: Local AI engine processes requests without external dependencies
+4. **Database Operations**: Drizzle ORM manages data persistence with encryption
+5. **Real-time Updates**: WebSocket connections provide live updates to connected clients
+6. **Response Delivery**: JSON responses with proper error handling and security headers
 
 ## External Dependencies
 
-### Core Services
-- **OpenAI API**: GPT-4o model for AI processing
-- **Neon Database**: Serverless PostgreSQL hosting
-- **Voice APIs**: Browser MediaRecorder for audio capture
+### Core Dependencies
+- **Database**: Neon PostgreSQL (configurable to other PostgreSQL providers)
+- **UI Framework**: React ecosystem (React, React-DOM, React Query)
+- **Security**: Bcrypt, Helmet, Express-rate-limit
+- **Development**: TypeScript, Vite, Tailwind CSS
 
-### Development Dependencies
-- **Shadcn/ui**: Component library with Radix UI primitives
-- **TanStack Query**: Server state management
-- **Drizzle Kit**: Database migration and schema management
-- **PostCSS & Autoprefixer**: CSS processing
-
-### Security & Monitoring
-- **Connect-pg-simple**: PostgreSQL session storage
-- **WebSocket Security**: Real-time monitoring and alerts
-- **Fantasma Firewall**: Custom security event handling
+### Optional Extensions
+- **Browser Extension**: Chrome/Firefox extension for web integration
+- **Desktop App**: Electron wrapper for standalone desktop application
+- **Mobile Shortcuts**: iOS Shortcuts integration for mobile workflows
 
 ## Deployment Strategy
 
-### Development Environment
-- **Replit Integration**: Optimized for Replit development environment
-- **Hot Reload**: Vite middleware with Express for seamless development
-- **TypeScript Compilation**: Real-time type checking and compilation
-- **WebSocket Development**: Live connection testing and debugging
+### Production Deployment
+- **Platform**: Optimized for Replit deployment with fallback to standard Node.js hosts
+- **Build Process**: Vite builds client assets, esbuild bundles server code
+- **Environment**: Production environment with secure session management
+- **Health Monitoring**: Built-in health check endpoints and system status monitoring
 
-### Production Build
-- **Frontend**: Vite builds to static assets in `dist/public`
-- **Backend**: ESBuild bundles server code to `dist/index.js`
-- **Database**: Drizzle migrations handle schema deployment
-- **Environment Variables**: Database URL and API keys via environment
+### Development Setup
+- **Local Development**: Hot reload with Vite dev server
+- **Database**: Local PostgreSQL or cloud-hosted Neon database
+- **Environment Variables**: `.env` file for local configuration
 
-### Architecture Decisions
+### Security Hardening
+- **Rate Limiting**: 500 requests per 15 minutes with stricter limits for admin endpoints
+- **Session Security**: Secure HTTP-only cookies with CSRF protection
+- **Input Validation**: Multi-layer validation with sanitization and type checking
+- **Vulnerability Management**: Automated scanning with real-time threat detection
 
-**Problem**: Need for real-time communication between multiple AI cores and frontend
-**Solution**: WebSocket implementation with message routing by AI core type
-**Rationale**: Enables live status updates, voice processing, and seamless AI interactions
+### Offline Capabilities
+- **Local AI Engine**: No external API dependencies for core AI functionality
+- **Embedded Database**: Can operate with local SQLite for fully offline scenarios
+- **Asset Management**: All static assets bundled with the application
+- **Service Worker**: Optional PWA features for enhanced offline experience
 
-**Problem**: Complex database operations with type safety
-**Solution**: Drizzle ORM with Zod schema validation
-**Rationale**: Provides type-safe database operations while maintaining flexibility for Oracle integration
+## Key Features
 
-**Problem**: Modular AI system with different specialized functions
-**Solution**: Multi-core architecture with OpenAI API routing
-**Rationale**: Allows specialized AI personalities (Zed, Zeta) while maintaining unified processing backend
-
-**Problem**: Voice authentication and command processing
-**Solution**: Browser MediaRecorder API with WebSocket streaming
-**Rationale**: Enables real-time voice processing without requiring native mobile apps
+1. **100% Offline Operation**: Works without internet connectivity after initial setup
+2. **Mobile-First Design**: Responsive interface optimized for mobile devices
+3. **Real-time Communication**: WebSocket-based live updates and notifications
+4. **Voice Interface**: Browser-based voice recognition and processing
+5. **Admin Control Panel**: Comprehensive user and system management
+6. **Security Monitoring**: Real-time threat detection and vulnerability assessment
+7. **Oracle Integration**: Natural language to SQL conversion with database management
+8. **Extension Support**: Browser and desktop integration capabilities
