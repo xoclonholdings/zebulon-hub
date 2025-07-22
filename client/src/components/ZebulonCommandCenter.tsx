@@ -385,7 +385,7 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
           </div>
           
           <CardTitle className="text-center text-2xl font-bold zebulon-text-gradient mb-2">
-            ZEBULON™️ COMMAND
+            ZEBULON
           </CardTitle>
           
           {/* Active Core Status */}
