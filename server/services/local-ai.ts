@@ -32,13 +32,48 @@ interface AIContext {
   previousQueries?: string[];
 }
 
-// Enhanced Zed Core with Full AI Capabilities
+// Enhanced Zed Core with Memory and Context Awareness
 export async function processZedCoreMessage(message: string, context?: AIContext): Promise<ZebulonAIResponse> {
   const lowerMessage = message.toLowerCase();
   const timestamp = new Date().toISOString();
   
   // Generate unique responses to prevent caching issues
   const responseId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  
+  // Memory and context awareness
+  const userId = context?.userId || 1;
+  const { storage } = await import("../storage");
+  
+  // Retrieve recent conversation history for context
+  const recentMessages = await storage.getChatMessages(userId, 10);
+  const userQueries = await storage.getOracleQueries(userId, 5);
+  const userTasks = await storage.getUserTasks(userId);
+  
+  // Build memory context
+  const conversationHistory = recentMessages
+    .filter(msg => msg.isUser)
+    .slice(0, 3)
+    .map(msg => msg.message)
+    .reverse();
+  
+  const recentTopics = conversationHistory.length > 0 
+    ? `Recent conversation topics: ${conversationHistory.join(', ')}`
+    : 'Starting fresh conversation';
+  
+  const queryHistory = userQueries.length > 0
+    ? `Recent database work: ${userQueries.slice(0, 2).map(q => q.naturalLanguage).join(', ')}`
+    : 'No recent database queries';
+  
+  const taskContext = userTasks.length > 0
+    ? `Active tasks: ${userTasks.filter(t => !t.completed).length} pending, ${userTasks.filter(t => t.completed).length} completed`
+    : 'No active tasks';
+  
+  const memoryContext = {
+    conversation: recentTopics,
+    database: queryHistory,
+    tasks: taskContext,
+    sessionLength: recentMessages.length
+  };
   
   // Advanced SQL Query Generation
   if (lowerMessage.includes('show') || lowerMessage.includes('list') || lowerMessage.includes('get')) {
@@ -263,27 +298,102 @@ export class AdvancedOracleHandler {
     };
   }
 
-  // Natural Language Conversation
+  // Natural Language Conversation with Memory
   if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('hey')) {
+    const memoryReference = conversationHistory.length > 0 
+      ? ` I remember we were discussing ${conversationHistory[conversationHistory.length - 1]}.` 
+      : ' Great to meet you!';
+    
+    const taskReference = userTasks.filter(t => !t.completed).length > 0
+      ? ` I see you have ${userTasks.filter(t => !t.completed).length} active tasks we can work on.`
+      : '';
+    
     return {
-      response: "Hey there! I'm Zed Core, your advanced AI assistant with full Oracle database capabilities, data analysis, code generation, and intelligent automation. I combine the power of multiple AI systems to give you comprehensive assistance. What can I help you accomplish today?",
+      response: `Hey there! I'm Zed Core, your advanced AI assistant.${memoryReference}${taskReference} I'm ready to help with Oracle databases, data analysis, code generation, and automation. What can I assist you with today?`,
       confidence: 0.88,
       core: 'zed',
       actionRequired: false,
-      metadata: { category: 'conversational', personality: 'urban_professional' }
+      metadata: { 
+        category: 'conversational', 
+        personality: 'urban_professional',
+        memoryContext: memoryContext
+      }
     };
   }
 
-  // Dynamic intelligent response to prevent caching
-  const dynamicResponses = [
-    `Ready to assist you at ${timestamp}! I have comprehensive AI capabilities for database operations, data analysis, code generation, and automation. What can I help you with?`,
-    `Zed Core operational and ready! I specialize in Oracle databases, advanced analytics, and intelligent solutions. What challenge can I tackle for you?`,
-    `I'm here to help with advanced database management, system optimization, or analytical insights. What specific task would you like me to work on?`,
-    `All systems ready! Whether you need SQL assistance, data analysis, or code generation, I'm equipped to help. What's your priority?`,
-    `Zed Core standing by with full capabilities: database ops, analytics, automation, and more. How can I assist you today?`
-  ];
+  // Memory and context queries - enhanced matching
+  if (lowerMessage.includes('remember') || lowerMessage.includes('previous') || lowerMessage.includes('before') || 
+      lowerMessage.includes('history') || lowerMessage.includes('what do you know') || 
+      lowerMessage.includes('about me') || lowerMessage.includes('our conversation')) {
+    const memoryResponse = [];
+    
+    if (conversationHistory.length > 0) {
+      memoryResponse.push(`I remember our recent conversations about: ${conversationHistory.join(', ')}`);
+    }
+    
+    if (userQueries.length > 0) {
+      memoryResponse.push(`Your recent database work included: ${userQueries.slice(0, 3).map(q => q.naturalLanguage).join(', ')}`);
+    }
+    
+    if (userTasks.length > 0) {
+      const completedTasks = userTasks.filter(t => t.completed);
+      const pendingTasks = userTasks.filter(t => !t.completed);
+      memoryResponse.push(`Task status: ${completedTasks.length} completed, ${pendingTasks.length} pending`);
+    }
+    
+    const response = memoryResponse.length > 0 
+      ? memoryResponse.join('. ') + '. How can I help you continue this work?'
+      : 'This is our first conversation together. I\'m ready to start building some history with you! What would you like to work on?';
+    
+    return {
+      response,
+      confidence: 0.92,
+      core: 'zed',
+      actionRequired: false,
+      metadata: {
+        category: 'memory_recall',
+        conversationHistory: conversationHistory,
+        queryHistory: userQueries.map(q => q.naturalLanguage),
+        taskHistory: userTasks.map(t => ({ title: t.title, completed: t.completed }))
+      }
+    };
+  }
 
-  const randomResponse = dynamicResponses[Math.floor(Math.random() * dynamicResponses.length)];
+  // Dynamic intelligent response with memory context
+  const contextualResponses = [];
+  
+  // Add memory-aware responses
+  if (conversationHistory.length > 0) {
+    contextualResponses.push(
+      `I'm ready to continue our work! We've been discussing ${conversationHistory[conversationHistory.length - 1]}. What's next?`,
+      `Based on our previous conversations about ${conversationHistory.join(' and ')}, I'm ready to help you advance further.`
+    );
+  }
+  
+  if (userQueries.length > 0) {
+    contextualResponses.push(
+      `I remember your recent database work with ${userQueries[0].naturalLanguage}. Ready to build on that or tackle something new?`,
+      `Following up on your Oracle queries, I'm equipped to help with more advanced database operations.`
+    );
+  }
+  
+  if (userTasks.filter(t => !t.completed).length > 0) {
+    contextualResponses.push(
+      `I see you have ${userTasks.filter(t => !t.completed).length} pending tasks. Ready to make progress on those or start something new?`,
+      `With your active tasks in mind, I'm here to help prioritize and execute. What should we focus on?`
+    );
+  }
+  
+  // Fallback responses if no context
+  if (contextualResponses.length === 0) {
+    contextualResponses.push(
+      `Ready to assist you at ${timestamp}! I have comprehensive AI capabilities for database operations, data analysis, code generation, and automation. What can I help you with?`,
+      `Zed Core operational and ready! I specialize in Oracle databases, advanced analytics, and intelligent solutions. What challenge can I tackle for you?`,
+      `I'm here to help with advanced database management, system optimization, or analytical insights. What specific task would you like me to work on?`
+    );
+  }
+
+  const randomResponse = contextualResponses[Math.floor(Math.random() * contextualResponses.length)];
   
   return {
     response: randomResponse,
@@ -294,7 +404,9 @@ export class AdvancedOracleHandler {
       category: 'general_assistance', 
       capabilities: 'full_spectrum',
       responseId: responseId,
-      timestamp: timestamp
+      timestamp: timestamp,
+      memoryContext: memoryContext,
+      contextualResponse: true
     }
   };
 }
