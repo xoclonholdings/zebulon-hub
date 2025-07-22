@@ -64,6 +64,7 @@ interface SecurityDashboardData {
 }
 
 const SecurityDashboard: React.FC = () => {
+  console.log('🔐 SecurityDashboard component initialized');
   const [dashboard, setDashboard] = useState<SecurityDashboardData | null>(null);
   const [scanResult, setScanResult] = useState<SecurityScanResult | null>(null);
   const [isScanning, setIsScanning] = useState(false);

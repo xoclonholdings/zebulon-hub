@@ -1916,8 +1916,12 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
         return renderAdminInterface();
 
       case 'security':
+        console.log('🔐 Rendering SecurityDashboard - feature active');
         return (
           <div className="w-full h-full overflow-y-auto zebulon-scrollable">
+            <div className="text-green-400 text-xs mb-4 bg-black/30 p-2 rounded">
+              Debug: Security feature active, loading SecurityDashboard...
+            </div>
             <SecurityDashboard />
           </div>
         );
