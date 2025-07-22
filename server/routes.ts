@@ -461,5 +461,133 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Encrypted Zed Memory Management API
+  app.post("/api/memory/:userId", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const { zedMemoryServiceFixed } = await import("./services/zed-memory-fixed");
+      
+      const memory = await zedMemoryServiceFixed.createMemory(userId, req.body);
+      res.json(memory);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create encrypted memory" });
+    }
+  });
+
+  app.get("/api/memory/:userId/search", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const query = req.query.q as string || "";
+      const options = {
+        types: req.query.types ? (req.query.types as string).split(',') : undefined,
+        categories: req.query.categories ? (req.query.categories as string).split(',') : undefined,
+        limit: req.query.limit ? parseInt(req.query.limit as string) : 20,
+        sortBy: req.query.sortBy as any || 'relevance'
+      };
+      
+      const { zedMemoryServiceFixed } = await import("./services/zed-memory-fixed");
+      const memories = await zedMemoryServiceFixed.searchAndDecryptMemories(userId, query, options);
+      res.json(memories);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to search encrypted memories" });
+    }
+  });
+
+  app.get("/api/memory/:userId/stats", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const { zedMemoryServiceFixed } = await import("./services/zed-memory-fixed");
+      
+      const stats = await zedMemoryServiceFixed.getMemoryStats(userId);
+      res.json(stats);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to get encrypted memory stats" });
+    }
+  });
+
+  app.post("/api/memory/:userId/remember", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const { type, content, importance } = req.body;
+      const { zedMemoryServiceFixed } = await import("./services/zed-memory-fixed");
+      
+      let memory;
+      switch (type) {
+        case 'preference':
+          memory = await zedMemoryServiceFixed.rememberUserPreference(
+            userId, 
+            content.preference, 
+            content.value, 
+            content.context
+          );
+          break;
+        case 'fact':
+          memory = await zedMemoryServiceFixed.rememberFact(
+            userId, 
+            content.fact, 
+            content.category, 
+            importance
+          );
+          break;
+        case 'skill':
+          memory = await zedMemoryServiceFixed.rememberSkill(
+            userId, 
+            content.skill, 
+            content.proficiency, 
+            content.context
+          );
+          break;
+        default:
+          memory = await zedMemoryServiceFixed.createMemory(userId, {
+            memoryType: type,
+            category: content.category || 'general',
+            key: `${type}_${Date.now()}`,
+            content,
+            importance: importance || 5,
+            source: 'user_told'
+          });
+      }
+      
+      res.json(memory);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to remember information" });
+    }
+  });
+
+  app.get("/api/memory/:userId/context/:sessionId", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const sessionId = req.params.sessionId;
+      const { zedMemoryService } = await import("./services/zed-memory");
+      
+      const context = await zedMemoryService.getConversationContext(userId, sessionId);
+      res.json(context);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to get conversation context" });
+    }
+  });
+
+  app.post("/api/memory/:userId/context/:sessionId", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const sessionId = req.params.sessionId;
+      const { contextWindow, topicSummary, userMood, taskContext, memoryReferences } = req.body;
+      const { zedMemoryService } = await import("./services/zed-memory");
+      
+      const context = await zedMemoryService.updateConversationContext(
+        userId, 
+        sessionId, 
+        contextWindow, 
+        topicSummary, 
+        userMood, 
+        taskContext, 
+        memoryReferences
+      );
+      res.json(context);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update conversation context" });
+    }
+  });
+
   return httpServer;
 }

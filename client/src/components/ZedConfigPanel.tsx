@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertTriangle, Check, X, Settings, Shield, Brain, Database, Mic } from 'lucide-react';
+import { ZedMemoryPanel } from './ZedMemoryPanel';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -104,50 +105,41 @@ export default function ZedConfigPanel({ userId }: ZedConfigPanelProps) {
   const queryClient = useQueryClient();
 
   // Fetch user configuration
-  const { data: config, isLoading: configLoading } = useQuery({
-    queryKey: ['config', userId],
+  const { data: config, isLoading: configLoading } = useQuery<UserConfig>({
+    queryKey: ['/api/config', userId],
     queryFn: () => apiRequest(`/api/config/${userId}`)
   });
 
   // Fetch pending authorizations
-  const { data: authorizations, isLoading: authLoading } = useQuery({
-    queryKey: ['authorizations', userId],
+  const { data: authorizations, isLoading: authLoading } = useQuery<any[]>({
+    queryKey: ['/api/authorizations', userId],
     queryFn: () => apiRequest(`/api/authorizations/${userId}`)
   });
 
   // Update configuration mutation
   const updateConfigMutation = useMutation({
     mutationFn: (newConfig: Partial<UserConfig>) => 
-      apiRequest(`/api/config/${userId}`, {
-        method: 'PUT',
-        body: JSON.stringify(newConfig)
-      }),
+      apiRequest(`/api/config/${userId}`, 'PUT', newConfig),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['config', userId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/config', userId] });
     }
   });
 
   // Approve authorization mutation
   const approveAuthMutation = useMutation({
     mutationFn: ({ authId }: { authId: number }) =>
-      apiRequest(`/api/authorize/${authId}/approve`, {
-        method: 'POST',
-        body: JSON.stringify({ approverId: userId })
-      }),
+      apiRequest(`/api/authorize/${authId}/approve`, 'POST', { approverId: userId }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['authorizations', userId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/authorizations', userId] });
     }
   });
 
   // Reject authorization mutation  
   const rejectAuthMutation = useMutation({
     mutationFn: ({ authId }: { authId: number }) =>
-      apiRequest(`/api/authorize/${authId}/reject`, {
-        method: 'POST',
-        body: JSON.stringify({ approverId: userId })
-      }),
+      apiRequest(`/api/authorize/${authId}/reject`, 'POST', { approverId: userId }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['authorizations', userId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/authorizations', userId] });
     }
   });
 
@@ -207,8 +199,12 @@ export default function ZedConfigPanel({ userId }: ZedConfigPanelProps) {
             <Brain className="w-4 h-4" />
             <span>Behavior</span>
           </TabsTrigger>
-          <TabsTrigger value="systems" className="flex items-center space-x-2">
+          <TabsTrigger value="memory" className="flex items-center space-x-2">
             <Database className="w-4 h-4" />
+            <span>Memory Core</span>
+          </TabsTrigger>
+          <TabsTrigger value="systems" className="flex items-center space-x-2">
+            <Settings className="w-4 h-4" />
             <span>Systems</span>
           </TabsTrigger>
           <TabsTrigger value="authorizations" className="flex items-center space-x-2">
@@ -309,6 +305,23 @@ export default function ZedConfigPanel({ userId }: ZedConfigPanelProps) {
                   </SelectContent>
                 </Select>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="memory" className="space-y-4">
+          <Card className="zebulon-card">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Database className="w-5 h-5 text-primary" />
+                <span>Zed Memory Core</span>
+              </CardTitle>
+              <CardDescription>
+                Encrypted AI memory management system with AES-256 security
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ZedMemoryPanel userId={userId} />
             </CardContent>
           </Card>
         </TabsContent>
