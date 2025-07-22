@@ -30,6 +30,9 @@ interface AIContext {
   userActivity?: any;
   systemStatus?: any;
   previousQueries?: string[];
+  userId?: number;
+  timestamp?: string;
+  messageId?: number;
 }
 
 // Enhanced Zed Core with Memory and Context Awareness

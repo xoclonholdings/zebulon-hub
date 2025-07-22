@@ -191,10 +191,12 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
     recordAndProcess
   } = useVoice();
 
-  // Fetch chat messages - Reduced polling frequency to prevent rate limiting
+  // Fetch chat messages - Much more efficient polling to prevent rate limiting
   const { data: chatData = [], isLoading: chatLoading } = useQuery({
     queryKey: ['/api/chat', userId],
-    refetchInterval: 5000, // Reduced from 1000ms to 5000ms
+    refetchInterval: 15000, // Increased to 15 seconds to prevent rate limiting
+    staleTime: 10000, // Cache data for 10 seconds
+    refetchOnWindowFocus: false, // Don't refetch on window focus
   });
 
   // Transform API data to ChatMessage format

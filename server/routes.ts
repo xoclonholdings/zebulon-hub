@@ -332,7 +332,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { username, password } = req.body;
       const user = await storage.getUserByUsername(username);
       
-      if (!user || user.password !== password) {
+      if (!user || user.passwordHash !== password) {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
 
@@ -487,7 +487,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userMessage = await storage.createChatMessage({
         ...validatedData,
         isUser: true,
-        response: null,
+        response: undefined,
         metadata: null
       });
 

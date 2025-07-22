@@ -63,8 +63,8 @@ class SecurityHardening {
     this.config = {
       rateLimiting: {
         windowMs: 15 * 60 * 1000, // 15 minutes
-        maxRequests: 100,
-        skipSuccessfulRequests: false
+        maxRequests: 500, // Increased from 100 to 500 for better user experience
+        skipSuccessfulRequests: true // Skip counting successful requests
       },
       headers: {
         contentSecurityPolicy: true,
