@@ -1,46 +1,124 @@
 # Zebulon AI System
 
-A next-generation personal AI ecosystem with complete offline capabilities, admin controls, and real-time communication.
+A next-generation personal AI ecosystem with complete offline capabilities, featuring multiple AI cores with specialized functions.
 
-## 🚀 Quick Install
+## Features
 
-### Windows
-Double-click: **`install.bat`**
+- **100% Offline Operation**: Works without internet connectivity after initial setup
+- **Multiple AI Cores**: Zed (conversational), Zeta (security), Fantasma (firewall)
+- **Real-time Communication**: WebSocket-based live updates
+- **Voice Interface**: Browser-based voice recognition
+- **Mobile-First Design**: Responsive interface optimized for all devices
+- **Admin Control Panel**: Comprehensive user and system management
+- **Security Monitoring**: Real-time threat detection and analysis
 
-### Mac/Linux  
-Double-click: **`install.sh`**
+## Quick Start
 
-That's it! Everything installs automatically.
+### Prerequisites
 
-## ✨ Features
-- **Complete AI Chat** with memory and context
-- **Admin Control Panel** with user management
-- **100% Offline Operation** after setup
-- **Mobile-First Interface** that works on any device
-- **Real-Time Communication** via WebSocket
-- **Voice Interface** with permission controls
-- **Security System** with rate limiting and protection
+- Node.js 18+ 
+- PostgreSQL database
+- npm or yarn
 
-## 🖥️ Access
-- **Main App**: http://localhost:5000
-- **Admin**: Click logo → admin/zebulon2025
+### Installation
 
-## 📱 Mobile Access
-Connect your phone to the same WiFi and visit your computer's IP address.
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd zebulon-ai-system
+   ```
 
-## 🔧 Manual Install
-If automatic install fails:
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables**
+   Create a `.env` file:
+   ```env
+   NODE_ENV=development
+   DATABASE_URL=your_postgresql_connection_string
+   SESSION_SECRET=your_random_secret_key
+   ```
+
+4. **Initialize database**
+   ```bash
+   npm run db:push
+   ```
+
+5. **Start development server**
+   ```bash
+   npm run dev
+   ```
+
+6. **Access the application**
+   - Open: http://localhost:5000
+   - Admin login: Click logo → admin/zebulon2025
+
+## Development
+
+### Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production  
+- `npm start` - Run production server
+- `npm run db:push` - Push database schema changes
+
+### Architecture
+
+- **Frontend**: React 18 + TypeScript + Vite
+- **Backend**: Express.js + TypeScript
+- **Database**: PostgreSQL with Drizzle ORM
+- **Styling**: Tailwind CSS + shadcn/ui components
+- **Real-time**: WebSocket communication
+
+### Project Structure
+
+```
+zebulon-ai-system/
+├── client/              # React frontend
+│   ├── src/
+│   └── index.html
+├── server/              # Express backend
+│   ├── routes/
+│   ├── services/
+│   └── index.ts
+├── shared/              # Shared types and schemas
+└── package.json
+```
+
+## Deployment
+
+### Build for Production
+
 ```bash
-npm install --legacy-peer-deps
 npm run build
 npm start
 ```
 
-## 📚 Documentation
-- Full install guide: `INSTALL.md`
-- Deployment guide: `README-DEPLOYMENT.md`
-- Offline setup: `desktop-app/offline-setup.md`
+### Environment Variables
 
----
+Required for production:
+- `NODE_ENV=production`
+- `DATABASE_URL=<postgresql_url>`
+- `SESSION_SECRET=<secure_random_string>`
+- `PORT=5000` (optional)
 
-**No external API dependencies • Complete privacy • Self-contained system**
+## AI Cores
+
+1. **Zed Core**: Primary conversational AI with natural language processing
+2. **Zeta Core**: Security-focused AI for threat detection  
+3. **Fantasma Firewall**: Autonomous security system with background scanning
+
+## Security Features
+
+- Rate limiting (500 requests per 15 minutes)
+- Input sanitization and validation
+- Secure session management
+- Password hashing with bcrypt
+- Real-time vulnerability scanning
+- Admin access controls
+
+## License
+
+MIT License - see LICENSE file for details

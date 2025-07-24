@@ -2,180 +2,126 @@
 
 ## Overview
 
-Zebulon is a next-generation personal AI ecosystem that operates completely offline with full AI capabilities, admin controls, and real-time communication. The system features multiple AI cores (Zed, Zeta, Fantasma) with specialized functions, natural language to SQL conversion, and comprehensive security management.
+The Zebulon AI System is a next-generation personal AI ecosystem with complete offline capabilities, designed as a modular, full-stack application featuring multiple AI cores with specialized functions. The system serves as a unified platform for AI-powered database operations, security management, and personal assistance.
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
 
-## Recent Changes
-
-### 2025-07-22 - Fixed Deployment Static File Serving Issues
-- ✅ **Resolved deployment build directory mismatch**
-  - Fixed static file serving path to match Vite build output directory
-  - Updated build configuration to ensure client assets are built to correct location
-  - Added build verification script to check deployment readiness
-- ✅ **Implemented comprehensive static file handling**
-  - Client assets now copied to `server/public/` for development compatibility
-  - Production assets placed in `dist/server/public/` for deployment consistency
-  - Original Vite output maintained in `dist/public/` for build tool compatibility
-- ✅ **Enhanced build process with error handling**
-  - Added missing build directory creation in production
-  - Implemented fallback mechanisms for missing static files
-  - Created build verification tool to validate deployment structure
-- ✅ **Deployment fixes applied successfully**
-  - Fixed "Build directory missing" error by ensuring proper asset placement
-  - Resolved "Client assets not being built to correct location" issue
-  - Added error handling for missing build directory in production
-  - Ensured build command creates the public directory structure correctly
-- **Status**: All deployment issues resolved - ready for production deployment
-
-### 2025-07-22 - Fixed Deployment Build Scripts
-- ✅ **Added missing build and start scripts to package.json**
-  - Build script: `"build": "node build.js"` - executes the complete build process
-  - Start script: `"start": "NODE_ENV=production node dist/index.js"` - runs production server
-  - Maintains existing dev script for development workflow
-- ✅ **Verified deployment build process**
-  - Vite builds and optimizes client assets (443KB JavaScript, 87KB CSS)
-  - Server files copied to dist/server/ with TypeScript support via tsx
-  - Production entry point dist/index.js properly configured
-  - All dependencies and configuration files included in deployment package
-- ✅ **Deployment requirements now fulfilled**
-  - Build command `npm run build` executes successfully
-  - Start command `npm start` ready for production
-  - TypeScript compilation working with tsx runtime
-  - All suggested deployment fixes applied and tested
-- **Status**: Ready for immediate deployment with all required scripts
-
-### 2025-07-22 - Deployment Configuration Completed
-- ✅ **Fixed deployment build configuration** 
-  - Added missing `build` and `start` scripts for deployment
-  - Created TypeScript compilation configuration for server code  
-  - Built comprehensive ES module import fixing system
-  - Generated production-ready build in `dist/` directory
-- ✅ **Resolved ES module compatibility issues**
-  - Fixed all import paths for Node.js ES modules
-  - Corrected npm package import references
-  - Ensured proper file extensions for local imports
-- ✅ **Created deployment-ready package**
-  - Production server entry point: `dist/index.js`
-  - Client assets bundled in: `dist/public/`
-  - All dependencies properly configured
-  - Database migration scripts included
-- **Status**: Ready for deployment with `npm run build` and `npm start` support
-
-### 2025-07-22 - Application Startup Fixed and Completed
-- Fixed multiple package dependency version conflicts
-- Resolved `tsx` not found error by installing correct versions
-- Updated package.json to use stable Tailwind CSS v3 instead of v4
-- Added all missing frontend dependencies (Radix UI components, React Query, Wouter routing)
-- Added missing Tailwind CSS plugins (tailwindcss-animate, @tailwindcss/typography)
-- Successfully initialized:
-  - Storage Optimizer with caching and performance monitoring
-  - Enhanced Storage search indexes
-  - Zebulon Local AI Engine (100% offline intelligence active)
-  - Express server on port 5000
-  - Frontend React application with full UI components
-  - WebSocket real-time communication
-  - OpenAI API integration for enhanced AI capabilities
-- **Status**: Fully operational and ready for use
-
 ## System Architecture
 
-### Frontend Architecture
-- **Framework**: React 18 with TypeScript
-- **Build Tool**: Vite with custom configuration for replit compatibility
-- **Styling**: Tailwind CSS with custom mobile-first optimizations
-- **UI Components**: Shadcn/ui components with dark theme
-- **State Management**: React Query for server state, local state with React hooks
-- **Routing**: Wouter for lightweight client-side routing
+The Zebulon system follows a modern full-stack architecture with the following key components:
 
-### Backend Architecture
-- **Runtime**: Node.js with Express framework
-- **Language**: TypeScript with ESM modules
-- **API Design**: RESTful endpoints with WebSocket support for real-time features
-- **Local AI**: Custom AI engine with pattern recognition and natural language processing
-- **Security**: Comprehensive middleware stack with rate limiting, input sanitization, and vulnerability scanning
+- **Frontend**: React with TypeScript, using Vite for bundling and development
+- **Backend**: Express.js server with TypeScript support  
+- **Database**: PostgreSQL with Drizzle ORM (Neon serverless)
+- **Real-time Communication**: WebSocket for live interactions
+- **PWA Support**: Complete Progressive Web App with offline capabilities
+- **AI Processing**: Local AI engine with no external dependencies
 
 ## Key Components
 
-### AI Cores
-1. **Zed Core**: Primary conversational AI assistant with Oracle database management
-2. **Zeta Core**: Security-focused AI for threat detection and system protection
-3. **Fantasma Firewall**: Automated security scanning and anomaly detection
+### Frontend Architecture
+- **React 18** with TypeScript and modern hooks
+- **Tailwind CSS** for styling with mobile-first responsive design
+- **shadcn/ui** component library for consistent UI elements
+- **Wouter** for lightweight client-side routing
+- **TanStack Query** for efficient data fetching and caching
+- **Progressive Web App** with service worker for offline functionality
 
-### Database Layer
-- **Primary Database**: PostgreSQL via Neon Database service
-- **ORM**: Drizzle ORM with schema-first approach
-- **Connection Pool**: Managed connection pooling for performance
-- **Migration System**: Drizzle Kit for database migrations
+### Backend Architecture
+- **Express.js** server with comprehensive middleware stack
+- **TypeScript** throughout the server codebase
+- **Modular route system** with separate API endpoints
+- **Security-first design** with comprehensive protection layers
+- **WebSocket server** for real-time communication
 
-### Security System
-- **Authentication**: Bcrypt password hashing with account lockout protection
-- **Authorization**: Role-based access control with granular permissions
-- **Input Sanitization**: Comprehensive XSS and injection prevention
-- **Rate Limiting**: Multi-tier rate limiting for different endpoint types
-- **Vulnerability Scanner**: Automated security assessment and remediation
+### AI Core System
+The system implements three specialized AI cores:
 
-### Storage and Caching
-- **Enhanced Storage**: Intelligent caching with compression and access pattern analysis
-- **Memory Management**: Encrypted memory service for sensitive data
-- **Performance Optimization**: Query caching and batch operations
+1. **Zed Core**: Primary conversational AI assistant
+   - Natural language processing and conversation handling
+   - Oracle database query generation and optimization
+   - Context awareness and memory management
+   - Task and workflow assistance
+
+2. **Zeta Core**: Security and monitoring AI
+   - Security threat detection and analysis
+   - System monitoring and audit logging
+   - Access control and permission management
+   - Behavioral analysis and anomaly detection
+
+3. **Fantasma Firewall**: Autonomous security system
+   - Background scanning and threat detection
+   - Automated security responses
+   - Log management and purging
+   - Real-time traffic analysis
+
+### Database Schema
+- **Users**: Authentication, profiles, and permissions
+- **Chat Messages**: Conversation history with AI cores
+- **Oracle Queries**: Database operation history and results
+- **System Status**: Real-time system health monitoring
+- **Tasks & Notes**: Personal productivity features
+- **Configuration**: User preferences and system settings
 
 ## Data Flow
 
-1. **User Input**: Mobile-optimized interface captures user interactions
-2. **Request Processing**: Express middleware handles authentication, sanitization, and rate limiting
-3. **AI Processing**: Local AI engine processes requests without external dependencies
-4. **Database Operations**: Drizzle ORM manages data persistence with encryption
-5. **Real-time Updates**: WebSocket connections provide live updates to connected clients
-6. **Response Delivery**: JSON responses with proper error handling and security headers
+1. **User Interaction**: Users interact through the React frontend
+2. **API Layer**: Express.js routes handle requests with security middleware
+3. **AI Processing**: Local AI engine processes messages without external APIs
+4. **Database Operations**: Drizzle ORM manages PostgreSQL interactions
+5. **Real-time Updates**: WebSocket provides live system updates
+6. **Response Delivery**: Processed responses return through the API layer
 
 ## External Dependencies
 
 ### Core Dependencies
-- **Database**: Neon PostgreSQL (configurable to other PostgreSQL providers)
-- **UI Framework**: React ecosystem (React, React-DOM, React Query)
-- **Security**: Bcrypt, Helmet, Express-rate-limit
-- **Development**: TypeScript, Vite, Tailwind CSS
+- **@neondatabase/serverless**: PostgreSQL database connectivity
+- **drizzle-orm**: Type-safe database ORM
+- **express**: Web server framework
+- **ws**: WebSocket implementation
+- **react**: Frontend framework
+- **vite**: Build tool and development server
 
-### Optional Extensions
-- **Browser Extension**: Chrome/Firefox extension for web integration
-- **Desktop App**: Electron wrapper for standalone desktop application
-- **Mobile Shortcuts**: iOS Shortcuts integration for mobile workflows
+### Security Dependencies
+- **bcrypt**: Password hashing
+- **helmet**: Security headers
+- **express-rate-limit**: Request rate limiting
+- **sanitize-html**: Input sanitization
+- **validator**: Data validation
+
+### UI Dependencies
+- **@radix-ui**: Accessible UI components
+- **tailwindcss**: Utility-first CSS framework
+- **lucide-react**: Icon library
 
 ## Deployment Strategy
 
+### Build System
+- **Vite** handles client-side asset building and optimization
+- **TypeScript compilation** for both client and server code
+- **Asset optimization** with minification and compression
+- **Progressive Web App** manifest and service worker generation
+
 ### Production Deployment
-- **Platform**: Optimized for Replit deployment with fallback to standard Node.js hosts
-- **Build Process**: Vite builds client assets, esbuild bundles server code
-- **Environment**: Production environment with secure session management
-- **Health Monitoring**: Built-in health check endpoints and system status monitoring
-
-### Development Setup
-- **Local Development**: Hot reload with Vite dev server
-- **Database**: Local PostgreSQL or cloud-hosted Neon database
-- **Environment Variables**: `.env` file for local configuration
-
-### Security Hardening
-- **Rate Limiting**: 500 requests per 15 minutes with stricter limits for admin endpoints
-- **Session Security**: Secure HTTP-only cookies with CSRF protection
-- **Input Validation**: Multi-layer validation with sanitization and type checking
-- **Vulnerability Management**: Automated scanning with real-time threat detection
+- **Single entry point**: `dist/index.js` for production server
+- **Static asset serving**: Built client assets served from `dist/public`
+- **Environment configuration**: Database URL and security keys from environment variables
+- **Health monitoring**: Built-in diagnostics and performance metrics
 
 ### Offline Capabilities
-- **Local AI Engine**: No external API dependencies for core AI functionality
-- **Embedded Database**: Can operate with local SQLite for fully offline scenarios
-- **Asset Management**: All static assets bundled with the application
-- **Service Worker**: Optional PWA features for enhanced offline experience
+- **Service Worker** caches essential files for offline access
+- **Local AI processing** works without internet connectivity
+- **Progressive enhancement** degrades gracefully when offline
+- **Data synchronization** when connection is restored
 
-## Key Features
+### Security Considerations
+- **Input sanitization** at all API entry points
+- **Rate limiting** to prevent abuse
+- **Secure headers** with Helmet middleware
+- **Password hashing** with bcrypt
+- **Session management** with secure cookies
+- **CSRF protection** and XSS prevention
 
-1. **100% Offline Operation**: Works without internet connectivity after initial setup
-2. **Mobile-First Design**: Responsive interface optimized for mobile devices
-3. **Real-time Communication**: WebSocket-based live updates and notifications
-4. **Voice Interface**: Browser-based voice recognition and processing
-5. **Admin Control Panel**: Comprehensive user and system management
-6. **Security Monitoring**: Real-time threat detection and vulnerability assessment
-7. **Oracle Integration**: Natural language to SQL conversion with database management
-8. **Extension Support**: Browser and desktop integration capabilities
+The system is designed to be completely self-contained, requiring no external AI APIs or cloud services once deployed, making it ideal for privacy-conscious users and offline environments.

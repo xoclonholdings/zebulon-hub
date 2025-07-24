@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import logoSrc from '@assets/IMG_2227_1753155820979.png';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -2102,22 +2101,17 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
         <div className="flex items-center justify-between p-3">
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 flex items-center justify-center cursor-pointer touch-manipulation" onClick={() => setShowAdminLogin(true)}>
-              <img 
-                src={logoSrc} 
-                alt="Zebulon" 
-                className="w-full h-full object-contain"
-                onError={(e) => {
-                  console.error('Logo failed to load:', e);
-                  const fallback = e.currentTarget.nextElementSibling as HTMLElement;
-                  if (fallback) {
-                    fallback.style.display = 'flex';
-                  }
-                  e.currentTarget.style.display = 'none';
-                }}
-                onLoad={() => console.log('Logo loaded successfully')}
-              />
-              <div className="w-full h-full flex items-center justify-center text-white font-bold text-mobile-lg zebulon-text-gradient cursor-pointer" style={{display: 'none'}} onClick={() => setShowAdminLogin(true)}>
-                Z
+              <div className="w-full h-full flex items-center justify-center text-white font-bold text-mobile-lg zebulon-text-gradient">
+                <svg className="w-full h-full" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="10" fill="url(#gradient)" />
+                  <text x="12" y="16" textAnchor="middle" className="fill-white font-bold text-sm">Z</text>
+                  <defs>
+                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" style={{stopColor:'#3b82f6'}} />
+                      <stop offset="100%" style={{stopColor:'#8b5cf6'}} />
+                    </linearGradient>
+                  </defs>
+                </svg>
               </div>
             </div>
             <h1 className="text-mobile-lg font-bold zebulon-text-gradient">ZEBULON</h1>
