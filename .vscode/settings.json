@@ -1,0 +1,8 @@
+{
+  "typescript.preferences.path": "./node_modules/typescript/lib",
+  "typescript.preferences.includePackageJsonAutoImports": "auto",
+  "tailwindCSS.experimental.configFile": "./tailwind.config.ts",
+  "files.associations": {
+    "*.css": "tailwindcss"
+  }
+}
