@@ -15,8 +15,10 @@ export class ZedAuthorizationService {
         .orderBy(userConfigurations.updatedAt)
         .limit(1);
 
-      if (config?.configuration) {
-        return userConfigSchema.parse(config.configuration);
+      if (config?.encryptedConfig) {
+        // In a real implementation, decrypt the config here
+        // For now, parse the config directly (assuming it's stored as JSON)
+        return userConfigSchema.parse(config.encryptedConfig);
       }
     } catch (error) {
       console.error("Error loading user config:", error);
@@ -44,8 +46,8 @@ export class ZedAuthorizationService {
       await db
         .update(userConfigurations)
         .set({
-          configuration: validatedConfig,
-          version: existing[0].version + 1,
+          encryptedConfig: validatedConfig,
+          configHash: JSON.stringify(validatedConfig).substring(0, 64), // Simple hash for demo
           updatedAt: new Date()
         })
         .where(eq(userConfigurations.userId, userId));
@@ -54,7 +56,8 @@ export class ZedAuthorizationService {
         .insert(userConfigurations)
         .values({
           userId,
-          configuration: validatedConfig
+          encryptedConfig: validatedConfig,
+          configHash: JSON.stringify(validatedConfig).substring(0, 64) // Simple hash for demo
         });
     }
 
