@@ -11,7 +11,7 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "outDir": "./dist/server",
-    "rootDir": "./server",
+    "rootDir": ".",
     "baseUrl": ".",
     "paths": {
       "@shared/*": ["./shared/*"],
@@ -23,23 +23,13 @@
   },
   "include": [
     "server/index.ts",
-    "server/storage-clean.ts",
-    "server/init-db.ts",
-    "server/db.ts"
+    "server/storage-prisma.ts",
+    "server/db.ts",
+    "shared/schema.ts"
   ],
   "exclude": [
     "node_modules",
     "dist",
-    "client",
-    "server/services",
-    "server/routes",
-    "server/security",
-    "server/middleware",
-    "server/public",
-    "server/routes.ts",
-    "server/storage.ts",
-    "server/vite.ts",
-    "server/storage-prisma.ts",
-    "server/index-clean.ts"
+    "client"
   ]
 }

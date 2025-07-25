@@ -92,7 +92,7 @@ try {
       </React.Suspense>
     </ErrorBoundary>
   );
-  console.log("✅ Zebulon UI mounted successfully with Node.js v24.4.0");
+  // Zebulon UI mounted successfully
 } catch (error) {
   console.error("❌ Failed to mount Zebulon UI:", error);
   if (rootElement) {

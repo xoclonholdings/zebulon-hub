@@ -74,7 +74,7 @@ export default function OracleDatabase({ onClose }: OracleDatabaseProps) {
         });
       }
     } catch (error) {
-      console.error('Fetch memories error:', error);
+      // Error fetching memories
       toast({
         title: "Error",
         description: "Failed to fetch Oracle memories",
@@ -123,7 +123,7 @@ export default function OracleDatabase({ onClose }: OracleDatabaseProps) {
         });
       }
     } catch (error) {
-      console.error('Store memory error:', error);
+      // Error storing memory
       toast({
         title: "Error",
         description: "Failed to store memory",
@@ -156,7 +156,7 @@ export default function OracleDatabase({ onClose }: OracleDatabaseProps) {
         });
       }
     } catch (error) {
-      console.error('Toggle lock error:', error);
+      // Error toggling lock
       toast({
         title: "Error",
         description: "Failed to update memory status",
@@ -191,7 +191,7 @@ export default function OracleDatabase({ onClose }: OracleDatabaseProps) {
         });
       }
     } catch (error) {
-      console.error('Export error:', error);
+      // Error exporting memory
       toast({
         title: "Error",
         description: "Failed to export memory",

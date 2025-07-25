@@ -101,19 +101,21 @@ export class PrismaStorage {
 
   // Oracle Memory management
   async getOracleMemories(): Promise<OracleMemory[]> {
-    return await prisma.oracleMemory.findMany({
+    const results = await prisma.oracleMemory.findMany({
       orderBy: { lastModified: 'desc' }
     });
+    return results as OracleMemory[];
   }
 
   async getOracleMemoryByLabel(label: string): Promise<OracleMemory | null> {
-    return await prisma.oracleMemory.findUnique({
+    const result = await prisma.oracleMemory.findUnique({
       where: { label }
     });
+    return result as OracleMemory | null;
   }
 
   async createOracleMemory(memory: InsertOracleMemory): Promise<OracleMemory> {
-    return await prisma.oracleMemory.create({
+    const result = await prisma.oracleMemory.create({
       data: {
         ...memory,
         status: memory.status || 'active',
@@ -121,16 +123,18 @@ export class PrismaStorage {
         lastModified: new Date()
       }
     });
+    return result as OracleMemory;
   }
 
   async updateOracleMemory(label: string, updates: Partial<OracleMemory>): Promise<OracleMemory> {
-    return await prisma.oracleMemory.update({
+    const result = await prisma.oracleMemory.update({
       where: { label },
       data: {
         ...updates,
         lastModified: new Date()
       }
     });
+    return result as OracleMemory;
   }
 
   async deleteOracleMemory(label: string): Promise<void> {
@@ -158,10 +162,11 @@ export class PrismaStorage {
       where.memoryType = memoryType;
     }
 
-    return await prisma.oracleMemory.findMany({
+    const results = await prisma.oracleMemory.findMany({
       where,
       orderBy: { lastModified: 'desc' }
     });
+    return results as OracleMemory[];
   }
 }
 
