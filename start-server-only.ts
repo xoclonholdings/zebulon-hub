@@ -3,7 +3,7 @@
  * Server-Only Startup Script for Zebulon AI System
  * 
  * This script starts ONLY the unified server on port 5000.
- * No Vite development server on port 5173 is started.
+ * No Vite development server is started.
  * 
  * Usage: npx tsx start-server-only.ts
  */
@@ -12,7 +12,7 @@ import { exec } from 'child_process';
 
 console.log('🚀 Starting Zebulon AI System - Server Only Mode');
 console.log('📍 Single unified interface on port 5000');
-console.log('❌ No Vite development server (port 5173 eliminated)');
+console.log('❌ No Vite development server');
 console.log('');
 
 // Start only the server
