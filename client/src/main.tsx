@@ -1,6 +1,82 @@
 import { createRoot } from "react-dom/client";
-import App from "./App";
 import "./index.css";
+
+// Import React for JSX
+import React from "react";
+
+// Lazy load the main App to catch import errors
+const App = React.lazy(() => import("./App"));
+
+// Error boundary component
+function ErrorBoundary({ children }: { children: React.ReactNode }) {
+  const [hasError, setHasError] = React.useState(false);
+  const [error, setError] = React.useState<Error | null>(null);
+
+  React.useEffect(() => {
+    const handleError = (event: ErrorEvent) => {
+      setHasError(true);
+      setError(new Error(event.message));
+    };
+
+    window.addEventListener('error', handleError);
+    return () => window.removeEventListener('error', handleError);
+  }, []);
+
+  if (hasError) {
+    return (
+      <div style={{ 
+        color: 'white', 
+        backgroundColor: 'black', 
+        padding: '20px', 
+        fontFamily: 'monospace',
+        minHeight: '100vh'
+      }}>
+        <h1>🚀 Zebulon AI System</h1>
+        <p>Loading issue detected. Troubleshooting...</p>
+        <div style={{ marginTop: '20px', padding: '10px', border: '1px solid #333' }}>
+          <p>Node.js: v18.20.8</p>
+          <p>Vite: 5.4.19</p>
+          <p>Error: {error?.message || 'Unknown error'}</p>
+        </div>
+        <button 
+          onClick={() => window.location.reload()} 
+          style={{ 
+            marginTop: '20px', 
+            padding: '10px 20px', 
+            backgroundColor: '#333', 
+            color: 'white', 
+            border: 'none', 
+            cursor: 'pointer' 
+          }}
+        >
+          Reload Application
+        </button>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+}
+
+// Loading component
+function Loading() {
+  return (
+    <div style={{ 
+      color: 'white', 
+      backgroundColor: 'black', 
+      padding: '20px', 
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }}>
+      <div>
+        <h1>🚀 Zebulon AI System</h1>
+        <p>Initializing...</p>
+      </div>
+    </div>
+  );
+}
 
 const rootElement = document.getElementById("root");
 if (!rootElement) {
@@ -8,16 +84,23 @@ if (!rootElement) {
 }
 
 try {
-  createRoot(rootElement).render(<App />);
-  console.log("✅ Zebulon UI successfully mounted with Node.js v18.20.8");
+  const root = createRoot(rootElement);
+  root.render(
+    <ErrorBoundary>
+      <React.Suspense fallback={<Loading />}>
+        <App />
+      </React.Suspense>
+    </ErrorBoundary>
+  );
+  console.log("✅ Zebulon UI mounted successfully with Node.js v18.20.8");
 } catch (error) {
   console.error("❌ Failed to mount Zebulon UI:", error);
   if (rootElement) {
     rootElement.innerHTML = `
       <div style="color: white; background: red; padding: 20px; font-family: monospace;">
-        <h1>❌ Zebulon UI Error</h1>
-        <p>Failed to load: ${error}</p>
-        <p>Check console for details</p>
+        <h1>❌ Critical Error</h1>
+        <p>React failed to initialize: ${error}</p>
+        <p>Check browser console for details</p>
       </div>
     `;
   }
