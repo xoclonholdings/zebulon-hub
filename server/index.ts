@@ -91,6 +91,21 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Zebulon AI System is running with Prisma' });
 });
 
+// Development mode: redirect to Vite dev server
+if (process.env.NODE_ENV === 'development') {
+  app.get('/', (req, res) => {
+    res.redirect('http://localhost:5173');
+  });
+  
+  app.get('*', (req, res) => {
+    if (!req.path.startsWith('/api')) {
+      res.redirect('http://localhost:5173' + req.path);
+    } else {
+      res.status(404).json({ error: 'API endpoint not found' });
+    }
+  });
+}
+
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {
   const publicPath = path.join(__dirname, '../../client/dist');
