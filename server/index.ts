@@ -498,25 +498,15 @@ if (process.env.NODE_ENV === 'development') {
               width: 100px;
               height: 100px;
               margin: 0 auto 2rem;
-              background: rgba(40, 40, 40, 0.8);
-              border-radius: 16px;
               display: flex;
               align-items: center;
               justify-content: center;
-              font-size: 2rem;
-              font-weight: bold;
-              box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-              overflow: hidden;
               position: relative;
-              padding: 8px;
-              border: 1px solid rgba(255, 255, 255, 0.1);
             }
             .logo img {
               width: 100%;
               height: 100%;
               object-fit: contain;
-              background: rgba(255, 255, 255, 0.95);
-              border-radius: 12px;
             }
             h1 {
               font-size: 2.5rem;
