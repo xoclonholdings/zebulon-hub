@@ -150,7 +150,7 @@ const ZebulonSimple: React.FC = () => {
             <img 
               src={zedLogoPath} 
               alt="Zed AI Logo" 
-              className="w-8 h-8 object-contain"
+              className="w-12 h-12 object-contain"
             />
             <div>
               <h1 className="text-2xl font-bold" style={{ color: '#a855f7' }}>ZEBULON</h1>
