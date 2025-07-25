@@ -52,15 +52,7 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useWebSocket } from '@/hooks/use-websocket';
-import VoiceActivationPanel from './VoiceActivationPanel';
-import SecurityDashboard from './SecurityDashboard';
-import { voiceActivationService } from '@/services/voiceActivation';
-import { useVoice } from '@/hooks/use-voice';
 import { useToast } from '@/hooks/use-toast';
-import { OracleAdminPanel } from './OracleAdminPanel';
-import ZebulonConfigPanel from './ZebulonConfigPanel';
-import { AdminLoginModal } from './AdminLoginModal';
-import ZedSystemNotifications from './ZedSystemNotifications';
 // Note: NotesToDoWidget will be implemented as inline component
 
 interface ChatMessage {
@@ -68,37 +60,14 @@ interface ChatMessage {
   content: string;
   isUser: boolean;
   timestamp: string;
-  aiCore?: 'zed' | 'zeta' | 'fantasma';
+  aiCore?: 'zed';
 }
 
 interface SystemStatus {
-  oracle: {
-    connected: boolean;
-    activeConnections: number;
-    maxConnections: number;
-    responseTime: number;
-    memoryUsage: number;
-    uptime: string;
-  };
-  security: {
-    level: 'high' | 'medium' | 'low';
-    vulnerabilities: number;
-    encrypted: boolean;
-  };
   zedCore: {
     active: boolean;
     memory: number;
     tasks: number;
-  };
-  zetaCore: {
-    monitoring: boolean;
-    threats: number;
-    alerts: number;
-  };
-  fantasmaFirewall: {
-    active: boolean;
-    blocked: number;
-    stealth: boolean;
   };
 }
 
@@ -110,8 +79,8 @@ interface ZebulonCommandCenterProps {
 const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, systemStatus }) => {
   const { toast } = useToast();
   const [message, setMessage] = useState('');
-  const [activeCore, setActiveCore] = useState<'zed' | 'zeta' | 'fantasma'>('zed');
-  const [activeFeature, setActiveFeature] = useState<'chat' | 'calendar' | 'music' | 'photos' | 'status' | 'oracle' | 'config' | 'files' | 'admin' | 'notes' | 'security'>('chat');
+  const [activeCore, setActiveCore] = useState<'zed'>('zed');
+  const [activeFeature, setActiveFeature] = useState<'chat' | 'status'>('chat');
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [uploadProgress, setUploadProgress] = useState<{[key: string]: number}>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
