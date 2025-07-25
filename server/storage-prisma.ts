@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { User, ChatMessage, SystemStatus, OracleMemory, InsertOracleMemory, ModuleIntegration, InsertModuleIntegration } from '../shared/schema.js';
+import { User, SystemStatus, OracleMemory, InsertOracleMemory, ModuleIntegration, InsertModuleIntegration } from '../shared/schema.js';
 
 // Initialize Prisma Client
 const prisma = new PrismaClient({
@@ -59,22 +59,7 @@ export class PrismaStorage {
     });
   }
 
-  // Chat message management
-  async getChatMessages(userId: number): Promise<ChatMessage[]> {
-    return await prisma.chatMessage.findMany({
-      where: { userId },
-      orderBy: { createdAt: 'asc' }
-    });
-  }
 
-  async createChatMessage(message: Omit<ChatMessage, 'id' | 'createdAt'>): Promise<ChatMessage> {
-    return await prisma.chatMessage.create({
-      data: {
-        ...message,
-        createdAt: new Date()
-      }
-    });
-  }
 
   // System status management
   async getSystemStatus(): Promise<any[]> {

@@ -10,13 +10,7 @@ export interface User {
   updatedAt: Date;
 }
 
-export interface ChatMessage {
-  id: number;
-  userId: number;
-  message: string;
-  aiCore: string;
-  createdAt: Date;
-}
+
 
 export interface SystemStatus {
   id: number;
@@ -46,11 +40,7 @@ export interface InsertUser {
   role?: string;
 }
 
-export interface InsertChatMessage {
-  userId: number;
-  message: string;
-  aiCore?: string;
-}
+
 
 export interface InsertOracleMemory {
   label: string;

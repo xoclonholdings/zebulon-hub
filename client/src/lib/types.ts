@@ -6,14 +6,7 @@ export interface WebSocketMessage {
   timestamp: number;
 }
 
-export interface ChatMessage {
-  id: number;
-  role: 'user' | 'assistant' | 'system';
-  content: string;
-  timestamp: string;
-  userId: number;
-  aiCore: string;
-}
+
 
 export interface SystemStatus {
   id: number;

@@ -15,44 +15,27 @@ model User {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  // Relations
-  chatMessages ChatMessage[]
-
   @@map("users")
 }
 
-model ChatMessage {
-  id        Int      @id @default(autoincrement())
-  userId    Int      @map("user_id")
-  message   String
-  aiCore    String   @default("zed") @map("ai_core")
-  createdAt DateTime @default(now()) @map("created_at")
-
-  user User @relation(fields: [userId], references: [id])
-
-  @@map("chat_messages")
-}
-
-// System status for monitoring Zebulon AI components
 model SystemStatus {
-  id            Int      @id @default(autoincrement())
-  component     String   @unique
-  status        String
-  lastChecked   DateTime @default(now()) @map("last_checked")
-  details       String?
-  responseTime  Int?     @map("response_time")
+  id           Int      @id @default(autoincrement())
+  component    String   @unique
+  status       String
+  lastChecked  DateTime @default(now()) @map("last_checked")
+  details      String?
+  responseTime Int?     @map("response_time")
 
   @@map("system_status")
 }
 
-// Oracle Database - Manual memory system for Zebulon
 model OracleMemory {
   id           Int      @id @default(autoincrement())
   label        String   @unique
   description  String
   content      String
-  memoryType   String   @map("memory_type") // workflow, response, repair, security, data-tag, custom
-  status       String   @default("active") // active, locked
+  memoryType   String   @map("memory_type")
+  status       String   @default("active")
   createdBy    String   @map("created_by")
   createdAt    DateTime @default(now()) @map("created_at")
   lastModified DateTime @updatedAt @map("last_modified")
@@ -60,13 +43,12 @@ model OracleMemory {
   @@map("oracle_memory")
 }
 
-// Module Integrations - Store connected app settings for each module
 model ModuleIntegration {
   id                String   @id @default(cuid())
   moduleName        String   @unique @map("module_name")
   displayName       String   @map("display_name")
   isConnected       Boolean  @default(false) @map("is_connected")
-  integrationType   String?  @map("integration_type") // url, script, embed
+  integrationType   String?  @map("integration_type")
   integrationUrl    String?  @map("integration_url")
   integrationScript String?  @map("integration_script")
   integrationEmbed  String?  @map("integration_embed")

@@ -60,37 +60,7 @@ const requireAuth = (req: AuthenticatedRequest, res: Response, next: NextFunctio
   next();
 };
 
-// ZED Chat Response Generator
-function generateOracleResponse(userMessage: string, userId: number): string {
-  const message = userMessage.toLowerCase();
-  
-  // Oracle database-focused responses
-  if (message.includes('hello') || message.includes('hi')) {
-    return `Welcome to Zebulon Oracle. I can help you with database queries, data analysis, and system insights. What would you like to explore?`;
-  }
-  
-  if (message.includes('database') || message.includes('query') || message.includes('sql')) {
-    return `I can assist with database operations, SQL queries, and data analysis. Please describe what data you're looking for or what operation you'd like to perform.`;
-  }
-  
-  if (message.includes('help') || message.includes('what can you do')) {
-    return `I'm the Zebulon Oracle system. I can help with database queries, data analysis, system monitoring, and providing insights from your data. What specific assistance do you need?`;
-  }
-  
-  if (message.includes('status') || message.includes('system')) {
-    return `The Zebulon Oracle system is operational. I can provide system status, database health information, and performance metrics. What would you like to know?`;
-  }
-  
-  // Default Oracle-focused responses
-  const responses = [
-    `Oracle analyzing: "${userMessage}". I'm processing this request through the Zebulon database systems to provide you with accurate information.`,
-    `Zebulon Oracle received: "${userMessage}". Let me query the relevant data sources and provide you with comprehensive insights.`,
-    `Processing your Oracle request: "${userMessage}". I'm accessing the database systems to gather the information you need.`,
-    `Oracle system processing: "${userMessage}". I'll provide you with data-driven insights and analysis.`
-  ];
-  
-  return responses[Math.floor(Math.random() * responses.length)];
-}
+
 
 // Authentication endpoints
 app.post('/api/auth/login', async (req, res) => {
@@ -231,54 +201,7 @@ app.post('/api/auth/change-password', requireAuth, async (req, res) => {
   }
 });
 
-// Chat endpoints
-app.post('/api/chat', requireAuth, async (req, res) => {
-  try {
-    const { message } = req.body;
-    const userId = (req as AuthenticatedRequest).session.userId!;
-    
-    if (!message?.trim()) {
-      return res.status(400).json({ error: 'Message is required' });
-    }
 
-    // Save user message
-    const userMessage = await storage.createChatMessage({
-      userId,
-      message: message.trim(),
-      aiCore: 'user'
-    });
-
-    // Generate ZED response
-    const zedResponse = generateOracleResponse(message, userId);
-    
-    // Save ZED response
-    const zedMessage = await storage.createChatMessage({
-      userId,
-      message: zedResponse,
-      aiCore: 'zed'
-    });
-
-    res.json({ 
-      userMessage, 
-      zedMessage,
-      success: true 
-    });
-  } catch (error) {
-    console.error('Chat error:', error);
-    res.status(500).json({ error: 'Failed to process chat message' });
-  }
-});
-
-app.get('/api/chat/history', requireAuth, async (req, res) => {
-  try {
-    const userId = (req as AuthenticatedRequest).session.userId!;
-    const messages = await storage.getChatMessages(userId);
-    res.json({ messages });
-  } catch (error) {
-    console.error('Chat history error:', error);
-    res.status(500).json({ error: 'Failed to fetch chat history' });
-  }
-});
 
 // System status endpoint
 app.get('/api/system/status', async (req, res) => {

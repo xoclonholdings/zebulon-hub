@@ -15,13 +15,7 @@ import OracleDatabase from './OracleDatabase';
 import ModuleSettings from './ModuleSettings';
 import ModuleIntegrationComponent from './ModuleIntegration';
 
-interface ChatMessage {
-  id: number;
-  message: string;
-  aiCore: string;
-  createdAt: string;
-  userId: number;
-}
+
 
 interface SystemStatus {
   oracleCore?: {
@@ -65,7 +59,7 @@ const ZebulonSimple: React.FC = () => {
     }
   };
   const { toast } = useToast();
-  const [message, setMessage] = useState('');
+
   const [activeTab, setActiveTab] = useState('');
 
   const [showConfigInterface, setShowConfigInterface] = useState(false);
@@ -83,13 +77,7 @@ const ZebulonSimple: React.FC = () => {
   });
   const queryClient = useQueryClient();
 
-  // Get chat messages
-  const { data: chatData, isLoading } = useQuery<{messages: ChatMessage[]}>({
-    queryKey: ['/api/chat/history'],
-    enabled: !!user,
-  });
 
-  const messages: ChatMessage[] = chatData?.messages || [];
 
   // Get all module integrations
   const { data: modulesData } = useQuery<ModuleIntegration[]>({
@@ -99,29 +87,7 @@ const ZebulonSimple: React.FC = () => {
 
   const moduleIntegrations = modulesData || [];
 
-  // Send message mutation
-  const sendMessageMutation = useMutation({
-    mutationFn: async (messageText: string) => {
-      return await apiRequest('/api/chat', 'POST', {
-        message: messageText
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/chat/history'] });
-      setMessage('');
-      toast({
-        title: "Message Sent",
-        description: "Oracle has processed your query",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to send message",
-        variant: "destructive",
-      });
-    },
-  });
+
 
   // Change password mutation
   const changePasswordMutation = useMutation({
@@ -205,18 +171,9 @@ const ZebulonSimple: React.FC = () => {
     setActiveIntegration(integration);
   };
 
-  const handleSendMessage = () => {
-    if (message.trim()) {
-      sendMessageMutation.mutate(message.trim());
-    }
-  };
+;
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
+
 
   const handlePasswordChange = (e: React.FormEvent) => {
     e.preventDefault();
@@ -398,7 +355,7 @@ const ZebulonSimple: React.FC = () => {
           <div className="border border-gray-800 rounded-2xl p-6" style={{ backgroundColor: '#000000' }}>
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-white">
-                {activeTab === 'chat' && 'ZED Chat Interface'}
+
                 {activeTab === 'status' && 'ZYNC IDE System'}
                 {activeTab === 'admin' && 'ZETA Security Panel'}
                 {activeTab === 'zwap' && 'ZWAP! Financial Utility'}
@@ -416,62 +373,7 @@ const ZebulonSimple: React.FC = () => {
               </Button>
             </div>
 
-            {activeTab === 'chat' && (
-              <div className="space-y-4">
-                <ScrollArea className="h-96 w-full border border-gray-800 rounded-lg p-4" style={{ backgroundColor: '#000000' }}>
-                  {isLoading ? (
-                    <div className="text-center text-gray-400">Loading messages...</div>
-                  ) : messages.length === 0 ? (
-                    <div className="text-center text-gray-400">
-                      Start a conversation with ZED AI assistant
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {messages.map((msg) => (
-                        <div
-                          key={msg.id}
-                          className={`flex ${msg.aiCore === 'zed' ? 'justify-start' : 'justify-end'}`}
-                        >
-                          <div className={`flex items-start gap-3 ${msg.aiCore === 'zed' ? 'flex-row' : 'flex-row-reverse'}`}>
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white`} 
-                                 style={{ backgroundColor: msg.aiCore === 'zed' ? '#a855f7' : '#10b981' }}>
-                              {msg.aiCore === 'zed' ? 'Z' : 'U'}
-                            </div>
-                            <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg shadow text-white`} 
-                                 style={{ backgroundColor: msg.aiCore === 'zed' ? '#a855f7' : '#10b981' }}>
-                              <p className="text-sm">{msg.message}</p>
-                              <p className="text-xs opacity-70 mt-1">
-                                {new Date(msg.createdAt).toLocaleTimeString()}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </ScrollArea>
 
-                <div className="flex space-x-2">
-                  <Input
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder="Chat with ZED..."
-                    className="flex-1 border-gray-800 text-white"
-                    style={{ backgroundColor: '#000000' }}
-                    disabled={sendMessageMutation.isPending}
-                  />
-                  <Button
-                    onClick={handleSendMessage}
-                    disabled={!message.trim() || sendMessageMutation.isPending}
-                    className="text-white"
-                    style={{ backgroundColor: '#a855f7' }}
-                  >
-                    <Send className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            )}
 
             {activeTab === 'status' && (
               <div className="space-y-4">
