@@ -53,6 +53,10 @@ app.use((req, res, next) => {
   }
 });
 
+// Serve static files from public directory (before other routes)
+app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.static(path.join(__dirname, '../server/public')));
+
 // Request logging
 app.use((req, res, next) => {
   const start = Date.now();
