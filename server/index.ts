@@ -17,7 +17,9 @@ app.use(express.urlencoded({ extended: false }));
 const allowedOrigins = [
   'http://localhost:5173',  // Vite dev server
   'http://127.0.0.1:5173',  // Alternative localhost
-  process.env.FRONTEND_URL  // Production frontend URL
+  'http://localhost:5000',  // Production same-port serving
+  'http://127.0.0.1:5000',  // Alternative localhost production
+  process.env.FRONTEND_URL  // Custom production frontend URL
 ].filter(Boolean);
 
 app.use((req, res, next) => {
@@ -119,11 +121,15 @@ if (process.env.NODE_ENV === 'development') {
 
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {
-  const publicPath = path.join(__dirname, '../../client/dist');
+  const publicPath = path.join(__dirname, '../public');
   app.use(express.static(publicPath));
   
   app.get('*', (req, res) => {
-    res.sendFile(path.join(publicPath, 'index.html'));
+    if (!req.path.startsWith('/api')) {
+      res.sendFile(path.join(publicPath, 'index.html'));
+    } else {
+      res.status(404).json({ error: 'API endpoint not found' });
+    }
   });
 }
 
