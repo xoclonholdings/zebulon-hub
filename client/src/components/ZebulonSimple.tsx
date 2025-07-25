@@ -144,26 +144,33 @@ const ZebulonSimple: React.FC = () => {
 
   // Handle module click - check if integration exists
   const handleModuleClick = async (moduleName: string, displayName: string) => {
+    console.log('Module clicked:', moduleName, displayName);
+    
     if (moduleName === 'config') {
       // Config always opens internal settings
+      console.log('Opening config tab');
       setActiveTab('config');
       return;
     }
 
     if (moduleName === 'chat') {
       // Chat module always opens internal chat interface
+      console.log('Opening chat tab');
       setActiveTab('chat');
       return;
     }
 
     // Check if integration exists for this module
     const existingIntegration = moduleIntegrations.find(m => m.moduleName === moduleName);
+    console.log('Existing integration for', moduleName, ':', existingIntegration);
     
     if (existingIntegration?.isConnected) {
       // Open the integrated app
+      console.log('Opening integrated app for', moduleName);
       setActiveIntegration(existingIntegration);
     } else {
       // Open settings to configure integration
+      console.log('Opening settings for', moduleName);
       setShowModuleSettings({
         show: true,
         moduleName,
