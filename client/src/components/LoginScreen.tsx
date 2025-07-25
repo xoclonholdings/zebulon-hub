@@ -96,9 +96,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
   const isLoading = loginMutation.isPending || signUpMutation.isPending;
 
   return (
-    <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
-      {/* Header with Logo */}
-      <div className="absolute top-0 left-0 right-0 bg-gray-900 border-b border-blue-500/30 p-4 z-20">
+    <div className="min-h-screen bg-black text-white">
+      {/* Header matching main app */}
+      <header className="bg-gray-900 border-b border-blue-500/30 p-4">
         <div className="flex items-center justify-center">
           <div className="flex items-center space-x-3">
             <img 
@@ -106,25 +106,27 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
               alt="Zed AI Logo" 
               className="w-8 h-8 object-contain hover:scale-110 transition-transform"
             />
-            <div className="text-center">
+            <div>
               <h1 className="text-xl font-bold text-blue-400">Zebulon AI System</h1>
-              <p className="text-sm text-gray-400">Secure Authentication</p>
+              <p className="text-sm text-gray-400">Secure Authentication Portal</p>
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      <Card className="w-full max-w-md bg-gray-900 border border-blue-500/30 mt-20 z-10">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-blue-400">
-            {isSignUp ? 'Create Account' : 'Sign In'}
-          </CardTitle>
-          <p className="text-gray-400 text-sm mt-2">
-            {isSignUp ? 'Join the Zebulon AI ecosystem' : 'Access your AI assistant'}
-          </p>
-        </CardHeader>
+      {/* Login form container */}
+      <div className="flex items-center justify-center p-8">
+        <Card className="w-full max-w-md bg-gray-900 border border-blue-500/30">
+          <CardHeader className="text-center pb-4">
+            <CardTitle className="text-2xl font-bold text-blue-400">
+              {isSignUp ? 'Create Account' : 'Sign In'}
+            </CardTitle>
+            <p className="text-gray-400 text-sm">
+              {isSignUp ? 'Join the Zebulon ecosystem' : 'Access your AI assistant'}
+            </p>
+          </CardHeader>
 
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-4">
           {error && (
             <Alert variant="destructive">
               <AlertDescription>{error}</AlertDescription>
@@ -229,7 +231,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
             <p className="text-blue-400/70 mt-1">Local Processing • Secure • Private</p>
           </div>
         </CardContent>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 };
