@@ -1,57 +1,36 @@
-import express, { type Request, Response, NextFunction } from "express";
+import express, { Request, Response, NextFunction } from 'express';
 import session from 'express-session';
 import bcrypt from 'bcrypt';
-import { storage } from "./storage-prisma";
-// No database initialization needed - using direct Prisma client
-import path from "path";
-// @ts-ignore if needed
-// Get current directory
-const __dirname = path.dirname(new URL(import.meta.url).pathname);
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { storage } from './storage-prisma.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
-app.use(express.json())
 const PORT = process.env.PORT || 5000;
 
-// Session configuration
+// Trust proxy for session security
+app.set('trust proxy', 1);
+
+// Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Session middleware
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'zebulon-ai-system-secret-key-change-in-production',
+  secret: process.env.SESSION_SECRET || 'zebulon-secret-key',
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: false,
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000 // 24 hours
   }
 }));
 
-// Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-
-// CORS - Secure configuration for unified server
-const allowedOrigins = [
-  'http://localhost:5000',  // Unified server port
-  'http://127.0.0.1:5000',  // Alternative localhost unified port
-  process.env.FRONTEND_URL  // Custom production frontend URL
-].filter(Boolean);
-
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
-    res.header('Access-Control-Allow-Origin', origin);
-  }
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  
-  if (req.method === 'OPTIONS') {
-    res.sendStatus(200);
-  } else {
-    next();
-  }
-});
-
-// Serve static files from public directory (before other routes)
+// Serve static files from public directory
 app.use(express.static(path.join(__dirname, '../public')));
 app.use(express.static(path.join(__dirname, '../server/public')));
 
@@ -76,8 +55,6 @@ interface AuthenticatedRequest extends Request {
 }
 
 const requireAuth = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  console.log('Auth check - Session ID exists:', !!req.session.userId);
-  console.log('Auth check - Session data:', { userId: req.session.userId, hasUser: !!req.session.user });
   if (!req.session.userId) {
     return res.status(401).json({ error: 'Authentication required' });
   }
@@ -116,7 +93,146 @@ function generateZedResponse(userMessage: string, userId: number): string {
   return responses[Math.floor(Math.random() * responses.length)];
 }
 
-// Real-time chat endpoints
+// Authentication endpoints
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Username and password are required' });
+    }
+
+    const user = await storage.getUserByUsername(username);
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid username or password' });
+    }
+
+    const isValidPassword = await bcrypt.compare(password, user.passwordHash);
+    if (!isValidPassword) {
+      return res.status(401).json({ error: 'Invalid username or password' });
+    }
+
+    // Update last login
+    await storage.updateUserLogin(user.id);
+
+    // Set session
+    (req as AuthenticatedRequest).session.userId = user.id;
+    (req as AuthenticatedRequest).session.user = user;
+
+    res.json({
+      id: user.id,
+      username: user.username,
+      role: user.role
+    });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/auth/signup', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Username and password are required' });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters long' });
+    }
+
+    const existingUser = await storage.getUserByUsername(username);
+    if (existingUser) {
+      return res.status(409).json({ error: 'Username already exists' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = await storage.createUser({
+      username,
+      passwordHash: hashedPassword,
+      role: 'user'
+    });
+
+    // Set session
+    (req as AuthenticatedRequest).session.userId = newUser.id;
+    (req as AuthenticatedRequest).session.user = newUser;
+
+    res.json({
+      id: newUser.id,
+      username: newUser.username,
+      role: newUser.role
+    });
+  } catch (error) {
+    console.error('Signup error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/api/auth/me', requireAuth, async (req, res) => {
+  try {
+    const userId = (req as AuthenticatedRequest).session.userId!;
+    const user = await storage.getUser(userId);
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({
+      id: user.id,
+      username: user.username,
+      role: user.role
+    });
+  } catch (error) {
+    console.error('Get user error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/auth/logout', (req, res) => {
+  (req as AuthenticatedRequest).session.destroy((err) => {
+    if (err) {
+      console.error('Logout error:', err);
+      return res.status(500).json({ error: 'Failed to logout' });
+    }
+    res.json({ message: 'Logged out successfully' });
+  });
+});
+
+app.post('/api/auth/change-password', requireAuth, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = (req as AuthenticatedRequest).session.userId!;
+    
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: 'Current password and new password are required' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: 'New password must be at least 6 characters long' });
+    }
+
+    const user = await storage.getUser(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const isValidPassword = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!isValidPassword) {
+      return res.status(401).json({ error: 'Current password is incorrect' });
+    }
+
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+    await storage.updateUserPassword(userId, hashedNewPassword);
+
+    res.json({ message: 'Password changed successfully' });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Chat endpoints
 app.post('/api/chat', requireAuth, async (req, res) => {
   try {
     const { message } = req.body;
@@ -165,260 +281,7 @@ app.get('/api/chat/history', requireAuth, async (req, res) => {
   }
 });
 
-// Simple log endpoint for testing (keep for compatibility)
-app.post('/api/log', async (req, res) => {
-  try {
-    const { userId, message, aiCore = 'zed' } = req.body;
-    
-    if (!userId || !message) {
-      return res.status(400).json({ error: 'Missing userId or message' });
-    }
-
-    const chatMessage = await storage.createChatMessage({
-      userId: typeof userId === 'string' ? parseInt(userId) : userId,
-      message,
-      aiCore
-    });
-    
-    res.json({ success: true, log: chatMessage });
-  } catch (error) {
-    console.error('Logging failed:', error);
-    res.status(500).json({ error: 'Failed to log message' });
-  }
-});
-
-// Authentication routes
-app.post('/api/auth/signup', async (req, res) => {
-  try {
-    const { username, password, email } = req.body;
-
-    if (!username || !password) {
-      return res.status(400).json({ error: 'Username and password are required' });
-    }
-
-    // Check if user already exists
-    const existingUser = await storage.getUserByUsername(username);
-    if (existingUser) {
-      return res.status(400).json({ error: 'Username already exists' });
-    }
-
-    // Hash password
-    const passwordHash = await bcrypt.hash(password, 10);
-
-    // Create user
-    const user = await storage.createUser({
-      username,
-      passwordHash,
-      role: 'user'
-    });
-
-    // Set session
-    (req as AuthenticatedRequest).session.userId = user.id;
-    (req as AuthenticatedRequest).session.user = {
-      id: user.id,
-      username: user.username,
-      role: user.role
-    };
-
-    res.json({
-      id: user.id,
-      username: user.username,
-      role: user.role
-    });
-  } catch (error) {
-    console.error('Signup error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-app.post('/api/auth/login', async (req, res) => {
-  try {
-    const { username, password } = req.body;
-
-    if (!username || !password) {
-      return res.status(400).json({ error: 'Username and password are required' });
-    }
-
-    // Find user
-    const user = await storage.getUserByUsername(username);
-    if (!user) {
-      return res.status(401).json({ error: 'Invalid username or password' });
-    }
-
-    // Check password
-    const isValid = await bcrypt.compare(password, user.passwordHash);
-    if (!isValid) {
-      return res.status(401).json({ error: 'Invalid username or password' });
-    }
-
-    // Update last login
-    await storage.updateUserLogin(user.id);
-
-    // Set session
-    (req as AuthenticatedRequest).session.userId = user.id;
-    (req as AuthenticatedRequest).session.user = {
-      id: user.id,
-      username: user.username,
-      role: user.role
-    };
-
-    res.json({
-      id: user.id,
-      username: user.username,
-      role: user.role
-    });
-  } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-app.post('/api/auth/logout', (req: AuthenticatedRequest, res) => {
-  req.session.destroy(() => {
-    res.json({ message: 'Logged out successfully' });
-  });
-});
-
-app.get('/api/auth/me', async (req: AuthenticatedRequest, res) => {
-  try {
-    if (!req.session?.userId) {
-      return res.status(401).json({ error: 'Not authenticated' });
-    }
-
-    const user = await storage.getUser(req.session.userId);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    res.json({
-      id: user.id,
-      username: user.username,
-      role: user.role
-    });
-  } catch (error) {
-    console.error('Get user error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// Change password endpoint
-app.post('/api/auth/change-password', async (req: AuthenticatedRequest, res) => {
-  try {
-    if (!req.session?.userId) {
-      return res.status(401).json({ error: 'Not authenticated' });
-    }
-
-    const { currentPassword, newPassword } = req.body;
-
-    if (!currentPassword || !newPassword) {
-      return res.status(400).json({ error: 'Current password and new password are required' });
-    }
-
-    if (newPassword.length < 6) {
-      return res.status(400).json({ error: 'New password must be at least 6 characters long' });
-    }
-
-    // Get current user
-    const user = await storage.getUser(req.session.userId);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    // Verify current password
-    const isValid = await bcrypt.compare(currentPassword, user.passwordHash);
-    if (!isValid) {
-      return res.status(400).json({ error: 'Current password is incorrect' });
-    }
-
-    // Hash new password
-    const newPasswordHash = await bcrypt.hash(newPassword, 10);
-
-    // Update password
-    await storage.updateUserPassword(user.id, newPasswordHash);
-
-    res.json({ message: 'Password changed successfully' });
-  } catch (error) {
-    console.error('Change password error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// API Routes
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Zebulon AI System is running with Prisma' });
-});
-
-app.get('/api/users/:id', requireAuth, async (req: AuthenticatedRequest, res) => {
-  try {
-    const userId = parseInt(req.params.id);
-    // Users can only access their own data
-    if (userId !== req.session.userId) {
-      return res.status(403).json({ error: 'Access denied' });
-    }
-    
-    const user = await storage.getUser(userId);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    res.json(user);
-  } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-app.get('/api/chat/:userId', requireAuth, async (req: AuthenticatedRequest, res) => {
-  try {
-    const userId = parseInt(req.params.userId);
-    // Users can only access their own messages
-    if (userId !== req.session.userId) {
-      return res.status(403).json({ error: 'Access denied' });
-    }
-    
-    const messages = await storage.getChatMessages(userId);
-    res.json(messages);
-  } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-app.post('/api/chat/:userId', requireAuth, async (req: AuthenticatedRequest, res) => {
-  try {
-    const userId = parseInt(req.params.userId);
-    // Users can only send messages for their own account
-    if (userId !== req.session.userId) {
-      return res.status(403).json({ error: 'Access denied' });
-    }
-    
-    const { message, aiCore } = req.body;
-    
-    if (!message) {
-      return res.status(400).json({ error: 'Message is required' });
-    }
-
-    // Create user message
-    const userMessage = await storage.createChatMessage({
-      userId,
-      message,
-      aiCore: aiCore || 'zed'
-    });
-
-    // For demo purposes, create a simple AI response
-    const aiResponse = `Echo: ${message}`;
-    
-    const aiMessage = await storage.createChatMessage({
-      userId,
-      message: aiResponse,
-      aiCore: aiCore || 'zed'
-    });
-
-    res.json({ userMessage, aiMessage });
-  } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-
-
+// System status endpoint
 app.get('/api/system/status', async (req, res) => {
   try {
     const status = {
@@ -441,528 +304,20 @@ app.get('/api/system/status', async (req, res) => {
   }
 });
 
-
-
 // API health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Zebulon AI System is running with Prisma' });
 });
 
-// Serve frontend and backend on the same port
-if (process.env.NODE_ENV === 'development') {
-  // Development: serve the complete interface
-  app.get('/', (req, res) => {
-    res.send(`
-      <!DOCTYPE html>
-      <html lang="en">
-        <head>
-          <meta charset="UTF-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-          <title>Zebulon AI System</title>
-          <style>
-            body {
-              margin: 0;
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-              background: #000000;
-              color: white;
-              min-height: 100vh;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            }
-            .container {
-              text-align: center;
-              max-width: 600px;
-              padding: 2rem;
-              background: rgba(20, 20, 20, 0.95);
-              border-radius: 16px;
-              backdrop-filter: blur(10px);
-              border: 1px solid rgba(255, 255, 255, 0.1);
-              box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            }
-            .logo {
-              width: 100px;
-              height: 100px;
-              margin: 0 auto 2rem;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              position: relative;
-            }
-            .logo img {
-              width: 100%;
-              height: 100%;
-              object-fit: contain;
-            }
-            h1 {
-              font-size: 2.5rem;
-              margin-bottom: 1rem;
-              color: white;
-              text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-            }
-            .status {
-              background: rgba(40, 40, 40, 0.6);
-              border: 1px solid rgba(255, 255, 255, 0.1);
-              border-radius: 12px;
-              padding: 1.5rem;
-              margin: 2rem 0;
-              backdrop-filter: blur(10px);
-            }
-            .btn {
-              background: rgba(60, 60, 60, 0.8);
-              border: 1px solid rgba(255, 255, 255, 0.2);
-              color: white;
-              padding: 12px 24px;
-              border-radius: 8px;
-              font-size: 1rem;
-              cursor: pointer;
-              margin: 0.5rem;
-              transition: all 0.2s ease;
-              backdrop-filter: blur(10px);
-            }
-            .btn:hover {
-              background: rgba(80, 80, 80, 0.9);
-              border-color: rgba(255, 255, 255, 0.3);
-            }
-            #root {
-              min-height: 100vh;
-            }
-            @keyframes pulse {
-              0% { opacity: 0.6; }
-              50% { opacity: 1; }
-              100% { opacity: 0.6; }
-            }
-            .form-section {
-              margin-bottom: 20px;
-            }
-            .form-section label {
-              display: block;
-              margin-bottom: 8px;
-              color: rgba(255, 255, 255, 0.8);
-              font-size: 14px;
-              font-weight: 500;
-            }
-          </style>
-        </head>
-        <body>
-          <div id="root">
-            <div class="container">
-              <div class="logo">
-                <img src="/zed-logo.jpg" alt="Zed AI Logo" />
-              </div>
-              <h1>Zebulon AI System</h1>
-              <div class="status">
-                <h3>Loading your AI assistant...</h3>
-                <div style="margin: 20px 0;">
-                  <div style="width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px;">
-                    <div style="width: 60%; height: 100%; background: linear-gradient(90deg, #666, #999); border-radius: 2px; animation: pulse 1.5s infinite;"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <script type="module">
-            // Check auth status and show appropriate interface
-            fetch('/api/auth/me', {
-              credentials: 'same-origin'
-            })
-              .then(res => res.ok ? res.json() : null)
-              .then(user => {
-                if (user) {
-                  showDashboard(user);
-                } else {
-                  showLogin();
-                }
-              })
-              .catch(() => showLogin());
-            
-            function showLogin() {
-              document.getElementById('root').innerHTML = \`
-                <div class="container">
-                  <div class="logo">
-                    <img src="/zed-logo.jpg" alt="Zed AI Logo" />
-                  </div>
-                  <h1>Welcome to Zebulon</h1>
-                  <div class="status">
-                    <h3>🔐 Sign In to Continue</h3>
-                    <form id="loginForm" style="max-width: 320px; margin: 0 auto;">
-                      <div style="margin-bottom: 16px;">
-                        <input type="text" id="username" placeholder="Enter your username" required 
-                               style="width: 100%; padding: 14px; margin: 8px 0; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; background: rgba(30, 30, 30, 0.8); color: white; backdrop-filter: blur(10px); font-size: 16px;">
-                      </div>
-                      <div style="margin-bottom: 20px;">
-                        <input type="password" id="password" placeholder="Enter your password" required
-                               style="width: 100%; padding: 14px; margin: 8px 0; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; background: rgba(30, 30, 30, 0.8); color: white; backdrop-filter: blur(10px); font-size: 16px;">
-                      </div>
-                      <button type="submit" class="btn" style="width: 100%; margin-bottom: 12px; padding: 14px; font-size: 16px;">Sign In</button>
-                      <button type="button" class="btn" onclick="showSignup()" style="width: 100%; background: rgba(80, 80, 80, 0.8); padding: 14px; font-size: 16px;">Create New Account</button>
-                    </form>
-                  </div>
-                </div>
-              \`;
-              
-              document.getElementById('loginForm').onsubmit = async (e) => {
-                e.preventDefault();
-                const username = document.getElementById('username').value.trim();
-                const password = document.getElementById('password').value.trim();
-                
-                if (!username || !password) {
-                  alert('Please enter both username and password');
-                  return;
-                }
-                
-                try {
-                  const res = await fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'same-origin',
-                    body: JSON.stringify({ username, password })
-                  });
-                  
-                  if (res.ok) {
-                    const user = await res.json();
-                    showDashboard(user);
-                  } else {
-                    const error = await res.json();
-                    alert('Login failed: ' + (error.error || 'Please check your credentials'));
-                  }
-                } catch (err) {
-                  console.error('Login error:', err);
-                  alert('Network error - please try again');
-                }
-              };
-            }
-            
-            function showSignup() {
-              document.getElementById('root').innerHTML = \`
-                <div class="container">
-                  <div class="logo">
-                    <img src="/zed-logo.jpg" alt="Zed AI Logo" />
-                  </div>
-                  <h1>Join Zebulon</h1>
-                  <div class="status">
-                    <h3>📝 Create Your Account</h3>
-                    <form id="signupForm" style="max-width: 320px; margin: 0 auto;">
-                      <div style="margin-bottom: 16px;">
-                        <input type="text" id="username" placeholder="Choose a username" required 
-                               style="width: 100%; padding: 14px; margin: 8px 0; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; background: rgba(30, 30, 30, 0.8); color: white; backdrop-filter: blur(10px); font-size: 16px;">
-                      </div>
-                      <div style="margin-bottom: 16px;">
-                        <input type="email" id="email" placeholder="Email address (optional)"
-                               style="width: 100%; padding: 14px; margin: 8px 0; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; background: rgba(30, 30, 30, 0.8); color: white; backdrop-filter: blur(10px); font-size: 16px;">
-                      </div>
-                      <div style="margin-bottom: 16px;">
-                        <input type="password" id="password" placeholder="Create a secure password (min 6 characters)" required
-                               style="width: 100%; padding: 14px; margin: 8px 0; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; background: rgba(30, 30, 30, 0.8); color: white; backdrop-filter: blur(10px); font-size: 16px;">
-                      </div>
-                      <button type="submit" class="btn" style="width: 100%; margin-bottom: 12px; padding: 14px; font-size: 16px;">Create Account</button>
-                      <button type="button" class="btn" onclick="showLogin()" style="width: 100%; background: rgba(80, 80, 80, 0.8); padding: 14px; font-size: 16px;">Back to Sign In</button>
-                    </form>
-                  </div>
-                </div>
-              \`;
-              
-              document.getElementById('signupForm').onsubmit = async (e) => {
-                e.preventDefault();
-                const username = document.getElementById('username').value.trim();
-                const email = document.getElementById('email').value.trim();
-                const password = document.getElementById('password').value.trim();
-                
-                if (!username || !password) {
-                  alert('Please enter both username and password');
-                  return;
-                }
-                
-                if (password.length < 6) {
-                  alert('Password must be at least 6 characters long');
-                  return;
-                }
-                
-                try {
-                  const res = await fetch('/api/auth/signup', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'same-origin',
-                    body: JSON.stringify({ username, email, password })
-                  });
-                  
-                  if (res.ok) {
-                    const user = await res.json();
-                    showDashboard(user);
-                  } else {
-                    const error = await res.json();
-                    alert('Signup failed: ' + (error.error || 'Please try again'));
-                  }
-                } catch (err) {
-                  console.error('Signup error:', err);
-                  alert('Network error - please try again');
-                }
-              };
-            }
-            
-            function showDashboard(user) {
-              document.getElementById('root').innerHTML = \`
-                <div class="container">
-                  <div class="logo">
-                    <img src="/zed-logo.jpg" alt="Zed AI Logo" />
-                  </div>
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                    <div style="display: flex; gap: 12px;">
-                      <button onclick="showChatTab()" id="chatTab" class="btn" style="font-size: 14px; padding: 8px 16px; background: rgba(60, 60, 60, 0.8);">Chat</button>
-                      <button onclick="showAdminTab()" id="adminTab" class="btn" style="font-size: 14px; padding: 8px 16px; background: rgba(40, 40, 40, 0.6);">Admin</button>
-                    </div>
-                    <button onclick="logout()" class="btn" style="font-size: 12px; padding: 8px 16px;">Logout</button>
-                  </div>
-                  <h1>Hello, \${user.username}!</h1>
-                  <div id="mainContent">
-                    <!-- Content will be loaded here based on active tab -->
-                  </div>
-                </div>
-              \`;
-              
-              // Show chat tab by default
-              showChatTab();
-            }
-            
-            function showChatTab() {
-              // Update tab styling
-              document.getElementById('chatTab').style.background = 'rgba(60, 60, 60, 0.8)';
-              document.getElementById('adminTab').style.background = 'rgba(40, 40, 40, 0.6)';
-              
-              // Load chat content
-              document.getElementById('mainContent').innerHTML = \`
-                <div class="status">
-                  <h3>💬 Chat with Zed</h3>
-                  <div id="messages" style="height: 300px; overflow-y: auto; background: rgba(20, 20, 20, 0.9); border-radius: 12px; padding: 16px; margin: 16px 0; text-align: left; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);"></div>
-                  <div style="display: flex; gap: 8px;">
-                    <input type="text" id="messageInput" placeholder="Ask Zed anything..." 
-                           style="flex: 1; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(30, 30, 30, 0.8); color: white; backdrop-filter: blur(10px);">
-                    <button onclick="sendMessage()" class="btn">Send</button>
-                  </div>
-                </div>
-              \`;
-              
-              loadMessages();
-              
-              document.getElementById('messageInput').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') sendMessage();
-              });
-            }
-            
-            function showAdminTab() {
-              // Update tab styling
-              document.getElementById('chatTab').style.background = 'rgba(40, 40, 40, 0.6)';
-              document.getElementById('adminTab').style.background = 'rgba(60, 60, 60, 0.8)';
-              
-              // Load admin content
-              document.getElementById('mainContent').innerHTML = \`
-                <div class="status">
-                  <h3>⚙️ Administration</h3>
-                  <div style="padding: 20px 0;">
-                    <h4 style="margin-bottom: 16px; color: rgba(255, 255, 255, 0.9);">Account Settings</h4>
-                    <button onclick="showChangePassword()" class="btn" style="width: 100%; margin-bottom: 12px; padding: 14px; font-size: 16px;">Change Password</button>
-                    
-                    <h4 style="margin: 24px 0 16px; color: rgba(255, 255, 255, 0.9);">System Information</h4>
-                    <div style="background: rgba(30, 30, 30, 0.8); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
-                      <p style="margin: 4px 0; color: rgba(255, 255, 255, 0.8);">🧠 AI Core: Zed Assistant</p>
-                      <p style="margin: 4px 0; color: rgba(255, 255, 255, 0.8);">💾 Database: PostgreSQL</p>
-                      <p style="margin: 4px 0; color: rgba(255, 255, 255, 0.8);">🔒 Security: Active</p>
-                      <p style="margin: 4px 0; color: rgba(255, 255, 255, 0.8);">📊 Status: Operational</p>
-                    </div>
-                    
-                    <h4 style="margin: 24px 0 16px; color: rgba(255, 255, 255, 0.9);">Session Management</h4>
-                    <button onclick="logout()" class="btn" style="width: 100%; background: rgba(220, 38, 38, 0.8); border-color: rgba(220, 38, 38, 0.4); padding: 14px; font-size: 16px;">Sign Out</button>
-                  </div>
-                </div>
-              \`;
-            }
-            
-            async function sendMessage() {
-              const input = document.getElementById('messageInput');
-              const message = input.value.trim();
-              if (!message) return;
-              
-              input.value = '';
-              
-              try {
-                const res = await fetch('/api/chat', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  credentials: 'same-origin',
-                  body: JSON.stringify({ message })
-                });
-                
-                if (res.status === 401) {
-                  alert('Session expired. Please log in again.');
-                  showLogin();
-                  return;
-                }
-                
-                loadMessages();
-              } catch (err) {
-                console.error('Send message error:', err);
-                alert('Failed to send message - please try again');
-              }
-            }
-            
-            async function loadMessages() {
-              try {
-                const res = await fetch('/api/chat/history', {
-                  credentials: 'same-origin'
-                });
-                
-                if (res.status === 401) {
-                  showLogin();
-                  return;
-                }
-                
-                const data = await res.json();
-                const messagesDiv = document.getElementById('messages');
-                
-                messagesDiv.innerHTML = data.messages.map(msg => \`
-                  <div style="margin-bottom: 12px; padding: 12px; background: \${msg.aiCore === 'zed' ? 'rgba(50, 50, 50, 0.6)' : 'rgba(40, 40, 40, 0.6)'}; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1);">
-                    <strong style="color: \${msg.aiCore === 'zed' ? '#ffffff' : '#cccccc'};">\${msg.aiCore === 'zed' ? '🤖 Zed' : '👤 You'}:</strong> \${msg.message}
-                  </div>
-                \`).join('');
-                
-                messagesDiv.scrollTop = messagesDiv.scrollHeight;
-              } catch (err) {
-                console.error('Failed to load messages:', err);
-              }
-            }
-            
-            async function logout() {
-              try {
-                await fetch('/api/auth/logout', { 
-                  method: 'POST',
-                  credentials: 'same-origin'
-                });
-              } catch (err) {
-                console.error('Logout error:', err);
-              }
-              // Always redirect to login regardless of response
-              showLogin();
-            }
-            
-            function showChangePassword() {
-              document.getElementById('mainContent').innerHTML = \`
-                <div class="status">
-                  <h3>🔐 Change Password</h3>
-                  <div style="max-width: 400px; margin: 0 auto; padding: 20px 0;">
-                    <form id="changePasswordForm">
-                      <div style="margin-bottom: 16px;">
-                        <label for="currentPassword" style="display: block; margin-bottom: 8px; color: rgba(255, 255, 255, 0.8); font-size: 14px;">Current Password</label>
-                        <input type="password" id="currentPassword" placeholder="Enter current password" required 
-                               style="width: 100%; padding: 14px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; background: rgba(30, 30, 30, 0.8); color: white; backdrop-filter: blur(10px); font-size: 16px;">
-                      </div>
-                      <div style="margin-bottom: 16px;">
-                        <label for="newPassword" style="display: block; margin-bottom: 8px; color: rgba(255, 255, 255, 0.8); font-size: 14px;">New Password</label>
-                        <input type="password" id="newPassword" placeholder="Enter new password (min 6 characters)" required 
-                               style="width: 100%; padding: 14px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; background: rgba(30, 30, 30, 0.8); color: white; backdrop-filter: blur(10px); font-size: 16px;">
-                      </div>
-                      <div style="margin-bottom: 20px;">
-                        <label for="confirmPassword" style="display: block; margin-bottom: 8px; color: rgba(255, 255, 255, 0.8); font-size: 14px;">Confirm New Password</label>
-                        <input type="password" id="confirmPassword" placeholder="Confirm new password" required 
-                               style="width: 100%; padding: 14px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; background: rgba(30, 30, 30, 0.8); color: white; backdrop-filter: blur(10px); font-size: 16px;">
-                      </div>
-                      <button type="submit" class="btn" style="width: 100%; margin-bottom: 12px; padding: 14px; font-size: 16px;">Update Password</button>
-                      <button type="button" onclick="showAdminTab()" class="btn" style="width: 100%; background: rgba(80, 80, 80, 0.8); padding: 14px; font-size: 16px;">Back to Admin</button>
-                    </form>
-                  </div>
-                </div>
-              \`;
-              
-              document.getElementById('changePasswordForm').onsubmit = async (e) => {
-                e.preventDefault();
-                const currentPassword = document.getElementById('currentPassword').value;
-                const newPassword = document.getElementById('newPassword').value;
-                const confirmPassword = document.getElementById('confirmPassword').value;
-                
-                if (newPassword !== confirmPassword) {
-                  alert('New passwords do not match');
-                  return;
-                }
-                
-                if (newPassword.length < 6) {
-                  alert('New password must be at least 6 characters long');
-                  return;
-                }
-                
-                try {
-                  const res = await fetch('/api/auth/change-password', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'same-origin',
-                    body: JSON.stringify({ currentPassword, newPassword })
-                  });
-                  
-                  if (res.status === 401) {
-                    alert('Session expired. Please log in again.');
-                    showLogin();
-                    return;
-                  }
-                  
-                  if (res.ok) {
-                    alert('Password changed successfully!');
-                    location.reload();
-                  } else {
-                    const error = await res.json();
-                    alert('Failed to change password: ' + (error.error || 'Please try again'));
-                  }
-                } catch (err) {
-                  console.error('Change password error:', err);
-                  alert('Network error - please try again');
-                }
-              };
-            }
-            
-            // Make functions global
-            window.showLogin = showLogin;
-            window.showSignup = showSignup;
-            window.sendMessage = sendMessage;
-            window.showChangePassword = showChangePassword;
-            window.logout = logout;
-          </script>
-        </body>
-      </html>
-    `);
-  });
-  
-  app.get('*', (req, res) => {
-    if (!req.path.startsWith('/api')) {
-      res.redirect('/');
-    } else {
-      res.status(404).json({ error: 'API endpoint not found' });
-    }
-  });
-} else {
-  // Production: serve built files
-  const publicPath = path.join(__dirname, '../public');
-  app.use(express.static(publicPath));
-  
-  app.get('*', (req, res) => {
-    if (!req.path.startsWith('/api')) {
-      res.sendFile(path.join(publicPath, 'index.html'));
-    } else {
-      res.status(404).json({ error: 'API endpoint not found' });
-    }
-  });
-}
-
-// Server startup
-if (process.env.NODE_ENV === 'production') {
-  const publicPath = path.join(__dirname, '../public');
-  app.use(express.static(publicPath));
-  
-  app.get('*', (req, res) => {
-    if (!req.path.startsWith('/api')) {
-      res.sendFile(path.join(publicPath, 'index.html'));
-    } else {
-      res.status(404).json({ error: 'API endpoint not found' });
-    }
-  });
-}
+// Serve React app
+const publicPath = path.join(__dirname, '../server/public');
+app.get('*', (req, res) => {
+  if (!req.path.startsWith('/api')) {
+    res.sendFile(path.join(publicPath, 'index.html'));
+  } else {
+    res.status(404).json({ error: 'API endpoint not found' });
+  }
+});
 
 // Error handler
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -975,7 +330,6 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 async function startServer() {
   try {
     console.log('Initializing database with Prisma...');
-    // Database will be initialized automatically when first accessed
     
     // Start server
     app.listen(PORT, () => {
@@ -985,11 +339,7 @@ async function startServer() {
       console.log(`💾 Database: PostgreSQL with Prisma`);
       console.log(`🧠 AI: Local Zed assistant ready`);
       console.log(`🔒 Security: Multi-layer protection active`);
-      
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`🔧 Development mode: Unified architecture`);
-        console.log(`🌍 Access your Zebulon AI System at: http://localhost:${PORT}`);
-      }
+      console.log(`🌍 Access your Zebulon AI System at: http://localhost:${PORT}`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);
