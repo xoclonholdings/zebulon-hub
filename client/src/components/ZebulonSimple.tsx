@@ -144,7 +144,7 @@ const ZebulonSimple: React.FC = () => {
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Header with Logo */}
-      <header className="bg-gray-900 border-b border-blue-500/30 p-4 mb-4">
+      <header className="bg-black border-b border-white/20 p-4 mb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <img 
@@ -176,7 +176,7 @@ const ZebulonSimple: React.FC = () => {
 
       <div className="p-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-6 bg-gray-800 border-gray-600">
+          <TabsList className="grid w-full grid-cols-6 bg-black border-white/20">
             <TabsTrigger value="chat" className="data-[state=active]:bg-blue-600">
               <MessageCircle className="h-4 w-4 mr-2" />
               Chat
@@ -204,12 +204,12 @@ const ZebulonSimple: React.FC = () => {
           </TabsList>
 
           <TabsContent value="chat" className="mt-4">
-            <Card className="bg-gray-900 border-blue-500/30">
+            <Card className="bg-black border-white/20">
               <CardHeader>
                 <CardTitle className="text-blue-400">Chat with Zed</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <ScrollArea className="h-96 w-full border border-gray-700 rounded-lg p-4 bg-black/50">
+                <ScrollArea className="h-96 w-full border border-white/20 rounded-lg p-4 bg-black">
                   {isLoading ? (
                     <div className="text-center text-gray-400">Loading messages...</div>
                   ) : messages.length === 0 ? (
@@ -252,7 +252,7 @@ const ZebulonSimple: React.FC = () => {
                     onChange={(e) => setMessage(e.target.value)}
                     onKeyPress={handleKeyPress}
                     placeholder="Ask Zed anything..."
-                    className="flex-1 bg-black/50 border-gray-600 text-white"
+                    className="flex-1 bg-black border-white/20 text-white"
                     disabled={sendMessageMutation.isPending}
                   />
                   <Button
@@ -268,7 +268,7 @@ const ZebulonSimple: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="status" className="mt-4">
-            <Card className="bg-gray-900 border-blue-500/30">
+            <Card className="bg-black border-white/20">
               <CardHeader>
                 <CardTitle className="text-blue-400">System Status</CardTitle>
               </CardHeader>
@@ -286,7 +286,7 @@ const ZebulonSimple: React.FC = () => {
                       Memory: {systemStatus.zedCore.memory}% | Tasks: {systemStatus.zedCore.tasks}
                     </div>
                   </div>
-                  <div className="bg-black/50 rounded-lg p-4">
+                  <div className="bg-black border border-white/20 rounded-lg p-4">
                     <h4 className="text-sm font-medium text-white mb-2">System Information</h4>
                     <div className="space-y-1 text-sm text-gray-400">
                       <div>🧠 AI Core: Zed Assistant</div>
@@ -301,7 +301,7 @@ const ZebulonSimple: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="security" className="mt-4">
-            <Card className="bg-gray-900 border-blue-500/30">
+            <Card className="bg-black border-white/20">
               <CardHeader>
                 <CardTitle className="text-blue-400">Security Dashboard</CardTitle>
               </CardHeader>
@@ -316,7 +316,7 @@ const ZebulonSimple: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="music" className="mt-4">
-            <Card className="bg-gray-900 border-blue-500/30">
+            <Card className="bg-black border-white/20">
               <CardHeader>
                 <CardTitle className="text-blue-400">AI Music Studio</CardTitle>
               </CardHeader>
@@ -331,7 +331,7 @@ const ZebulonSimple: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="oracle" className="mt-4">
-            <Card className="bg-gray-900 border-blue-500/30">
+            <Card className="bg-black border-white/20">
               <CardHeader>
                 <CardTitle className="text-blue-400">Oracle Insights</CardTitle>
               </CardHeader>
@@ -346,7 +346,7 @@ const ZebulonSimple: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="admin" className="mt-4">
-            <Card className="bg-gray-900 border-blue-500/30">
+            <Card className="bg-black border-white/20">
               <CardHeader>
                 <CardTitle className="text-blue-400">Administration</CardTitle>
               </CardHeader>
@@ -354,7 +354,7 @@ const ZebulonSimple: React.FC = () => {
                 <div>
                   <h3 className="text-lg font-semibold text-white mb-4">Account Settings</h3>
                   
-                  <Card className="bg-black/50 border-gray-600">
+                  <Card className="bg-black border-white/20">
                     <CardHeader>
                       <CardTitle className="text-sm text-gray-300">Change Password</CardTitle>
                     </CardHeader>
@@ -368,7 +368,7 @@ const ZebulonSimple: React.FC = () => {
                             value={passwordData.currentPassword}
                             onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
                             placeholder="Enter current password"
-                            className="bg-black/50 border-gray-600 text-white"
+                            className="bg-black border-white/20 text-white"
                             required
                           />
                         </div>
@@ -380,7 +380,7 @@ const ZebulonSimple: React.FC = () => {
                             value={passwordData.newPassword}
                             onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
                             placeholder="Enter new password (min 6 characters)"
-                            className="bg-black/50 border-gray-600 text-white"
+                            className="bg-black border-white/20 text-white"
                             required
                           />
                         </div>
@@ -392,7 +392,7 @@ const ZebulonSimple: React.FC = () => {
                             value={passwordData.confirmPassword}
                             onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
                             placeholder="Confirm new password"
-                            className="bg-black/50 border-gray-600 text-white"
+                            className="bg-black border-white/20 text-white"
                             required
                           />
                         </div>

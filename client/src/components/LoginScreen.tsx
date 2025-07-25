@@ -97,7 +97,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
 
   return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
-      <Card className="w-full max-w-md bg-gray-900 border border-white/20">
+      <Card className="w-full max-w-md bg-black border border-white/20">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <img 
@@ -131,7 +131,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                 value={formData.username}
                 onChange={handleInputChange}
                 placeholder="Enter your username"
-                className="bg-black/50 border-white/20 text-white"
+                className="bg-black border-white/20 text-white"
                 disabled={isLoading}
                 required
               />
@@ -147,7 +147,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                   value={formData.email}
                   onChange={handleInputChange}
                   placeholder="Enter your email"
-                  className="bg-black/50 border-white/20 text-white"
+                  className="bg-black border-white/20 text-white"
                   disabled={isLoading}
                 />
               </div>
@@ -163,7 +163,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                   value={formData.password}
                   onChange={handleInputChange}
                   placeholder="Enter your password"
-                  className="bg-black/50 border-white/20 text-white pr-10"
+                  className="bg-black border-white/20 text-white pr-10"
                   disabled={isLoading}
                   required
                 />
