@@ -104,6 +104,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
               src={zedLogoPath} 
               alt="Zed AI Logo" 
               className="w-16 h-16 object-contain opacity-90"
+              style={{ backgroundColor: '#000000' }}
             />
           </div>
           <CardTitle className="text-2xl font-bold mb-2" style={{ color: '#a855f7' }}>

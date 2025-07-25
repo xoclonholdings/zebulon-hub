@@ -151,6 +151,7 @@ const ZebulonSimple: React.FC = () => {
               src={zedLogoPath} 
               alt="Zed AI Logo" 
               className="w-8 h-8 object-contain hover:scale-110 transition-transform"
+              style={{ backgroundColor: '#000000' }}
             />
             <div>
               <h1 className="text-xl font-bold text-blue-400">Zebulon AI System</h1>
