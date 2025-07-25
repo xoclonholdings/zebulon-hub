@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "CommonJS",
+    "module": "ES2022",
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
@@ -22,15 +22,24 @@
     "sourceMap": true
   },
   "include": [
-    "server/**/*"
+    "server/index.ts",
+    "server/storage-clean.ts",
+    "server/init-db.ts",
+    "server/db.ts"
   ],
   "exclude": [
     "node_modules",
     "dist",
     "client",
     "server/services",
+    "server/routes",
+    "server/security",
+    "server/middleware",
+    "server/public",
     "server/routes.ts",
     "server/storage.ts",
-    "server/vite.ts"
+    "server/vite.ts",
+    "server/storage-prisma.ts",
+    "server/index-clean.ts"
   ]
 }

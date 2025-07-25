@@ -10,10 +10,10 @@
     "build:client": "vite build --config vite.config.clean.ts",
     "build:server": "tsc --project tsconfig.server.json",
     "start": "NODE_ENV=production node dist/server/index.js",
-    "db:generate": "prisma generate",
-    "db:push": "prisma db push",
-    "db:studio": "prisma studio",
-    "db:migrate": "prisma migrate dev"
+    "db:generate": "npx prisma generate",
+    "db:push": "npx prisma db push",
+    "db:studio": "npx prisma studio",
+    "db:migrate": "npx prisma migrate dev"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4",

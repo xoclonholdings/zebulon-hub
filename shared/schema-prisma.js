@@ -1,5 +1,8 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.defaultUserConfig = void 0;
 // Default configurations
-export const defaultUserConfig = {
+exports.defaultUserConfig = {
     zedCore: {
         enabled: true,
         responseDelay: 500,

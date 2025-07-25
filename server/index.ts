@@ -3,8 +3,8 @@ import { storage } from "./storage-clean";
 import { initializeDatabase } from "./init-db";
 import path from "path";
 
-// CommonJS compatibility
-const __dirname = process.cwd();
+// Get current directory
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -84,6 +84,11 @@ app.get('/api/system/status', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
   }
+});
+
+// API health check
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', message: 'Zebulon AI System is running with Prisma' });
 });
 
 // Serve static files in production
