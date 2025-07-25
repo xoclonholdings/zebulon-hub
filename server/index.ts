@@ -76,6 +76,37 @@ app.get('/api/chat/:userId', async (req, res) => {
   }
 });
 
+app.post('/api/chat/:userId', async (req, res) => {
+  try {
+    const userId = parseInt(req.params.userId);
+    const { message, aiCore } = req.body;
+    
+    if (!message) {
+      return res.status(400).json({ error: 'Message is required' });
+    }
+
+    // Create user message
+    const userMessage = await storage.createChatMessage({
+      userId,
+      message,
+      aiCore: aiCore || 'zed'
+    });
+
+    // For demo purposes, create a simple AI response
+    const aiResponse = `Echo: ${message}`;
+    
+    const aiMessage = await storage.createChatMessage({
+      userId,
+      message: aiResponse,
+      aiCore: aiCore || 'zed'
+    });
+
+    res.json({ userMessage, aiMessage });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 app.post('/api/chat', async (req, res) => {
   try {
     const { userId, message, aiCore = 'zed' } = req.body;
