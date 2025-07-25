@@ -264,7 +264,10 @@ const ZebulonSimple: React.FC = () => {
           <div 
             className="p-6 rounded-2xl cursor-pointer hover:opacity-80 transition-all duration-200 border border-gray-800" 
             style={{ backgroundColor: '#000000' }}
-            onClick={() => setActiveTab('config')}
+            onClick={() => {
+              console.log('Config clicked, setting activeTab to config');
+              setActiveTab('config');
+            }}
           >
             <div className="flex flex-col items-center space-y-3">
               <Settings className="h-10 w-10 text-gray-400" />
