@@ -35,7 +35,7 @@ export default defineConfig({
   server: {
     host: "0.0.0.0",
     port: 5173,
-    allowedHosts: 'all',
+    allowedHosts: ['localhost', '.replit.dev', '.picard.replit.dev', '5139512c-8dc4-4ebe-8efa-77392a8951db-00-1xinqv1m1v4gl.picard.replit.dev'],
     fs: {
       strict: false,
     },
