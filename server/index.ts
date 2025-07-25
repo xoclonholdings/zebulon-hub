@@ -477,7 +477,7 @@ if (process.env.NODE_ENV === 'development') {
             body {
               margin: 0;
               font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-              background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+              background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #7c3aed 100%);
               color: white;
               min-height: 100vh;
               display: flex;
@@ -488,56 +488,68 @@ if (process.env.NODE_ENV === 'development') {
               text-align: center;
               max-width: 600px;
               padding: 2rem;
+              background: rgba(79, 70, 229, 0.1);
+              border-radius: 20px;
+              backdrop-filter: blur(20px);
+              border: 1px solid rgba(139, 92, 246, 0.3);
+              box-shadow: 0 25px 50px -12px rgba(139, 92, 246, 0.25);
             }
             .logo {
-              width: 80px;
-              height: 80px;
+              width: 100px;
+              height: 100px;
               margin: 0 auto 2rem;
-              background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-              border-radius: 12px;
+              background: linear-gradient(135deg, #ec4899, #3b82f6, #8b5cf6);
+              border-radius: 20px;
               display: flex;
               align-items: center;
               justify-content: center;
               font-size: 2rem;
               font-weight: bold;
-              box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.4);
+              box-shadow: 0 20px 40px -10px rgba(236, 72, 153, 0.5);
               overflow: hidden;
               position: relative;
+              padding: 8px;
             }
             .logo img {
               width: 100%;
               height: 100%;
               object-fit: contain;
-              background: white;
+              background: linear-gradient(135deg, #fdf2f8, #f3e8ff);
+              border-radius: 12px;
             }
             h1 {
               font-size: 2.5rem;
               margin-bottom: 1rem;
-              background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+              background: linear-gradient(45deg, #ec4899, #3b82f6, #8b5cf6);
               -webkit-background-clip: text;
               -webkit-text-fill-color: transparent;
               background-clip: text;
+              text-shadow: 0 0 30px rgba(236, 72, 153, 0.3);
             }
             .status {
-              background: rgba(59, 130, 246, 0.1);
-              border: 1px solid rgba(59, 130, 246, 0.3);
-              border-radius: 12px;
+              background: rgba(139, 92, 246, 0.1);
+              border: 1px solid rgba(139, 92, 246, 0.3);
+              border-radius: 16px;
               padding: 1.5rem;
               margin: 2rem 0;
+              box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
             }
             .btn {
-              background: #3b82f6;
+              background: linear-gradient(135deg, #ec4899, #3b82f6, #8b5cf6);
               border: none;
               color: white;
               padding: 12px 24px;
-              border-radius: 8px;
+              border-radius: 12px;
               font-size: 1rem;
               cursor: pointer;
               margin: 0.5rem;
-              transition: background 0.2s;
+              transition: all 0.3s ease;
+              box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+              font-weight: 600;
             }
             .btn:hover {
-              background: #2563eb;
+              transform: translateY(-2px);
+              box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
             }
             #root {
               min-height: 100vh;
@@ -585,9 +597,9 @@ if (process.env.NODE_ENV === 'development') {
                     <h3>🔐 Please Sign In</h3>
                     <form id="loginForm" style="max-width: 300px; margin: 0 auto;">
                       <input type="text" id="username" placeholder="Username" required 
-                             style="width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #374151; border-radius: 6px; background: #1f2937; color: white;">
+                             style="width: 100%; padding: 12px; margin: 8px 0; border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 12px; background: rgba(139, 92, 246, 0.1); color: white; backdrop-filter: blur(10px);">
                       <input type="password" id="password" placeholder="Password" required
-                             style="width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #374151; border-radius: 6px; background: #1f2937; color: white;">
+                             style="width: 100%; padding: 12px; margin: 8px 0; border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 12px; background: rgba(139, 92, 246, 0.1); color: white; backdrop-filter: blur(10px);">
                       <button type="submit" class="btn" style="width: 100%; margin-top: 16px;">Sign In</button>
                       <button type="button" class="btn" onclick="showSignup()" style="width: 100%; background: #6b7280;">Create Account</button>
                     </form>
@@ -630,11 +642,11 @@ if (process.env.NODE_ENV === 'development') {
                     <h3>📝 Create Account</h3>
                     <form id="signupForm" style="max-width: 300px; margin: 0 auto;">
                       <input type="text" id="username" placeholder="Username" required 
-                             style="width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #374151; border-radius: 6px; background: #1f2937; color: white;">
+                             style="width: 100%; padding: 12px; margin: 8px 0; border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 12px; background: rgba(139, 92, 246, 0.1); color: white; backdrop-filter: blur(10px);">
                       <input type="email" id="email" placeholder="Email (optional)"
-                             style="width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #374151; border-radius: 6px; background: #1f2937; color: white;">
+                             style="width: 100%; padding: 12px; margin: 8px 0; border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 12px; background: rgba(139, 92, 246, 0.1); color: white; backdrop-filter: blur(10px);">
                       <input type="password" id="password" placeholder="Password" required
-                             style="width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #374151; border-radius: 6px; background: #1f2937; color: white;">
+                             style="width: 100%; padding: 12px; margin: 8px 0; border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 12px; background: rgba(139, 92, 246, 0.1); color: white; backdrop-filter: blur(10px);">
                       <button type="submit" class="btn" style="width: 100%; margin-top: 16px;">Create Account</button>
                       <button type="button" class="btn" onclick="showLogin()" style="width: 100%; background: #6b7280;">Back to Login</button>
                     </form>
@@ -677,10 +689,10 @@ if (process.env.NODE_ENV === 'development') {
                   <h1>Hello, \${user.username}!</h1>
                   <div class="status">
                     <h3>💬 Chat with Zed</h3>
-                    <div id="messages" style="height: 300px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 16px; margin: 16px 0; text-align: left;"></div>
+                    <div id="messages" style="height: 300px; overflow-y: auto; background: rgba(139, 92, 246, 0.1); border-radius: 16px; padding: 16px; margin: 16px 0; text-align: left; backdrop-filter: blur(10px); border: 1px solid rgba(139, 92, 246, 0.2);"></div>
                     <div style="display: flex; gap: 8px;">
-                      <input type="text" id="messageInput" placeholder="Type your message..." 
-                             style="flex: 1; padding: 12px; border: 1px solid #374151; border-radius: 6px; background: #1f2937; color: white;">
+                      <input type="text" id="messageInput" placeholder="Ask Zed anything..." 
+                             style="flex: 1; padding: 12px; border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 12px; background: rgba(139, 92, 246, 0.1); color: white; backdrop-filter: blur(10px);">
                       <button onclick="sendMessage()" class="btn">Send</button>
                     </div>
                     <button onclick="showChangePassword()" class="btn" style="background: #3b82f6; margin-top: 16px;">Change Password</button>
@@ -723,8 +735,8 @@ if (process.env.NODE_ENV === 'development') {
                 const messagesDiv = document.getElementById('messages');
                 
                 messagesDiv.innerHTML = data.messages.map(msg => \`
-                  <div style="margin-bottom: 12px; padding: 8px; background: \${msg.aiCore === 'zed' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(34, 197, 94, 0.1)'}; border-radius: 6px;">
-                    <strong>\${msg.aiCore === 'zed' ? 'Zed' : 'You'}:</strong> \${msg.message}
+                  <div style="margin-bottom: 12px; padding: 12px; background: \${msg.aiCore === 'zed' ? 'linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(139, 92, 246, 0.1))' : 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 197, 253, 0.1))'}; border-radius: 12px; border: 1px solid \${msg.aiCore === 'zed' ? 'rgba(236, 72, 153, 0.2)' : 'rgba(59, 130, 246, 0.2)'};">
+                    <strong style="color: \${msg.aiCore === 'zed' ? '#ec4899' : '#3b82f6'};">\${msg.aiCore === 'zed' ? '🤖 Zed' : '👤 You'}:</strong> \${msg.message}
                   </div>
                 \`).join('');
                 
@@ -751,17 +763,17 @@ if (process.env.NODE_ENV === 'development') {
                       <div class="form-group">
                         <label for="currentPassword">Current Password</label>
                         <input type="password" id="currentPassword" placeholder="Enter current password" required 
-                               style="width: 100%; padding: 12px; border: 1px solid #374151; border-radius: 6px; background: #1f2937; color: white;">
+                               style="width: 100%; padding: 12px; border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 12px; background: rgba(139, 92, 246, 0.1); color: white; backdrop-filter: blur(10px);">
                       </div>
                       <div class="form-group">
                         <label for="newPassword">New Password</label>
                         <input type="password" id="newPassword" placeholder="Enter new password (min 6 characters)" required 
-                               style="width: 100%; padding: 12px; border: 1px solid #374151; border-radius: 6px; background: #1f2937; color: white;">
+                               style="width: 100%; padding: 12px; border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 12px; background: rgba(139, 92, 246, 0.1); color: white; backdrop-filter: blur(10px);">
                       </div>
                       <div class="form-group">
                         <label for="confirmPassword">Confirm New Password</label>
                         <input type="password" id="confirmPassword" placeholder="Confirm new password" required 
-                               style="width: 100%; padding: 12px; border: 1px solid #374151; border-radius: 6px; background: #1f2937; color: white;">
+                               style="width: 100%; padding: 12px; border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 12px; background: rgba(139, 92, 246, 0.1); color: white; backdrop-filter: blur(10px);">
                       </div>
                       <button type="submit" class="btn">Change Password</button>
                       <button type="button" onclick="location.reload()" class="btn" style="background: #6b7280; margin-top: 8px;">Cancel</button>
