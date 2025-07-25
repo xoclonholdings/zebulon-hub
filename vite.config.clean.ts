@@ -17,6 +17,19 @@ export default defineConfig({
   build: {
     outDir: path.resolve(__dirname, "dist/public"),
     emptyOutDir: true,
+    target: 'esnext',
+    minify: 'esbuild',
+    rollupOptions: {
+      output: {
+        manualChunks: undefined,
+      },
+    },
+  },
+  optimizeDeps: {
+    force: true,
+    esbuildOptions: {
+      target: 'esnext',
+    },
   },
   server: {
     host: "0.0.0.0",
@@ -29,7 +42,11 @@ export default defineConfig({
         target: "http://localhost:5000",
         changeOrigin: true,
         secure: false,
+        rewrite: (path) => path,
       },
     },
+  },
+  define: {
+    global: 'globalThis',
   },
 });
