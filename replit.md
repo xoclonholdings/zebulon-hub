@@ -35,6 +35,13 @@ Design theme: Sleek black theme with pure black background, transparent Zed AI l
 - ✅ Added system information display and session management in Admin
 - ✅ Maintained consistent dark theme across all tabs and components
 
+**✅ SINGLE UNIFIED SERVER ARCHITECTURE CONFIRMED**
+- ✅ Eliminated dual-server confusion by running only unified server on port 5000
+- ✅ Single interface serves complete React application with all tab functionality
+- ✅ Password change functionality fully integrated in Admin tab
+- ✅ No separate Vite development server - everything unified on one port
+- ✅ Clean architecture with frontend and backend on single server
+
 **✅ PROJECT CLEANED UP - ZEBULON & ZED ONLY**
 - ✅ Removed all non-Zebulon/Zed components and files
 - ✅ Simplified database schema to core functionality only (User, ChatMessage, SystemStatus)  
