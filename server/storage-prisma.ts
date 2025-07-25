@@ -96,7 +96,7 @@ export class PrismaStorage implements IStorage {
         userId: query.userId,
         naturalLanguage: query.naturalLanguage,
         generatedSql: query.generatedSql,
-        result: query.result || null,
+        result: query.result as any,
         executionTime: query.executionTime,
         status: query.status,
         errorMessage: query.errorMessage,
@@ -170,7 +170,7 @@ export class PrismaStorage implements IStorage {
       return await prisma.userConfiguration.update({
         where: { id: existing.id },
         data: {
-          encryptedConfig: config.encryptedConfig || existing.encryptedConfig,
+          encryptedConfig: config.encryptedConfig as any || existing.encryptedConfig,
           configHash: config.configHash || existing.configHash,
           encryptionVersion: config.encryptionVersion || existing.encryptionVersion
         }
@@ -179,7 +179,7 @@ export class PrismaStorage implements IStorage {
       return await prisma.userConfiguration.create({
         data: {
           userId,
-          encryptedConfig: config.encryptedConfig || {},
+          encryptedConfig: config.encryptedConfig as any || {},
           configHash: config.configHash || '',
           encryptionVersion: config.encryptionVersion || 1
         }
