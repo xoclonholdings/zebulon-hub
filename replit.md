@@ -16,7 +16,7 @@ Preferred communication style: Simple, everyday language.
 - ✅ Development: Port 5173 (Vite) ↔ Port 5000 (Express) via clean API proxy
 - ✅ Production: Unified port 5000 serving both frontend assets and backend API
 - ✅ Build system: npm run build creates optimized 441.49 kB JS, 87.52 kB CSS
-- ✅ Configuration: Vite v7.0.6 with zero crypto.hash dependencies (all crypto uses modern createHash API)
+- ✅ Configuration: Vite v5.4.10 compatible with Node.js v18.20.8 (no crypto.hash issues)
 - ✅ Zero Replit dependencies: All packages, dev banners, and backup files removed
 - ✅ Security: CORS configured for both dev (5173) and production (5000) modes
 - ✅ Database: 5 active system components confirmed via /api/system/status
