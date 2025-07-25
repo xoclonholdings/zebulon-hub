@@ -64,16 +64,11 @@ export class SecureMemoryService {
         // Could indicate tampering or corruption
       }
       
-      // Decrypt context tags
-      const decryptedTags = memory.contextTags ? 
-        memory.contextTags.map((encTag: any) => {
+      // Decrypt context tags if they exist
+      const decryptedTags = (memory as any).contextTags ? 
+        (memory as any).contextTags.map((tag: any) => {
           try {
-            return encryptionService.decrypt({
-              encryptedData: encTag,
-              salt: '',
-              iv: '',
-              tag: ''
-            } as any, `user_${userId}_tags`);
+            return encryptionService.decrypt(tag as any, `user_${userId}_tags`);
           } catch {
             return '[encrypted]'; // Fallback for corrupted tags
           }
@@ -205,7 +200,7 @@ export class SecureMemoryService {
           id: m.id,
           memoryType: m.memoryType,
           category: m.category,
-          encryptedContent: m.content,
+          encryptedContent: m.encryptedContent,
           importance: m.importance,
           source: m.source,
           createdAt: m.createdAt
