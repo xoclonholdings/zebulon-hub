@@ -1969,13 +1969,14 @@ const ZebulonCommandCenter: React.FC<ZebulonCommandCenterProps> = ({ userId, sys
         return renderAdminInterface();
 
       case 'security':
-        console.log('🔐 Rendering SecurityDashboard - feature active');
         return (
           <div className="w-full h-full overflow-y-auto zebulon-scrollable">
-            <div className="text-green-400 text-xs mb-4 bg-black/30 p-2 rounded">
-              Debug: Security feature active, loading SecurityDashboard...
+            <div className="text-center text-gray-400 py-8">
+              <Shield className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p className="text-lg">Security Dashboard Unavailable</p>
+              <p className="text-sm mt-2">This feature has been removed in the simplified version.</p>
+              <p className="text-sm mt-1">Core system security is managed automatically.</p>
             </div>
-            <SecurityDashboard />
           </div>
         );
 

@@ -79,33 +79,44 @@ const ZebulonSimple: React.FC<ZebulonSimpleProps> = ({ userId, systemStatus }) =
   };
 
   return (
-    <div className="min-h-screen bg-black text-white p-4">
-      {/* Header */}
-      <Card className="bg-gray-900 border-blue-500/30 mb-4">
-        <CardHeader>
-          <CardTitle className="text-blue-400 flex items-center space-x-2">
-            <ZebulonLogo size={24} className="animate-pulse" />
-            <span>Zebulon AI System</span>
-            <Badge variant="outline" className="text-green-400 border-green-400">
-              Active
-            </Badge>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <Activity className="h-4 w-4 text-green-400" />
-              <span className="text-sm">Zed Core</span>
-              <Badge variant={systemStatus.zedCore.active ? "default" : "destructive"}>
-                {systemStatus.zedCore.active ? "Online" : "Offline"}
-              </Badge>
-            </div>
-            <div className="text-sm text-gray-400">
-              Memory: {systemStatus.zedCore.memory}% | Tasks: {systemStatus.zedCore.tasks}
+    <div className="min-h-screen bg-black text-white">
+      {/* Header with Logo */}
+      <header className="bg-gray-900 border-b border-blue-500/30 p-4 mb-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <ZebulonLogo size={32} className="hover:scale-110 transition-transform" />
+            <div>
+              <h1 className="text-xl font-bold text-blue-400">Zebulon AI System</h1>
+              <p className="text-sm text-gray-400">Intelligent Assistant • Local Processing</p>
             </div>
           </div>
-        </CardContent>
-      </Card>
+          <Badge variant="outline" className="text-green-400 border-green-400">
+            Active
+          </Badge>
+        </div>
+      </header>
+
+      <div className="p-4">
+        {/* System Status */}
+        <Card className="bg-gray-900 border-blue-500/30 mb-4">
+          <CardHeader>
+            <CardTitle className="text-blue-400">System Status</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <Activity className="h-4 w-4 text-green-400" />
+                <span className="text-sm">Zed Core</span>
+                <Badge variant={systemStatus.zedCore.active ? "default" : "destructive"}>
+                  {systemStatus.zedCore.active ? "Online" : "Offline"}
+                </Badge>
+              </div>
+              <div className="text-sm text-gray-400">
+                Memory: {systemStatus.zedCore.memory}% | Tasks: {systemStatus.zedCore.tasks}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
       {/* Chat Interface */}
       <Card className="bg-gray-900 border-blue-500/30">
@@ -166,6 +177,7 @@ const ZebulonSimple: React.FC<ZebulonSimpleProps> = ({ userId, systemStatus }) =
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 };
