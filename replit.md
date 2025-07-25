@@ -80,6 +80,13 @@ Design theme: Exact styling as shown in user-provided reference images - pure bl
 - ✅ Clean minimalist interface with proper spacing and transparent logo
 - ✅ No deviations from this approved design theme allowed
 
+**✅ SINGLE PORT 5000 INTERFACE REQUIREMENT**
+- ✅ User requested removal of any interface not on port 5000
+- ✅ Only the unified server on port 5000 should be accessed
+- ✅ Vite development server on port 5173 should be ignored
+- ✅ All styling changes built and deployed to server/public/ directory
+- ✅ Login page updated to match approved design theme on port 5000
+
 ## System Architecture
 
 The Zebulon system follows a modern full-stack architecture with the following key components:
