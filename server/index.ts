@@ -61,7 +61,7 @@ const requireAuth = (req: AuthenticatedRequest, res: Response, next: NextFunctio
   next();
 };
 
-// Zebulon Oracle Response Generator
+// ZED Chat Response Generator
 function generateOracleResponse(userMessage: string, userId: number): string {
   const message = userMessage.toLowerCase();
   
@@ -249,19 +249,19 @@ app.post('/api/chat', requireAuth, async (req, res) => {
       aiCore: 'user'
     });
 
-    // Generate Oracle response
-    const oracleResponse = generateOracleResponse(message, userId);
+    // Generate ZED response
+    const zedResponse = generateOracleResponse(message, userId);
     
-    // Save Oracle response
-    const oracleMessage = await storage.createChatMessage({
+    // Save ZED response
+    const zedMessage = await storage.createChatMessage({
       userId,
-      message: oracleResponse,
-      aiCore: 'oracle'
+      message: zedResponse,
+      aiCore: 'zed'
     });
 
     res.json({ 
       userMessage, 
-      oracleMessage,
+      zedMessage,
       success: true 
     });
   } catch (error) {

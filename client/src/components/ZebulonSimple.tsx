@@ -21,7 +21,16 @@ interface ChatMessage {
 }
 
 interface SystemStatus {
-  zedCore: {
+  oracleCore?: {
+    active: boolean;
+    memory: number;
+    queries: number;
+    uptime: string;
+    lastActivity: string;
+    databaseConnections: number;
+    responseTime: string;
+  };
+  zedCore?: {
     active: boolean;
     memory: number;
     tasks: number;
@@ -164,7 +173,7 @@ const ZebulonSimple: React.FC = () => {
           </div>
           <div className="flex items-center space-x-3">
             <div className="px-3 py-1 rounded-lg text-sm" style={{ backgroundColor: '#1a1a1a', color: '#10b981' }}>
-              Oracle Core
+              Zebulon Core
             </div>
             <Button
               variant="ghost"
@@ -190,8 +199,8 @@ const ZebulonSimple: React.FC = () => {
           >
             <div className="flex flex-col items-center space-y-3">
               <MessageCircle className="h-10 w-10 text-purple-400" />
-              <span className="text-white font-bold text-lg">Chat</span>
-              <span className="text-gray-400 text-sm text-center">Database Query</span>
+              <span className="text-white font-bold text-lg">ZED</span>
+              <span className="text-gray-400 text-sm text-center">Chat Interface</span>
             </div>
           </div>
           
@@ -202,8 +211,8 @@ const ZebulonSimple: React.FC = () => {
           >
             <div className="flex flex-col items-center space-y-3">
               <Activity className="h-10 w-10 text-green-400" />
-              <span className="text-white font-bold text-lg">Status</span>
-              <span className="text-gray-400 text-sm text-center">System Health</span>
+              <span className="text-white font-bold text-lg">ZYNC</span>
+              <span className="text-gray-400 text-sm text-center">IDE Interface</span>
             </div>
           </div>
           
@@ -214,7 +223,7 @@ const ZebulonSimple: React.FC = () => {
           >
             <div className="flex flex-col items-center space-y-3">
               <Shield className="h-10 w-10 text-blue-400" />
-              <span className="text-white font-bold text-lg">Admin</span>
+              <span className="text-white font-bold text-lg">ZETA</span>
               <span className="text-gray-400 text-sm text-center">Security Panel</span>
             </div>
           </div>
@@ -264,7 +273,7 @@ const ZebulonSimple: React.FC = () => {
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-green-400 text-sm font-medium">Oracle Core Active</span>
+              <span className="text-green-400 text-sm font-medium">Zebulon Core Active</span>
             </div>
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
@@ -281,9 +290,9 @@ const ZebulonSimple: React.FC = () => {
           <div className="border border-gray-800 rounded-2xl p-6" style={{ backgroundColor: '#000000' }}>
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-white">
-                {activeTab === 'chat' && 'Query Oracle Database'}
-                {activeTab === 'status' && 'System Status'}
-                {activeTab === 'admin' && 'Admin Panel'}
+                {activeTab === 'chat' && 'ZED Chat Interface'}
+                {activeTab === 'status' && 'ZYNC IDE System'}
+                {activeTab === 'admin' && 'ZETA Security Panel'}
                 {activeTab === 'music' && 'Music Control'}
                 {activeTab === 'oracle' && 'Oracle Database'}
                 {activeTab === 'config' && 'System Configuration'}
@@ -305,7 +314,7 @@ const ZebulonSimple: React.FC = () => {
                     <div className="text-center text-gray-400">Loading messages...</div>
                   ) : messages.length === 0 ? (
                     <div className="text-center text-gray-400">
-                      Query the Oracle database system for insights and analysis
+                      Start a conversation with ZED AI assistant
                     </div>
                   ) : (
                     <div className="space-y-3">
@@ -338,7 +347,7 @@ const ZebulonSimple: React.FC = () => {
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    placeholder="Query Oracle database..."
+                    placeholder="Chat with ZED..."
                     className="flex-1 border-gray-800 text-white"
                     style={{ backgroundColor: '#000000' }}
                     disabled={sendMessageMutation.isPending}
@@ -358,7 +367,7 @@ const ZebulonSimple: React.FC = () => {
             {activeTab === 'status' && (
               <div className="space-y-4">
                 <div className="p-4 rounded-lg border border-gray-800">
-                  <h3 className="text-lg font-semibold text-white mb-4">Oracle Core Status</h3>
+                  <h3 className="text-lg font-semibold text-white mb-4">ZYNC IDE Status</h3>
                   <div className="grid grid-cols-2 gap-6">
                     <div>
                       <p className="text-sm text-gray-400 mb-1">Status</p>
@@ -550,7 +559,7 @@ const ZebulonSimple: React.FC = () => {
                     <h3 className="text-lg font-semibold text-white mb-4">AI Configuration</h3>
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-gray-300">Oracle Core</span>
+                        <span className="text-gray-300">Zebulon Core</span>
                         <Badge variant="outline" className="text-green-400 border-green-400">Active</Badge>
                       </div>
                       <div className="flex items-center justify-between">
