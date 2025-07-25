@@ -725,17 +725,38 @@ if (process.env.NODE_ENV === 'development') {
                   <div class="logo">
                     <img src="/zed-logo.jpg" alt="Zed AI Logo" />
                   </div>
-                  <h1>Hello, \${user.username}!</h1>
-                  <div class="status">
-                    <h3>💬 Chat with Zed</h3>
-                    <div id="messages" style="height: 300px; overflow-y: auto; background: rgba(20, 20, 20, 0.9); border-radius: 12px; padding: 16px; margin: 16px 0; text-align: left; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);"></div>
-                    <div style="display: flex; gap: 8px;">
-                      <input type="text" id="messageInput" placeholder="Ask Zed anything..." 
-                             style="flex: 1; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(30, 30, 30, 0.8); color: white; backdrop-filter: blur(10px);">
-                      <button onclick="sendMessage()" class="btn">Send</button>
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <div style="display: flex; gap: 12px;">
+                      <button onclick="showChatTab()" id="chatTab" class="btn" style="font-size: 14px; padding: 8px 16px; background: rgba(60, 60, 60, 0.8);">Chat</button>
+                      <button onclick="showAdminTab()" id="adminTab" class="btn" style="font-size: 14px; padding: 8px 16px; background: rgba(40, 40, 40, 0.6);">Admin</button>
                     </div>
-                    <button onclick="showChangePassword()" class="btn" style="background: #3b82f6; margin-top: 16px;">Change Password</button>
-                    <button onclick="logout()" class="btn" style="background: #ef4444; margin-top: 16px;">Logout</button>
+                    <button onclick="logout()" class="btn" style="font-size: 12px; padding: 8px 16px;">Logout</button>
+                  </div>
+                  <h1>Hello, \${user.username}!</h1>
+                  <div id="mainContent">
+                    <!-- Content will be loaded here based on active tab -->
+                  </div>
+                </div>
+              \`;
+              
+              // Show chat tab by default
+              showChatTab();
+            }
+            
+            function showChatTab() {
+              // Update tab styling
+              document.getElementById('chatTab').style.background = 'rgba(60, 60, 60, 0.8)';
+              document.getElementById('adminTab').style.background = 'rgba(40, 40, 40, 0.6)';
+              
+              // Load chat content
+              document.getElementById('mainContent').innerHTML = \`
+                <div class="status">
+                  <h3>💬 Chat with Zed</h3>
+                  <div id="messages" style="height: 300px; overflow-y: auto; background: rgba(20, 20, 20, 0.9); border-radius: 12px; padding: 16px; margin: 16px 0; text-align: left; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);"></div>
+                  <div style="display: flex; gap: 8px;">
+                    <input type="text" id="messageInput" placeholder="Ask Zed anything..." 
+                           style="flex: 1; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(30, 30, 30, 0.8); color: white; backdrop-filter: blur(10px);">
+                    <button onclick="sendMessage()" class="btn">Send</button>
                   </div>
                 </div>
               \`;
@@ -745,6 +766,34 @@ if (process.env.NODE_ENV === 'development') {
               document.getElementById('messageInput').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') sendMessage();
               });
+            }
+            
+            function showAdminTab() {
+              // Update tab styling
+              document.getElementById('chatTab').style.background = 'rgba(40, 40, 40, 0.6)';
+              document.getElementById('adminTab').style.background = 'rgba(60, 60, 60, 0.8)';
+              
+              // Load admin content
+              document.getElementById('mainContent').innerHTML = \`
+                <div class="status">
+                  <h3>⚙️ Administration</h3>
+                  <div style="padding: 20px 0;">
+                    <h4 style="margin-bottom: 16px; color: rgba(255, 255, 255, 0.9);">Account Settings</h4>
+                    <button onclick="showChangePassword()" class="btn" style="width: 100%; margin-bottom: 12px; padding: 14px; font-size: 16px;">Change Password</button>
+                    
+                    <h4 style="margin: 24px 0 16px; color: rgba(255, 255, 255, 0.9);">System Information</h4>
+                    <div style="background: rgba(30, 30, 30, 0.8); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                      <p style="margin: 4px 0; color: rgba(255, 255, 255, 0.8);">🧠 AI Core: Zed Assistant</p>
+                      <p style="margin: 4px 0; color: rgba(255, 255, 255, 0.8);">💾 Database: PostgreSQL</p>
+                      <p style="margin: 4px 0; color: rgba(255, 255, 255, 0.8);">🔒 Security: Active</p>
+                      <p style="margin: 4px 0; color: rgba(255, 255, 255, 0.8);">📊 Status: Operational</p>
+                    </div>
+                    
+                    <h4 style="margin: 24px 0 16px; color: rgba(255, 255, 255, 0.9);">Session Management</h4>
+                    <button onclick="logout()" class="btn" style="width: 100%; background: rgba(220, 38, 38, 0.8); border-color: rgba(220, 38, 38, 0.4); padding: 14px; font-size: 16px;">Sign Out</button>
+                  </div>
+                </div>
+              \`;
             }
             
             async function sendMessage() {
@@ -815,31 +864,28 @@ if (process.env.NODE_ENV === 'development') {
             }
             
             function showChangePassword() {
-              document.getElementById('root').innerHTML = \`
-                <div class="container">
-                  <div class="logo">
-                    <img src="/zed-logo.jpg" alt="Zed AI Logo" />
-                  </div>
-                  <h1>Change Password</h1>
-                  <div class="form-container">
+              document.getElementById('mainContent').innerHTML = \`
+                <div class="status">
+                  <h3>🔐 Change Password</h3>
+                  <div style="max-width: 400px; margin: 0 auto; padding: 20px 0;">
                     <form id="changePasswordForm">
-                      <div class="form-group">
-                        <label for="currentPassword">Current Password</label>
+                      <div style="margin-bottom: 16px;">
+                        <label for="currentPassword" style="display: block; margin-bottom: 8px; color: rgba(255, 255, 255, 0.8); font-size: 14px;">Current Password</label>
                         <input type="password" id="currentPassword" placeholder="Enter current password" required 
-                               style="width: 100%; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(30, 30, 30, 0.8); color: white; backdrop-filter: blur(10px);">
+                               style="width: 100%; padding: 14px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; background: rgba(30, 30, 30, 0.8); color: white; backdrop-filter: blur(10px); font-size: 16px;">
                       </div>
-                      <div class="form-group">
-                        <label for="newPassword">New Password</label>
+                      <div style="margin-bottom: 16px;">
+                        <label for="newPassword" style="display: block; margin-bottom: 8px; color: rgba(255, 255, 255, 0.8); font-size: 14px;">New Password</label>
                         <input type="password" id="newPassword" placeholder="Enter new password (min 6 characters)" required 
-                               style="width: 100%; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(30, 30, 30, 0.8); color: white; backdrop-filter: blur(10px);">
+                               style="width: 100%; padding: 14px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; background: rgba(30, 30, 30, 0.8); color: white; backdrop-filter: blur(10px); font-size: 16px;">
                       </div>
-                      <div class="form-group">
-                        <label for="confirmPassword">Confirm New Password</label>
+                      <div style="margin-bottom: 20px;">
+                        <label for="confirmPassword" style="display: block; margin-bottom: 8px; color: rgba(255, 255, 255, 0.8); font-size: 14px;">Confirm New Password</label>
                         <input type="password" id="confirmPassword" placeholder="Confirm new password" required 
-                               style="width: 100%; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(30, 30, 30, 0.8); color: white; backdrop-filter: blur(10px);">
+                               style="width: 100%; padding: 14px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; background: rgba(30, 30, 30, 0.8); color: white; backdrop-filter: blur(10px); font-size: 16px;">
                       </div>
-                      <button type="submit" class="btn">Change Password</button>
-                      <button type="button" onclick="location.reload()" class="btn" style="background: #6b7280; margin-top: 8px;">Cancel</button>
+                      <button type="submit" class="btn" style="width: 100%; margin-bottom: 12px; padding: 14px; font-size: 16px;">Update Password</button>
+                      <button type="button" onclick="showAdminTab()" class="btn" style="width: 100%; background: rgba(80, 80, 80, 0.8); padding: 14px; font-size: 16px;">Back to Admin</button>
                     </form>
                   </div>
                 </div>
