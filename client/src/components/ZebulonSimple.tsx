@@ -40,31 +40,32 @@ const ZebulonSimple: React.FC = () => {
   const queryClient = useQueryClient();
 
   // Get chat messages
-  const { data: messages = [], isLoading } = useQuery<ChatMessage[]>({
-    queryKey: ['/api/chat', user?.id],
+  const { data: chatData, isLoading } = useQuery({
+    queryKey: ['/api/chat/history'],
     enabled: !!user,
   });
+
+  const messages = chatData?.messages || [];
 
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (messageText: string) => {
-      return await apiRequest(`/api/chat/${user?.id}`, 'POST', {
-        message: messageText,
-        aiCore: 'zed'
+      return await apiRequest('/api/chat', 'POST', {
+        message: messageText
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/chat', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['/api/chat/history'] });
       setMessage('');
       toast({
         title: "Message Sent",
-        description: "Zed is processing your request...",
+        description: "Zed has responded to your message",
       });
     },
-    onError: () => {
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: "Failed to send message",
+        description: error.message || "Failed to send message",
         variant: "destructive",
       });
     }
@@ -157,18 +158,23 @@ const ZebulonSimple: React.FC = () => {
                 {messages.map((msg) => (
                   <div
                     key={msg.id}
-                    className={`flex ${msg.message.startsWith('Echo:') ? 'justify-start' : 'justify-end'}`}
+                    className={`flex ${msg.aiCore === 'zed' ? 'justify-start' : 'justify-end'}`}
                   >
-                    <div
-                      className={`max-w-[80%] p-3 rounded-lg ${
-                        msg.message.startsWith('Echo:')
-                          ? 'bg-blue-500/20 text-blue-100'
-                          : 'bg-gray-600/50 text-white'
-                      }`}
-                    >
-                      <div className="text-sm">{msg.message}</div>
-                      <div className="text-xs text-gray-400 mt-1">
-                        {new Date(msg.createdAt).toLocaleTimeString()}
+                    <div className={`flex items-start gap-3 ${msg.aiCore === 'zed' ? 'flex-row' : 'flex-row-reverse'}`}>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
+                        msg.aiCore === 'zed' ? 'bg-blue-600 text-white' : 'bg-green-600 text-white'
+                      }`}>
+                        {msg.aiCore === 'zed' ? 'Z' : 'U'}
+                      </div>
+                      <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg shadow ${
+                        msg.aiCore === 'zed' 
+                          ? 'bg-blue-600 text-white' 
+                          : 'bg-green-100 dark:bg-green-800 text-green-900 dark:text-green-100'
+                      }`}>
+                        <p className="text-sm">{msg.message}</p>
+                        <p className="text-xs opacity-70 mt-1">
+                          {new Date(msg.createdAt).toLocaleTimeString()}
+                        </p>
                       </div>
                     </div>
                   </div>

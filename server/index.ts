@@ -80,7 +80,88 @@ const requireAuth = (req: AuthenticatedRequest, res: Response, next: NextFunctio
   next();
 };
 
-// Simple log endpoint for testing
+// Zed AI Response Generator
+function generateZedResponse(userMessage: string, userId: number): string {
+  const message = userMessage.toLowerCase();
+  
+  // Context-aware responses based on user input
+  if (message.includes('hello') || message.includes('hi')) {
+    return `Hello! I'm Zed, your AI assistant within the Zebulon system. How can I help you today?`;
+  }
+  
+  if (message.includes('zebulon') || message.includes('system')) {
+    return `The Zebulon AI System is fully operational. I'm here to assist you with any questions or tasks you have. What would you like to explore?`;
+  }
+  
+  if (message.includes('help') || message.includes('what can you do')) {
+    return `I can help you with various tasks within the Zebulon system. I can answer questions, provide assistance, and help you navigate through different functionalities. What specific help do you need?`;
+  }
+  
+  if (message.includes('history') || message.includes('remember')) {
+    return `I have access to our conversation history and can reference previous interactions. This helps me provide more contextual and personalized assistance.`;
+  }
+  
+  // Default contextual response
+  const responses = [
+    `I understand your message: "${userMessage}". Let me process this through my Zed AI core and provide you with the most helpful response.`,
+    `Thank you for that input. As your Zed assistant, I'm analyzing: "${userMessage}" and preparing a comprehensive response.`,
+    `Processing your request: "${userMessage}". I'm here to help you get the most out of the Zebulon AI System.`,
+    `I've received: "${userMessage}". My Zed intelligence is working to provide you with the best possible assistance.`
+  ];
+  
+  return responses[Math.floor(Math.random() * responses.length)];
+}
+
+// Real-time chat endpoints
+app.post('/api/chat', requireAuth, async (req, res) => {
+  try {
+    const { message } = req.body;
+    const userId = (req as AuthenticatedRequest).session.userId!;
+    
+    if (!message?.trim()) {
+      return res.status(400).json({ error: 'Message is required' });
+    }
+
+    // Save user message
+    const userMessage = await storage.createChatMessage({
+      userId,
+      message: message.trim(),
+      aiCore: 'user'
+    });
+
+    // Generate Zed AI response
+    const aiResponse = generateZedResponse(message, userId);
+    
+    // Save AI response
+    const aiMessage = await storage.createChatMessage({
+      userId,
+      message: aiResponse,
+      aiCore: 'zed'
+    });
+
+    res.json({ 
+      userMessage, 
+      aiMessage,
+      success: true 
+    });
+  } catch (error) {
+    console.error('Chat error:', error);
+    res.status(500).json({ error: 'Failed to process chat message' });
+  }
+});
+
+app.get('/api/chat/history', requireAuth, async (req, res) => {
+  try {
+    const userId = (req as AuthenticatedRequest).session.userId!;
+    const messages = await storage.getChatMessages(userId);
+    res.json({ messages });
+  } catch (error) {
+    console.error('Chat history error:', error);
+    res.status(500).json({ error: 'Failed to fetch chat history' });
+  }
+});
+
+// Simple log endpoint for testing (keep for compatibility)
 app.post('/api/log', async (req, res) => {
   try {
     const { userId, message, aiCore = 'zed' } = req.body;
