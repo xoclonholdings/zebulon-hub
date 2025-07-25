@@ -4,10 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Brain, Activity } from 'lucide-react';
+import { Send, Activity } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import ZebulonLogo from './ZebulonLogo';
 
 interface ChatMessage {
   id: number;
@@ -83,7 +84,7 @@ const ZebulonSimple: React.FC<ZebulonSimpleProps> = ({ userId, systemStatus }) =
       <Card className="bg-gray-900 border-blue-500/30 mb-4">
         <CardHeader>
           <CardTitle className="text-blue-400 flex items-center space-x-2">
-            <Brain className="h-6 w-6" />
+            <ZebulonLogo size={24} className="animate-pulse" />
             <span>Zebulon AI System</span>
             <Badge variant="outline" className="text-green-400 border-green-400">
               Active
