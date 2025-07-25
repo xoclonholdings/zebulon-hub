@@ -10,15 +10,41 @@ This is a complete, clean Zebulon AI System focused exclusively on Zebulon and Z
 - PostgreSQL database (or use Neon.tech free tier)
 - VS Code with recommended extensions
 
-### 2. Environment Setup
+### 2. Remove Replit Dependencies (Important!)
+First, clean up Replit-specific files:
+```bash
+# Delete Replit configuration files
+rm -rf .replit replit.nix .cache/ .local/
+
+# Replace Neon database dependency with standard PostgreSQL
+npm uninstall @neondatabase/serverless ws
+npm install pg drizzle-orm
+npm install --save-dev @types/pg
+```
+
+### 3. Update Database Connection
+Replace `server/db.ts` with standard PostgreSQL:
+```typescript
+import { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import * as schema from "@shared/schema";
+
+export const pool = new Pool({ 
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
+export const db = drizzle(pool, { schema });
+```
+
+### 4. Environment Setup
 Create a `.env` file in the root directory:
 ```env
-DATABASE_URL="your_postgresql_connection_string"
+DATABASE_URL="postgresql://user:password@localhost:5432/zebulon"
 SESSION_SECRET="your_secret_key_here"
 NODE_ENV="development"
 ```
 
-### 3. Installation & Run
+### 5. Installation & Run
 ```bash
 # Install dependencies
 npm install
@@ -30,7 +56,7 @@ npm run db:push
 npm run dev
 ```
 
-### 4. Access
+### 6. Access
 - Frontend: http://localhost:5173
 - Backend API: http://localhost:5000
 
