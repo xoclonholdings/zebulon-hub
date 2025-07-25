@@ -191,7 +191,7 @@ Design theme: Exact styling as shown in user-provided reference images - pure bl
 - ✅ Implemented logic: connected modules open apps, unconnected modules open settings
 - ✅ Added support for three integration types: URL/Website, Custom Script, Embed Code
 - ✅ CONFIG module always opens internal system settings directly
-- ✅ CHAT (ZED) module always opens internal chat interface directly
+- ✅ ZED module follows integration logic like other external modules
 - ✅ All other modules (ZYNC, ZETA, ZWAP!, ZULU) follow integration logic
 - ✅ Persistent storage of module connections in PostgreSQL database
 - ✅ User can connect external apps, paste URLs, scripts, or embed codes per module
