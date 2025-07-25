@@ -297,6 +297,48 @@ app.get('/api/auth/me', async (req: AuthenticatedRequest, res) => {
   }
 });
 
+// Change password endpoint
+app.post('/api/auth/change-password', async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.session?.userId) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: 'Current password and new password are required' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: 'New password must be at least 6 characters long' });
+    }
+
+    // Get current user
+    const user = await storage.getUser(req.session.userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Verify current password
+    const isValid = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!isValid) {
+      return res.status(400).json({ error: 'Current password is incorrect' });
+    }
+
+    // Hash new password
+    const newPasswordHash = await bcrypt.hash(newPassword, 10);
+
+    // Update password
+    await storage.updateUserPassword(user.id, newPasswordHash);
+
+    res.json({ message: 'Password changed successfully' });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // API Routes
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Zebulon AI System is running with Prisma' });
@@ -624,6 +666,7 @@ if (process.env.NODE_ENV === 'development') {
                              style="flex: 1; padding: 12px; border: 1px solid #374151; border-radius: 6px; background: #1f2937; color: white;">
                       <button onclick="sendMessage()" class="btn">Send</button>
                     </div>
+                    <button onclick="showChangePassword()" class="btn" style="background: #3b82f6; margin-top: 16px;">Change Password</button>
                     <button onclick="logout()" class="btn" style="background: #ef4444; margin-top: 16px;">Logout</button>
                   </div>
                 </div>
@@ -679,10 +722,76 @@ if (process.env.NODE_ENV === 'development') {
               showLogin();
             }
             
+            function showChangePassword() {
+              document.getElementById('root').innerHTML = \`
+                <div class="container">
+                  <div class="logo">Z</div>
+                  <h1>Change Password</h1>
+                  <div class="form-container">
+                    <form id="changePasswordForm">
+                      <div class="form-group">
+                        <label for="currentPassword">Current Password</label>
+                        <input type="password" id="currentPassword" placeholder="Enter current password" required 
+                               style="width: 100%; padding: 12px; border: 1px solid #374151; border-radius: 6px; background: #1f2937; color: white;">
+                      </div>
+                      <div class="form-group">
+                        <label for="newPassword">New Password</label>
+                        <input type="password" id="newPassword" placeholder="Enter new password (min 6 characters)" required 
+                               style="width: 100%; padding: 12px; border: 1px solid #374151; border-radius: 6px; background: #1f2937; color: white;">
+                      </div>
+                      <div class="form-group">
+                        <label for="confirmPassword">Confirm New Password</label>
+                        <input type="password" id="confirmPassword" placeholder="Confirm new password" required 
+                               style="width: 100%; padding: 12px; border: 1px solid #374151; border-radius: 6px; background: #1f2937; color: white;">
+                      </div>
+                      <button type="submit" class="btn">Change Password</button>
+                      <button type="button" onclick="location.reload()" class="btn" style="background: #6b7280; margin-top: 8px;">Cancel</button>
+                    </form>
+                  </div>
+                </div>
+              \`;
+              
+              document.getElementById('changePasswordForm').onsubmit = async (e) => {
+                e.preventDefault();
+                const currentPassword = document.getElementById('currentPassword').value;
+                const newPassword = document.getElementById('newPassword').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                
+                if (newPassword !== confirmPassword) {
+                  alert('New passwords do not match');
+                  return;
+                }
+                
+                if (newPassword.length < 6) {
+                  alert('New password must be at least 6 characters long');
+                  return;
+                }
+                
+                try {
+                  const res = await fetch('/api/auth/change-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ currentPassword, newPassword })
+                  });
+                  
+                  if (res.ok) {
+                    alert('Password changed successfully!');
+                    location.reload();
+                  } else {
+                    const error = await res.json();
+                    alert('Failed to change password: ' + (error.error || 'Please try again'));
+                  }
+                } catch (err) {
+                  alert('Network error - please try again');
+                }
+              };
+            }
+            
             // Make functions global
             window.showLogin = showLogin;
             window.showSignup = showSignup;
             window.sendMessage = sendMessage;
+            window.showChangePassword = showChangePassword;
             window.logout = logout;
           </script>
         </body>
