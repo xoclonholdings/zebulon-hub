@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev": "NODE_ENV=development tsx server/index.ts",
     "dev:server": "NODE_ENV=development tsx server/index.ts",
     "dev:client": "vite --config vite.config.clean.ts",
     "build": "npm run build:server && npm run build:client",
