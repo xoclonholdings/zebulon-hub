@@ -9,13 +9,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
-import zedLogoPath from '../../../attached_assets/Zed-ai-logo_1753425830375.jpg';
+import zedLogoPath from '@assets/Zed-ai-logo_1753425830375.jpg';
 
 interface ChatMessage {
   id: number;
   message: string;
   aiCore: string;
   createdAt: string;
+  userId: number;
 }
 
 interface SystemStatus {
@@ -40,12 +41,12 @@ const ZebulonSimple: React.FC = () => {
   const queryClient = useQueryClient();
 
   // Get chat messages
-  const { data: chatData, isLoading } = useQuery({
+  const { data: chatData, isLoading } = useQuery<{messages: ChatMessage[]}>({
     queryKey: ['/api/chat/history'],
     enabled: !!user,
   });
 
-  const messages = chatData?.messages || [];
+  const messages: ChatMessage[] = chatData?.messages || [];
 
   // Send message mutation
   const sendMessageMutation = useMutation({

@@ -281,9 +281,13 @@ app.post('/api/auth/logout', (req: AuthenticatedRequest, res) => {
   });
 });
 
-app.get('/api/auth/me', requireAuth, async (req: AuthenticatedRequest, res) => {
+app.get('/api/auth/me', async (req: AuthenticatedRequest, res) => {
   try {
-    const user = await storage.getUser(req.session.userId!);
+    if (!req.session?.userId) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    const user = await storage.getUser(req.session.userId);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
