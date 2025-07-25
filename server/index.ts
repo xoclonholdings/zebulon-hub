@@ -427,61 +427,271 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Zebulon AI System is running with Prisma' });
 });
 
-// Development mode: redirect to frontend
+// Serve frontend and backend on the same port
 if (process.env.NODE_ENV === 'development') {
+  // Development: serve the complete interface
   app.get('/', (req, res) => {
     res.send(`
       <!DOCTYPE html>
-      <html>
+      <html lang="en">
         <head>
+          <meta charset="UTF-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
           <title>Zebulon AI System</title>
           <style>
-            body { 
-              font-family: Arial, sans-serif; 
-              text-align: center; 
-              background: #000; 
-              color: #fff; 
-              padding: 50px; 
+            body {
+              margin: 0;
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+              background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+              color: white;
+              min-height: 100vh;
+              display: flex;
+              align-items: center;
+              justify-content: center;
             }
-            .container { 
-              max-width: 600px; 
-              margin: 0 auto; 
-              padding: 40px; 
-              border: 2px solid #3b82f6; 
-              border-radius: 10px; 
+            .container {
+              text-align: center;
+              max-width: 600px;
+              padding: 2rem;
             }
-            .logo { width: 64px; height: 64px; margin: 20px auto; }
-            a { 
-              color: #3b82f6; 
-              text-decoration: none; 
-              font-size: 18px; 
-              font-weight: bold; 
+            .logo {
+              width: 80px;
+              height: 80px;
+              margin: 0 auto 2rem;
+              background: #3b82f6;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 2rem;
+              font-weight: bold;
             }
-            .note { 
-              margin: 20px 0; 
-              padding: 15px; 
-              background: #1f2937; 
-              border-radius: 5px; 
+            h1 {
+              font-size: 2.5rem;
+              margin-bottom: 1rem;
+              background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+              -webkit-background-clip: text;
+              -webkit-text-fill-color: transparent;
+              background-clip: text;
+            }
+            .status {
+              background: rgba(59, 130, 246, 0.1);
+              border: 1px solid rgba(59, 130, 246, 0.3);
+              border-radius: 12px;
+              padding: 1.5rem;
+              margin: 2rem 0;
+            }
+            .btn {
+              background: #3b82f6;
+              border: none;
+              color: white;
+              padding: 12px 24px;
+              border-radius: 8px;
+              font-size: 1rem;
+              cursor: pointer;
+              margin: 0.5rem;
+              transition: background 0.2s;
+            }
+            .btn:hover {
+              background: #2563eb;
+            }
+            #root {
+              min-height: 100vh;
             }
           </style>
         </head>
         <body>
-          <div class="container">
-            <h1>🚀 Zebulon AI System</h1>
-            <div class="note">
-              <h3>⚠️ You're viewing the Backend API Server</h3>
-              <p>To access the <strong>Zebulon Chat Interface</strong> with your Zed AI assistant:</p>
-              <p><strong>Look for Port 5173 in your Replit environment</strong></p>
-              <p>Or click: <a href="http://localhost:5173" target="_blank">Frontend Chat Interface</a></p>
-            </div>
-            <div class="note">
-              <h4>System Status:</h4>
-              <p>✅ Backend API: Running on Port 5000</p>
-              <p>✅ Frontend UI: Running on Port 5173</p>
-              <p>✅ Database: PostgreSQL Connected</p>
-              <p>✅ Zed AI: Ready for Chat</p>
+          <div id="root">
+            <div class="container">
+              <div class="logo">Z</div>
+              <h1>Zebulon AI System</h1>
+              <div class="status">
+                <h3>✅ System Status: Operational</h3>
+                <p>🧠 Zed AI Assistant: Ready</p>
+                <p>💾 Database: Connected</p>
+                <p>🔒 Security: Active</p>
+              </div>
+              <p>Loading your intelligent assistant...</p>
             </div>
           </div>
+          
+          <script type="module">
+            // Check auth status and show appropriate interface
+            fetch('/api/auth/me')
+              .then(res => res.ok ? res.json() : null)
+              .then(user => {
+                if (user) {
+                  showDashboard(user);
+                } else {
+                  showLogin();
+                }
+              })
+              .catch(() => showLogin());
+            
+            function showLogin() {
+              document.getElementById('root').innerHTML = \`
+                <div class="container">
+                  <div class="logo">Z</div>
+                  <h1>Welcome to Zebulon</h1>
+                  <div class="status">
+                    <h3>🔐 Please Sign In</h3>
+                    <form id="loginForm" style="max-width: 300px; margin: 0 auto;">
+                      <input type="text" id="username" placeholder="Username" required 
+                             style="width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #374151; border-radius: 6px; background: #1f2937; color: white;">
+                      <input type="password" id="password" placeholder="Password" required
+                             style="width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #374151; border-radius: 6px; background: #1f2937; color: white;">
+                      <button type="submit" class="btn" style="width: 100%; margin-top: 16px;">Sign In</button>
+                      <button type="button" class="btn" onclick="showSignup()" style="width: 100%; background: #6b7280;">Create Account</button>
+                    </form>
+                  </div>
+                </div>
+              \`;
+              
+              document.getElementById('loginForm').onsubmit = async (e) => {
+                e.preventDefault();
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                
+                try {
+                  const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                  });
+                  
+                  if (res.ok) {
+                    const user = await res.json();
+                    showDashboard(user);
+                  } else {
+                    alert('Login failed - please check your credentials');
+                  }
+                } catch (err) {
+                  alert('Network error - please try again');
+                }
+              };
+            }
+            
+            function showSignup() {
+              document.getElementById('root').innerHTML = \`
+                <div class="container">
+                  <div class="logo">Z</div>
+                  <h1>Join Zebulon</h1>
+                  <div class="status">
+                    <h3>📝 Create Account</h3>
+                    <form id="signupForm" style="max-width: 300px; margin: 0 auto;">
+                      <input type="text" id="username" placeholder="Username" required 
+                             style="width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #374151; border-radius: 6px; background: #1f2937; color: white;">
+                      <input type="email" id="email" placeholder="Email (optional)"
+                             style="width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #374151; border-radius: 6px; background: #1f2937; color: white;">
+                      <input type="password" id="password" placeholder="Password" required
+                             style="width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #374151; border-radius: 6px; background: #1f2937; color: white;">
+                      <button type="submit" class="btn" style="width: 100%; margin-top: 16px;">Create Account</button>
+                      <button type="button" class="btn" onclick="showLogin()" style="width: 100%; background: #6b7280;">Back to Login</button>
+                    </form>
+                  </div>
+                </div>
+              \`;
+              
+              document.getElementById('signupForm').onsubmit = async (e) => {
+                e.preventDefault();
+                const username = document.getElementById('username').value;
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                
+                try {
+                  const res = await fetch('/api/auth/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                  });
+                  
+                  if (res.ok) {
+                    const user = await res.json();
+                    showDashboard(user);
+                  } else {
+                    const error = await res.json();
+                    alert('Signup failed: ' + (error.message || 'Please try again'));
+                  }
+                } catch (err) {
+                  alert('Network error - please try again');
+                }
+              };
+            }
+            
+            function showDashboard(user) {
+              document.getElementById('root').innerHTML = \`
+                <div class="container">
+                  <div class="logo">Z</div>
+                  <h1>Hello, \${user.username}!</h1>
+                  <div class="status">
+                    <h3>💬 Chat with Zed</h3>
+                    <div id="messages" style="height: 300px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 16px; margin: 16px 0; text-align: left;"></div>
+                    <div style="display: flex; gap: 8px;">
+                      <input type="text" id="messageInput" placeholder="Type your message..." 
+                             style="flex: 1; padding: 12px; border: 1px solid #374151; border-radius: 6px; background: #1f2937; color: white;">
+                      <button onclick="sendMessage()" class="btn">Send</button>
+                    </div>
+                    <button onclick="logout()" class="btn" style="background: #ef4444; margin-top: 16px;">Logout</button>
+                  </div>
+                </div>
+              \`;
+              
+              loadMessages();
+              
+              document.getElementById('messageInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendMessage();
+              });
+            }
+            
+            async function sendMessage() {
+              const input = document.getElementById('messageInput');
+              const message = input.value.trim();
+              if (!message) return;
+              
+              input.value = '';
+              
+              try {
+                await fetch('/api/chat', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ message })
+                });
+                
+                loadMessages();
+              } catch (err) {
+                alert('Failed to send message - please try again');
+              }
+            }
+            
+            async function loadMessages() {
+              try {
+                const res = await fetch('/api/chat/history');
+                const data = await res.json();
+                const messagesDiv = document.getElementById('messages');
+                
+                messagesDiv.innerHTML = data.messages.map(msg => \`
+                  <div style="margin-bottom: 12px; padding: 8px; background: \${msg.aiCore === 'zed' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(34, 197, 94, 0.1)'}; border-radius: 6px;">
+                    <strong>\${msg.aiCore === 'zed' ? 'Zed' : 'You'}:</strong> \${msg.message}
+                  </div>
+                \`).join('');
+                
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+              } catch (err) {
+                console.error('Failed to load messages');
+              }
+            }
+            
+            async function logout() {
+              await fetch('/api/auth/logout', { method: 'POST' });
+              showLogin();
+            }
+            
+            // Make functions global
+            window.showLogin = showLogin;
+            window.showSignup = showSignup;
+            window.sendMessage = sendMessage;
+            window.logout = logout;
+          </script>
         </body>
       </html>
     `);
@@ -489,17 +699,13 @@ if (process.env.NODE_ENV === 'development') {
   
   app.get('*', (req, res) => {
     if (!req.path.startsWith('/api')) {
-      res.json({
-        note: 'This is the backend server',
-        frontend: 'Access the frontend at: http://localhost:5173',
-        available_apis: ['/api/auth/login', '/api/auth/signup', '/api/chat', '/api/chat/history']
-      });
+      res.redirect('/');
     } else {
       res.status(404).json({ error: 'API endpoint not found' });
     }
   });
 } else {
-  // Production mode: serve built files
+  // Production: serve built files
   const publicPath = path.join(__dirname, '../public');
   app.use(express.static(publicPath));
   
@@ -542,10 +748,16 @@ async function startServer() {
     // Start server
     app.listen(PORT, () => {
       console.log('Database initialization completed');
-      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`🚀 Zebulon AI System running on port ${PORT}`);
+      console.log(`🌐 Frontend and Backend unified on single port`);
       console.log(`💾 Database: PostgreSQL with Prisma`);
-      console.log(`🧠 AI: Local processing (no external APIs)`);
+      console.log(`🧠 AI: Local Zed assistant ready`);
       console.log(`🔒 Security: Multi-layer protection active`);
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`🔧 Development mode: Vite integrated`);
+        console.log(`🌍 Access your Zebulon AI System at: http://localhost:${PORT}`);
+      }
     });
   } catch (error) {
     console.error('Failed to start server:', error);
