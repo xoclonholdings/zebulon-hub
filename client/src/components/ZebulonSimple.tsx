@@ -10,7 +10,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
-// Removed Zed logo import - using Zebulon Oracle branding only
+import zebulonLogoPath from '@assets/Zed-ai-logo_1753441894358.png';
 
 interface ChatMessage {
   id: number;
@@ -146,9 +146,11 @@ const ZebulonSimple: React.FC = () => {
       <header className="p-6 mb-6" style={{ backgroundColor: '#000000' }}>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">Z</span>
-            </div>
+            <img 
+              src={zebulonLogoPath} 
+              alt="Zebulon Oracle Logo" 
+              className="w-12 h-12 object-contain"
+            />
             <div>
               <h1 className="text-2xl font-extrabold tracking-wide" style={{ 
                 color: '#ffffff', 
