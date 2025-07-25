@@ -153,7 +153,14 @@ const ZebulonSimple: React.FC = () => {
               className="w-12 h-12 object-contain"
             />
             <div>
-              <h1 className="text-2xl font-bold" style={{ color: '#a855f7' }}>ZEBULON</h1>
+              <h1 className="text-2xl font-extrabold tracking-wide" style={{ 
+                color: '#ffffff', 
+                textShadow: '0 0 10px rgba(168, 85, 247, 0.3)',
+                background: 'linear-gradient(135deg, #ffffff 0%, #a855f7 50%, #ffffff 100%)',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent'
+              }}>ZEBULON</h1>
             </div>
           </div>
           <div className="flex items-center space-x-3">

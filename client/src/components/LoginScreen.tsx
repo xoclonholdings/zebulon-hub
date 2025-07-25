@@ -99,17 +99,24 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
     <div className="min-h-screen bg-black text-white flex items-center justify-center p-4" style={{ backgroundColor: '#000000' }}>
       <Card className="w-full max-w-md border border-gray-800 rounded-2xl" style={{ backgroundColor: '#000000' }}>
         <CardHeader className="text-center pb-6">
-          <div className="flex justify-center mb-6">
+          <div className="flex justify-center mb-2">
             <img 
               src={zedLogoPath} 
               alt="Zed AI Logo" 
               className="w-24 h-24 object-contain opacity-90"
             />
           </div>
-          <CardTitle className="text-2xl font-bold mb-2" style={{ color: '#a855f7' }}>
+          <CardTitle className="text-3xl font-extrabold mb-3 tracking-wide" style={{ 
+            color: '#ffffff', 
+            textShadow: '0 0 15px rgba(168, 85, 247, 0.4), 0 0 30px rgba(168, 85, 247, 0.2)',
+            background: 'linear-gradient(135deg, #ffffff 0%, #a855f7 50%, #ffffff 100%)',
+            backgroundClip: 'text',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent'
+          }}>
             ZEBULON
           </CardTitle>
-          <p className="text-gray-400 text-sm">
+          <p className="text-gray-200 text-base font-medium" style={{ color: '#e5e7eb' }}>
             {isSignUp ? 'Create your account' : 'Welcome back'}
           </p>
         </CardHeader>
