@@ -30,9 +30,8 @@ app.use(session({
   }
 }));
 
-// Serve static files from public directory
-app.use(express.static(path.join(__dirname, '../public')));
-app.use(express.static(path.join(__dirname, '../server/public')));
+// Serve static files from built public directory
+app.use(express.static(path.join(__dirname, '../dist/public')));
 
 // Request logging
 app.use((req, res, next) => {
@@ -312,7 +311,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Serve React app
-const publicPath = path.join(__dirname, '../server/public');
+const publicPath = path.join(__dirname, '../dist/public');
 app.get('*', (req, res) => {
   if (!req.path.startsWith('/api')) {
     res.sendFile(path.join(publicPath, 'index.html'));
