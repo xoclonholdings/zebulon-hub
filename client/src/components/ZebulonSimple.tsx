@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Label } from '@/components/ui/label';
-import { Send, Activity, LogOut, Settings, MessageCircle, Shield, Music, Database, Lock } from 'lucide-react';
+import { Send, Activity, LogOut, Settings, MessageCircle, Shield, DollarSign, Wrench, Lock, Database } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -172,7 +172,11 @@ const ZebulonSimple: React.FC = () => {
             </div>
           </div>
           <div className="flex items-center space-x-3">
-            <div className="px-3 py-1 rounded-lg text-sm" style={{ backgroundColor: '#1a1a1a', color: '#10b981' }}>
+            <div 
+              className="px-3 py-1 rounded-lg text-sm cursor-pointer hover:opacity-80 transition-opacity duration-200" 
+              style={{ backgroundColor: '#1a1a1a', color: '#10b981' }}
+              onClick={() => setActiveTab('oracle')}
+            >
               Zebulon Core
             </div>
             <Button
@@ -234,24 +238,24 @@ const ZebulonSimple: React.FC = () => {
           <div 
             className="p-6 rounded-2xl cursor-pointer hover:opacity-80 transition-all duration-200 border border-gray-800" 
             style={{ backgroundColor: '#000000' }}
-            onClick={() => setActiveTab('music')}
+            onClick={() => setActiveTab('zwap')}
           >
             <div className="flex flex-col items-center space-y-3">
-              <Music className="h-10 w-10 text-pink-400" />
-              <span className="text-white font-bold text-lg">Music</span>
-              <span className="text-gray-400 text-sm text-center">Audio Control</span>
+              <DollarSign className="h-10 w-10 text-pink-400" />
+              <span className="text-white font-bold text-lg">ZWAP!</span>
+              <span className="text-gray-400 text-sm text-center">Financial Utility</span>
             </div>
           </div>
           
           <div 
             className="p-6 rounded-2xl cursor-pointer hover:opacity-80 transition-all duration-200 border border-gray-800" 
             style={{ backgroundColor: '#000000' }}
-            onClick={() => setActiveTab('oracle')}
+            onClick={() => setActiveTab('zulu')}
           >
             <div className="flex flex-col items-center space-y-3">
-              <Database className="h-10 w-10 text-orange-400" />
-              <span className="text-white font-bold text-lg">Oracle</span>
-              <span className="text-gray-400 text-sm text-center">Database Core</span>
+              <Wrench className="h-10 w-10 text-orange-400" />
+              <span className="text-white font-bold text-lg">ZULU</span>
+              <span className="text-gray-400 text-sm text-center">System Repairs</span>
             </div>
           </div>
           
@@ -293,8 +297,9 @@ const ZebulonSimple: React.FC = () => {
                 {activeTab === 'chat' && 'ZED Chat Interface'}
                 {activeTab === 'status' && 'ZYNC IDE System'}
                 {activeTab === 'admin' && 'ZETA Security Panel'}
-                {activeTab === 'music' && 'Music Control'}
-                {activeTab === 'oracle' && 'Oracle Database'}
+                {activeTab === 'zwap' && 'ZWAP! Financial Utility'}
+                {activeTab === 'oracle' && 'Oracle Database Core'}
+                {activeTab === 'zulu' && 'ZULU System Repairs'}
                 {activeTab === 'config' && 'System Configuration'}
               </h2>
               <Button 
@@ -447,46 +452,46 @@ const ZebulonSimple: React.FC = () => {
               </div>
             )}
 
-            {activeTab === 'music' && (
+            {activeTab === 'zwap' && (
               <div className="space-y-6">
                 <div className="grid grid-cols-2 gap-6">
                   <div className="p-4 rounded-lg border border-gray-800" style={{ backgroundColor: '#000000' }}>
-                    <h3 className="text-lg font-semibold text-white mb-4">Audio Controls</h3>
+                    <h3 className="text-lg font-semibold text-white mb-4">Account Overview</h3>
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-gray-300">System Volume</span>
-                        <Badge variant="outline" className="text-green-400 border-green-400">85%</Badge>
+                        <span className="text-gray-300">Balance</span>
+                        <Badge variant="outline" className="text-green-400 border-green-400">$2,485.32</Badge>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-gray-300">Audio Input</span>
-                        <Badge variant="outline" className="text-blue-400 border-blue-400">Active</Badge>
+                        <span className="text-gray-300">Monthly Budget</span>
+                        <Badge variant="outline" className="text-blue-400 border-blue-400">$3,200</Badge>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-gray-300">Output Device</span>
-                        <Badge variant="outline" className="text-purple-400 border-purple-400">Speakers</Badge>
+                        <span className="text-gray-300">Savings Goal</span>
+                        <Badge variant="outline" className="text-purple-400 border-purple-400">67%</Badge>
                       </div>
                     </div>
                   </div>
                   <div className="p-4 rounded-lg border border-gray-800" style={{ backgroundColor: '#000000' }}>
-                    <h3 className="text-lg font-semibold text-white mb-4">Audio Processing</h3>
+                    <h3 className="text-lg font-semibold text-white mb-4">Financial Tools</h3>
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-gray-300">Voice Recognition</span>
-                        <Badge variant="outline" className="text-green-400 border-green-400">Enabled</Badge>
+                        <span className="text-gray-300">Expense Tracking</span>
+                        <Badge variant="outline" className="text-green-400 border-green-400">Active</Badge>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-gray-300">Audio Analysis</span>
-                        <Badge variant="outline" className="text-orange-400 border-orange-400">Processing</Badge>
+                        <span className="text-gray-300">Bill Reminders</span>
+                        <Badge variant="outline" className="text-orange-400 border-orange-400">3 Pending</Badge>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-gray-300">Real-time Mode</span>
-                        <Badge variant="outline" className="text-pink-400 border-pink-400">Active</Badge>
+                        <span className="text-gray-300">Investment Monitor</span>
+                        <Badge variant="outline" className="text-pink-400 border-pink-400">+12.8%</Badge>
                       </div>
                     </div>
                   </div>
                 </div>
                 <div className="text-center text-gray-400">
-                  <p>Music and audio control functionality ready for implementation</p>
+                  <p>ZWAP! financial utility - Track expenses, manage budgets, and monitor investments</p>
                 </div>
               </div>
             )}
@@ -531,6 +536,50 @@ const ZebulonSimple: React.FC = () => {
                 </div>
                 <div className="text-center text-gray-400">
                   <p>Oracle database core is operational and ready for advanced queries</p>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'zulu' && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="p-4 rounded-lg border border-gray-800" style={{ backgroundColor: '#000000' }}>
+                    <h3 className="text-lg font-semibold text-white mb-4">System Diagnostics</h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-300">CPU Health</span>
+                        <Badge variant="outline" className="text-green-400 border-green-400">Optimal</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-300">Memory Status</span>
+                        <Badge variant="outline" className="text-blue-400 border-blue-400">74% Used</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-300">Disk Health</span>
+                        <Badge variant="outline" className="text-green-400 border-green-400">Good</Badge>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-4 rounded-lg border border-gray-800" style={{ backgroundColor: '#000000' }}>
+                    <h3 className="text-lg font-semibold text-white mb-4">Repair Tools</h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-300">Auto Cleanup</span>
+                        <Badge variant="outline" className="text-green-400 border-green-400">Enabled</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-300">Error Scanner</span>
+                        <Badge variant="outline" className="text-orange-400 border-orange-400">Running</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-300">Registry Check</span>
+                        <Badge variant="outline" className="text-purple-400 border-purple-400">Scheduled</Badge>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-center text-gray-400">
+                  <p>ZULU system repair and maintenance tools for optimal performance</p>
                 </div>
               </div>
             )}
