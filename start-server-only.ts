@@ -1,39 +1,53 @@
 #!/usr/bin/env tsx
-// Start server-only script for unified port 5000
-// This eliminates the dual-server setup and runs only the unified server
-import { spawn } from 'child_process';
-import path from 'path';
+/**
+ * Server-Only Startup Script for Zebulon AI System
+ * 
+ * This script starts ONLY the unified server on port 5000.
+ * No Vite development server on port 5173 is started.
+ * 
+ * Usage: npx tsx start-server-only.ts
+ */
 
-console.log('🚀 Starting Zebulon AI System - Unified Server Only');
-console.log('🔧 Port 5000 - No separate Vite development server');
+import { exec } from 'child_process';
 
-const serverProcess = spawn('npx', ['tsx', 'server/index.ts'], {
-  stdio: 'inherit',
-  env: {
-    ...process.env,
-    NODE_ENV: 'development'
+console.log('🚀 Starting Zebulon AI System - Server Only Mode');
+console.log('📍 Single unified interface on port 5000');
+console.log('❌ No Vite development server (port 5173 eliminated)');
+console.log('');
+
+// Start only the server
+const serverProcess = exec('NODE_ENV=development tsx server/index.ts', (error, stdout, stderr) => {
+  if (error) {
+    console.error(`Server error: ${error}`);
+    return;
   }
-});
-
-serverProcess.on('error', (error) => {
-  console.error('❌ Server failed to start:', error);
-  process.exit(1);
-});
-
-serverProcess.on('close', (code) => {
-  console.log(`🔄 Server process exited with code ${code}`);
-  if (code !== 0) {
-    process.exit(code);
+  if (stderr) {
+    console.error(`Server stderr: ${stderr}`);
   }
+  console.log(`Server stdout: ${stdout}`);
 });
 
-// Handle graceful shutdown
+// Forward server output
+if (serverProcess.stdout) {
+  serverProcess.stdout.on('data', (data) => {
+    process.stdout.write(data);
+  });
+}
+
+if (serverProcess.stderr) {
+  serverProcess.stderr.on('data', (data) => {
+    process.stderr.write(data);
+  });
+}
+
+// Handle process termination
 process.on('SIGINT', () => {
-  console.log('\n🛑 Shutting down Zebulon AI System...');
+  console.log('\n🛑 Shutting down server-only mode...');
   serverProcess.kill('SIGINT');
+  process.exit(0);
 });
 
 process.on('SIGTERM', () => {
-  console.log('\n🛑 Terminating Zebulon AI System...');
   serverProcess.kill('SIGTERM');
+  process.exit(0);
 });
