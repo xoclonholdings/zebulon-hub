@@ -60,3 +60,30 @@ export interface InsertOracleMemory {
   status?: 'active' | 'locked';
   createdBy: string;
 }
+
+export interface ModuleIntegration {
+  id: string;
+  moduleName: string;
+  displayName: string;
+  isConnected: boolean;
+  integrationType?: 'url' | 'script' | 'embed' | null;
+  integrationUrl?: string | null;
+  integrationScript?: string | null;
+  integrationEmbed?: string | null;
+  integrationConfig?: any;
+  connectedAppName?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface InsertModuleIntegration {
+  moduleName: string;
+  displayName: string;
+  isConnected?: boolean;
+  integrationType?: 'url' | 'script' | 'embed';
+  integrationUrl?: string;
+  integrationScript?: string;
+  integrationEmbed?: string;
+  integrationConfig?: any;
+  connectedAppName?: string;
+}

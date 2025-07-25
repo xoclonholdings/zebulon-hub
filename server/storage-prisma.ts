@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { User, ChatMessage, SystemStatus, OracleMemory, InsertOracleMemory } from '../shared/schema.js';
+import { User, ChatMessage, SystemStatus, OracleMemory, InsertOracleMemory, ModuleIntegration, InsertModuleIntegration } from '../shared/schema.js';
 
 // Initialize Prisma Client
 const prisma = new PrismaClient({
@@ -100,6 +100,44 @@ export class PrismaStorage {
   }
 
   // Oracle Memory management
+  // Module Integration methods
+  async getModuleIntegrations(): Promise<ModuleIntegration[]> {
+    return await prisma.moduleIntegration.findMany({
+      orderBy: { createdAt: 'desc' }
+    }) as ModuleIntegration[];
+  }
+
+  async getModuleIntegration(moduleName: string): Promise<ModuleIntegration | null> {
+    const integration = await prisma.moduleIntegration.findUnique({
+      where: { moduleName }
+    });
+    return integration as ModuleIntegration | null;
+  }
+
+  async createModuleIntegration(data: InsertModuleIntegration): Promise<ModuleIntegration> {
+    const integration = await prisma.moduleIntegration.create({
+      data
+    });
+    return integration as ModuleIntegration;
+  }
+
+  async updateModuleIntegration(moduleName: string, data: Partial<InsertModuleIntegration>): Promise<ModuleIntegration> {
+    const integration = await prisma.moduleIntegration.update({
+      where: { moduleName },
+      data: {
+        ...data,
+        updatedAt: new Date()
+      }
+    });
+    return integration as ModuleIntegration;
+  }
+
+  async deleteModuleIntegration(moduleName: string): Promise<void> {
+    await prisma.moduleIntegration.delete({
+      where: { moduleName }
+    });
+  }
+
   async getOracleMemories(): Promise<OracleMemory[]> {
     const results = await prisma.oracleMemory.findMany({
       orderBy: { lastModified: 'desc' }

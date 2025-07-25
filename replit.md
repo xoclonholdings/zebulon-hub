@@ -183,6 +183,20 @@ Design theme: Exact styling as shown in user-provided reference images - pure bl
 - ✅ Admin-only functionality properly implemented for Oracle operations
 - ✅ Project ready for export with clean, optimized codebase
 
+**✅ MODULE INTEGRATION LOGIC IMPLEMENTATION (2025-07-25)**
+- ✅ Added ModuleIntegration database table to store app connections per module
+- ✅ Created comprehensive API endpoints for module integration management (GET, POST, PUT, DELETE)
+- ✅ Built ModuleSettings component for configuring module connections (URL, Script, Embed)
+- ✅ Built ModuleIntegration component for displaying connected apps in full-screen mode
+- ✅ Implemented logic: connected modules open apps, unconnected modules open settings
+- ✅ Added support for three integration types: URL/Website, Custom Script, Embed Code
+- ✅ CONFIG module always opens internal system settings directly
+- ✅ CHAT (ZED) module always opens internal chat interface directly
+- ✅ All other modules (ZYNC, ZETA, ZWAP!, ZULU) follow integration logic
+- ✅ Persistent storage of module connections in PostgreSQL database
+- ✅ User can connect external apps, paste URLs, scripts, or embed codes per module
+- ✅ Clean disconnect functionality to remove integrations when needed
+
 ## System Architecture
 
 The Zebulon system follows a modern full-stack architecture with the following key components:

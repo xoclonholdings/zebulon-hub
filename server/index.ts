@@ -305,6 +305,65 @@ app.get('/api/system/status', async (req, res) => {
   }
 });
 
+// Module Integration API endpoints
+app.get('/api/modules', async (req, res) => {
+  try {
+    const modules = await storage.getModuleIntegrations();
+    res.json(modules);
+  } catch (error) {
+    console.error('Get modules error:', error);
+    res.status(500).json({ error: 'Failed to fetch modules' });
+  }
+});
+
+app.get('/api/modules/:moduleName', async (req, res) => {
+  try {
+    const { moduleName } = req.params;
+    const module = await storage.getModuleIntegration(moduleName);
+    if (!module) {
+      return res.status(404).json({ error: 'Module not found' });
+    }
+    res.json(module);
+  } catch (error) {
+    console.error('Get module error:', error);
+    res.status(500).json({ error: 'Failed to fetch module' });
+  }
+});
+
+app.post('/api/modules', requireAuth, async (req, res) => {
+  try {
+    const moduleData = req.body;
+    const module = await storage.createModuleIntegration(moduleData);
+    res.json(module);
+  } catch (error) {
+    console.error('Create module error:', error);
+    res.status(500).json({ error: 'Failed to create module integration' });
+  }
+});
+
+app.put('/api/modules/:moduleName', requireAuth, async (req, res) => {
+  try {
+    const { moduleName } = req.params;
+    const updateData = req.body;
+    const module = await storage.updateModuleIntegration(moduleName, updateData);
+    res.json(module);
+  } catch (error) {
+    console.error('Update module error:', error);
+    res.status(500).json({ error: 'Failed to update module integration' });
+  }
+});
+
+app.delete('/api/modules/:moduleName', requireAuth, async (req, res) => {
+  try {
+    const { moduleName } = req.params;
+    await storage.deleteModuleIntegration(moduleName);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Delete module error:', error);
+    res.status(500).json({ error: 'Failed to delete module integration' });
+  }
+});
+
 // Oracle Memory endpoints - Admin only access
 const requireAdmin = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   if (!req.session.userId) {

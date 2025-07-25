@@ -12,6 +12,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import zebulonLogoPath from '@assets/Zed-ai-logo_1753441894358.png';
 import OracleDatabase from './OracleDatabase';
+import ModuleSettings from './ModuleSettings';
+import ModuleIntegrationComponent from './ModuleIntegration';
 
 interface ChatMessage {
   id: number;
@@ -38,6 +40,21 @@ interface SystemStatus {
   };
 }
 
+interface ModuleIntegration {
+  id: string;
+  moduleName: string;
+  displayName: string;
+  isConnected: boolean;
+  integrationType?: 'url' | 'script' | 'embed' | null;
+  integrationUrl?: string | null;
+  integrationScript?: string | null;
+  integrationEmbed?: string | null;
+  integrationConfig?: any;
+  connectedAppName?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 const ZebulonSimple: React.FC = () => {
   const { user, logout } = useAuth();
   const systemStatus: SystemStatus = {
@@ -51,6 +68,12 @@ const ZebulonSimple: React.FC = () => {
   const [message, setMessage] = useState('');
   const [activeTab, setActiveTab] = useState('');
   const [showOracleDatabase, setShowOracleDatabase] = useState(false);
+  const [showModuleSettings, setShowModuleSettings] = useState<{show: boolean, moduleName: string, displayName: string}>({
+    show: false,
+    moduleName: '',
+    displayName: ''
+  });
+  const [activeIntegration, setActiveIntegration] = useState<ModuleIntegration | null>(null);
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -65,6 +88,14 @@ const ZebulonSimple: React.FC = () => {
   });
 
   const messages: ChatMessage[] = chatData?.messages || [];
+
+  // Get all module integrations
+  const { data: modulesData } = useQuery<ModuleIntegration[]>({
+    queryKey: ['/api/modules'],
+    enabled: !!user,
+  });
+
+  const moduleIntegrations = modulesData || [];
 
   // Send message mutation
   const sendMessageMutation = useMutation({
@@ -110,6 +141,42 @@ const ZebulonSimple: React.FC = () => {
       });
     },
   });
+
+  // Handle module click - check if integration exists
+  const handleModuleClick = async (moduleName: string, displayName: string) => {
+    if (moduleName === 'config') {
+      // Config always opens internal settings
+      setActiveTab('config');
+      return;
+    }
+
+    if (moduleName === 'chat') {
+      // Chat module always opens internal chat interface
+      setActiveTab('chat');
+      return;
+    }
+
+    // Check if integration exists for this module
+    const existingIntegration = moduleIntegrations.find(m => m.moduleName === moduleName);
+    
+    if (existingIntegration?.isConnected) {
+      // Open the integrated app
+      setActiveIntegration(existingIntegration);
+    } else {
+      // Open settings to configure integration
+      setShowModuleSettings({
+        show: true,
+        moduleName,
+        displayName
+      });
+    }
+  };
+
+  const handleIntegrationSave = (integration: ModuleIntegration) => {
+    setShowModuleSettings({ show: false, moduleName: '', displayName: '' });
+    // Optionally open the newly integrated app immediately
+    setActiveIntegration(integration);
+  };
 
   const handleSendMessage = () => {
     if (message.trim()) {
@@ -201,7 +268,7 @@ const ZebulonSimple: React.FC = () => {
           <div 
             className="p-6 rounded-2xl cursor-pointer hover:opacity-80 transition-all duration-200 border border-gray-800" 
             style={{ backgroundColor: '#000000' }}
-            onClick={() => setActiveTab('chat')}
+            onClick={() => handleModuleClick('chat', 'ZED')}
           >
             <div className="flex flex-col items-center space-y-3">
               <MessageCircle className="h-10 w-10 text-purple-400" />
@@ -213,7 +280,7 @@ const ZebulonSimple: React.FC = () => {
           <div 
             className="p-6 rounded-2xl cursor-pointer hover:opacity-80 transition-all duration-200 border border-gray-800" 
             style={{ backgroundColor: '#000000' }}
-            onClick={() => setActiveTab('status')}
+            onClick={() => handleModuleClick('status', 'ZYNC')}
           >
             <div className="flex flex-col items-center space-y-3">
               <Activity className="h-10 w-10 text-green-400" />
@@ -225,7 +292,7 @@ const ZebulonSimple: React.FC = () => {
           <div 
             className="p-6 rounded-2xl cursor-pointer hover:opacity-80 transition-all duration-200 border border-gray-800" 
             style={{ backgroundColor: '#000000' }}
-            onClick={() => setActiveTab('admin')}
+            onClick={() => handleModuleClick('admin', 'ZETA')}
           >
             <div className="flex flex-col items-center space-y-3">
               <Shield className="h-10 w-10 text-blue-400" />
@@ -240,7 +307,7 @@ const ZebulonSimple: React.FC = () => {
           <div 
             className="p-6 rounded-2xl cursor-pointer hover:opacity-80 transition-all duration-200 border border-gray-800" 
             style={{ backgroundColor: '#000000' }}
-            onClick={() => setActiveTab('zwap')}
+            onClick={() => handleModuleClick('zwap', 'ZWAP!')}
           >
             <div className="flex flex-col items-center space-y-3">
               <DollarSign className="h-10 w-10 text-pink-400" />
@@ -252,7 +319,7 @@ const ZebulonSimple: React.FC = () => {
           <div 
             className="p-6 rounded-2xl cursor-pointer hover:opacity-80 transition-all duration-200 border border-gray-800" 
             style={{ backgroundColor: '#000000' }}
-            onClick={() => setActiveTab('zulu')}
+            onClick={() => handleModuleClick('zulu', 'ZULU')}
           >
             <div className="flex flex-col items-center space-y-3">
               <Wrench className="h-10 w-10 text-orange-400" />
@@ -264,10 +331,7 @@ const ZebulonSimple: React.FC = () => {
           <div 
             className="p-6 rounded-2xl cursor-pointer hover:opacity-80 transition-all duration-200 border border-gray-800" 
             style={{ backgroundColor: '#000000' }}
-            onClick={() => {
-              console.log('Config clicked, setting activeTab to config');
-              setActiveTab('config');
-            }}
+            onClick={() => handleModuleClick('config', 'Config')}
           >
             <div className="flex flex-col items-center space-y-3">
               <Settings className="h-10 w-10 text-gray-400" />
@@ -641,6 +705,24 @@ const ZebulonSimple: React.FC = () => {
         <div className="fixed inset-0 z-50">
           <OracleDatabase onClose={() => setShowOracleDatabase(false)} />
         </div>
+      )}
+
+      {/* Module Settings Interface */}
+      {showModuleSettings.show && (
+        <ModuleSettings
+          moduleName={showModuleSettings.moduleName}
+          displayName={showModuleSettings.displayName}
+          onClose={() => setShowModuleSettings({ show: false, moduleName: '', displayName: '' })}
+          onSave={handleIntegrationSave}
+        />
+      )}
+
+      {/* Active Module Integration Interface */}
+      {activeIntegration && (
+        <ModuleIntegrationComponent
+          integration={activeIntegration}
+          onClose={() => setActiveIntegration(null)}
+        />
       )}
     </div>
   );
