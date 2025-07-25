@@ -58,6 +58,8 @@ const ZebulonSimple: React.FC = () => {
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (messageText: string) => {
+      console.log('Sending message:', messageText);
+      console.log('User authenticated:', !!user);
       return await apiRequest('/api/chat', 'POST', {
         message: messageText
       });

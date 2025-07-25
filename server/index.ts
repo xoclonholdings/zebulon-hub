@@ -76,6 +76,8 @@ interface AuthenticatedRequest extends Request {
 }
 
 const requireAuth = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  console.log('Auth check - Session ID exists:', !!req.session.userId);
+  console.log('Auth check - Session data:', { userId: req.session.userId, hasUser: !!req.session.user });
   if (!req.session.userId) {
     return res.status(401).json({ error: 'Authentication required' });
   }
