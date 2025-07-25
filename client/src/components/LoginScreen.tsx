@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import ZebulonLogo from './ZebulonLogo';
+import zedLogoPath from '../../../attached_assets/Zed-ai-logo_1753425830375.jpg';
 import { Eye, EyeOff, LogIn, UserPlus } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -103,7 +103,11 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
       <Card className="w-full max-w-md bg-gray-900/95 border-blue-500/30 backdrop-blur-sm relative z-10">
         <CardHeader className="text-center space-y-4">
           <div className="flex justify-center">
-            <ZebulonLogo size={64} className="animate-pulse" />
+            <img 
+              src={zedLogoPath} 
+              alt="Zed AI Logo" 
+              className="w-16 h-16 object-contain hover:scale-105 transition-transform"
+            />
           </div>
           <div>
             <CardTitle className="text-2xl font-bold text-blue-400">

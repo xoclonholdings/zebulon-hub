@@ -9,7 +9,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
-import ZebulonLogo from './ZebulonLogo';
+import zedLogoPath from '../../../attached_assets/Zed-ai-logo_1753425830375.jpg';
 
 interface ChatMessage {
   id: number;
@@ -89,7 +89,11 @@ const ZebulonSimple: React.FC = () => {
       <header className="bg-gray-900 border-b border-blue-500/30 p-4 mb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <ZebulonLogo size={32} className="hover:scale-110 transition-transform" />
+            <img 
+              src={zedLogoPath} 
+              alt="Zed AI Logo" 
+              className="w-8 h-8 object-contain hover:scale-110 transition-transform"
+            />
             <div>
               <h1 className="text-xl font-bold text-blue-400">Zebulon AI System</h1>
               <p className="text-sm text-gray-400">Welcome, {user?.username} • Local Processing</p>
