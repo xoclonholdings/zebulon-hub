@@ -59,3 +59,21 @@ model OracleMemory {
 
   @@map("oracle_memory")
 }
+
+// Module Integrations - Store connected app settings for each module
+model ModuleIntegration {
+  id                String   @id @default(cuid())
+  moduleName        String   @unique @map("module_name")
+  displayName       String   @map("display_name")
+  isConnected       Boolean  @default(false) @map("is_connected")
+  integrationType   String?  @map("integration_type") // url, script, embed
+  integrationUrl    String?  @map("integration_url")
+  integrationScript String?  @map("integration_script")
+  integrationEmbed  String?  @map("integration_embed")
+  integrationConfig Json?    @map("integration_config")
+  connectedAppName  String?  @map("connected_app_name")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("module_integrations")
+}
