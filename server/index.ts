@@ -4,11 +4,12 @@ import bcrypt from 'bcrypt';
 import { storage } from "./storage-prisma";
 // No database initialization needed - using direct Prisma client
 import path from "path";
-
+// @ts-ignore if needed
 // Get current directory
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
 const app = express();
+app.use(express.json())
 const PORT = process.env.PORT || 5000;
 
 // Session configuration
@@ -19,7 +20,7 @@ app.use(session({
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
   }
 }));
 
@@ -78,6 +79,28 @@ const requireAuth = (req: AuthenticatedRequest, res: Response, next: NextFunctio
   }
   next();
 };
+
+// Simple log endpoint for testing
+app.post('/api/log', async (req, res) => {
+  try {
+    const { userId, message, aiCore = 'zed' } = req.body;
+    
+    if (!userId || !message) {
+      return res.status(400).json({ error: 'Missing userId or message' });
+    }
+
+    const chatMessage = await storage.createChatMessage({
+      userId: typeof userId === 'string' ? parseInt(userId) : userId,
+      message,
+      aiCore
+    });
+    
+    res.json({ success: true, log: chatMessage });
+  } catch (error) {
+    console.error('Logging failed:', error);
+    res.status(500).json({ error: 'Failed to log message' });
+  }
+});
 
 // Authentication routes
 app.post('/api/auth/signup', async (req, res) => {

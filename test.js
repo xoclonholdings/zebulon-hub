@@ -14,25 +14,30 @@ async function main() {
     const userCount = await prisma.user.count()
     console.log(`📊 Current users in database: ${userCount}`)
     
-    // Test creating a user (update schema to match our current one)
-    const testUser = await prisma.user.create({
-      data: {
-        username: 'test-user-' + Date.now(),
-        passwordHash: 'test-hash-' + Date.now(),
-        role: 'user'
-      }
+    // Test the log endpoint
+    console.log('Testing /api/log endpoint...')
+    const response = await fetch("http://localhost:5000/api/log", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        userId: 1,
+        message: "Test message from database test",
+        aiCore: "zed"
+      })
     })
-    console.log('✅ Test user created:', testUser.username)
     
-    // Clean up test user
-    await prisma.user.delete({
-      where: { id: testUser.id }
-    })
-    console.log('✅ Test user cleaned up')
+    if (response.ok) {
+      const data = await response.json()
+      console.log("✅ Log endpoint test successful:", data.success)
+    } else {
+      console.log("❌ Log endpoint test failed:", response.status)
+    }
     
-    console.log('🎉 Database test completed successfully!')
+    console.log('🎉 Database and API test completed!')
   } catch (error) {
-    console.error('❌ Database test failed:', error.message)
+    console.error('❌ Test failed:', error.message)
   } finally {
     await prisma.$disconnect()
   }

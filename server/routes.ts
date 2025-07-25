@@ -98,5 +98,95 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Simple log endpoint for testing
+  app.post('/api/log', async (req, res) => {
+    try {
+      const { userId, message, aiCore = 'zed' } = req.body;
+      
+      if (!userId || !message) {
+        return res.status(400).json({ error: 'Missing userId or message' });
+      }
+
+      const newLog = await storage.createChatMessage({
+        userId: typeof userId === 'string' ? parseInt(userId) : userId,
+        message,
+        aiCore
+      });
+      
+      res.json({ success: true, log: newLog });
+    } catch (error) {
+      console.error('Logging failed:', error);
+      res.status(500).json({ error: 'Failed to log message' });
+    }
+  });
+
+  // Authentication endpoints
+  app.post('/api/register', async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      
+      if (!username || !password) {
+        return res.status(400).json({ error: 'Username and password required' });
+      }
+
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser) {
+        return res.status(400).json({ error: 'Username already exists' });
+      }
+
+      const user = await storage.createUser({ username, password, role: 'user' });
+      req.session.userId = user.id;
+      
+      res.json({ success: true, user: { id: user.id, username: user.username, role: user.role } });
+    } catch (error) {
+      console.error('Registration error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  app.post('/api/login', async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      
+      if (!username || !password) {
+        return res.status(400).json({ error: 'Username and password required' });
+      }
+
+      const user = await storage.validateUser(username, password);
+      if (!user) {
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
+
+      req.session.userId = user.id;
+      res.json({ success: true, user: { id: user.id, username: user.username, role: user.role } });
+    } catch (error) {
+      console.error('Login error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  app.post('/api/logout', (req, res) => {
+    req.session.destroy(() => {
+      res.json({ success: true });
+    });
+  });
+
+  app.get('/api/me', (req, res) => {
+    if (!req.session?.userId) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    
+    storage.getUserById(req.session.userId)
+      .then(user => {
+        if (!user) {
+          return res.status(401).json({ error: 'User not found' });
+        }
+        res.json({ id: user.id, username: user.username, role: user.role });
+      })
+      .catch(() => {
+        res.status(500).json({ error: 'Internal server error' });
+      });
+  });
+
   return httpServer;
 }
