@@ -1,46 +1,41 @@
-// Prisma-based schema - replacing Drizzle ORM
-export * from './schema-prisma';
+// Zebulon AI System - Core Schema
+// Focus: Zebulon and Zed functionality only
 
-// Legacy compatibility exports
-import type { 
-  User, 
-  ChatMessage, 
-  OracleQuery, 
-  SystemStatus,
-  UserTask,
-  UserNote,
-  UserConfiguration,
-  ProcessAuthorization,
-  ZedMemoryEntry,
-  ZedMemoryAssociation,
-  ZedConversationContext,
-  ZedLearningPattern,
-  ZebulonConfig,
-  InsertUser,
-  InsertChatMessage,
-  InsertOracleQuery,
-  InsertUserTask,
-  InsertUserNote
-} from './schema-prisma';
+export interface User {
+  id: number;
+  username: string;
+  passwordHash: string;
+  role: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
-// Re-export for compatibility
-export type {
-  User,
-  ChatMessage,
-  OracleQuery,
-  SystemStatus,
-  UserTask,
-  UserNote,
-  UserConfiguration,
-  ProcessAuthorization,
-  ZedMemoryEntry,
-  ZedMemoryAssociation,
-  ZedConversationContext,
-  ZedLearningPattern,
-  ZebulonConfig,
-  InsertUser,
-  InsertChatMessage,
-  InsertOracleQuery,
-  InsertUserTask,
-  InsertUserNote
-};
+export interface ChatMessage {
+  id: number;
+  userId: number;
+  message: string;
+  aiCore: string;
+  createdAt: Date;
+}
+
+export interface SystemStatus {
+  id: number;
+  component: string;
+  status: string;
+  lastChecked: Date;
+  details?: string;
+  responseTime?: number;
+}
+
+// Insert types for forms
+export interface InsertUser {
+  username: string;
+  passwordHash: string;
+  role?: string;
+}
+
+export interface InsertChatMessage {
+  userId: number;
+  message: string;
+  aiCore?: string;
+}

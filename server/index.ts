@@ -2,7 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import session from 'express-session';
 import bcrypt from 'bcrypt';
 import { storage } from "./storage-prisma";
-import { initializeDatabase } from "./init-db";
+// No database initialization needed - using direct Prisma client
 import path from "path";
 
 // Get current directory
@@ -358,12 +358,12 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 
 async function startServer() {
   try {
-    // Initialize database
-    console.log('Initializing database...');
-    await initializeDatabase();
+    console.log('Initializing database with Prisma...');
+    // Database will be initialized automatically when first accessed
     
     // Start server
     app.listen(PORT, () => {
+      console.log('Database initialization completed');
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`💾 Database: PostgreSQL with Prisma`);
       console.log(`🧠 AI: Local processing (no external APIs)`);
