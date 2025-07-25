@@ -545,6 +545,21 @@ if (process.env.NODE_ENV === 'development') {
             #root {
               min-height: 100vh;
             }
+            @keyframes pulse {
+              0% { opacity: 0.6; }
+              50% { opacity: 1; }
+              100% { opacity: 0.6; }
+            }
+            .form-section {
+              margin-bottom: 20px;
+            }
+            .form-section label {
+              display: block;
+              margin-bottom: 8px;
+              color: rgba(255, 255, 255, 0.8);
+              font-size: 14px;
+              font-weight: 500;
+            }
           </style>
         </head>
         <body>
@@ -555,12 +570,13 @@ if (process.env.NODE_ENV === 'development') {
               </div>
               <h1>Zebulon AI System</h1>
               <div class="status">
-                <h3>✅ System Status: Operational</h3>
-                <p>🧠 Zed AI Assistant: Ready</p>
-                <p>💾 Database: Connected</p>
-                <p>🔒 Security: Active</p>
+                <h3>Loading your AI assistant...</h3>
+                <div style="margin: 20px 0;">
+                  <div style="width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px;">
+                    <div style="width: 60%; height: 100%; background: linear-gradient(90deg, #666, #999); border-radius: 2px; animation: pulse 1.5s infinite;"></div>
+                  </div>
+                </div>
               </div>
-              <p>Loading your intelligent assistant...</p>
             </div>
           </div>
           
@@ -587,14 +603,18 @@ if (process.env.NODE_ENV === 'development') {
                   </div>
                   <h1>Welcome to Zebulon</h1>
                   <div class="status">
-                    <h3>🔐 Please Sign In</h3>
-                    <form id="loginForm" style="max-width: 300px; margin: 0 auto;">
-                      <input type="text" id="username" placeholder="Username" required 
-                             style="width: 100%; padding: 12px; margin: 8px 0; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(30, 30, 30, 0.8); color: white; backdrop-filter: blur(10px);">
-                      <input type="password" id="password" placeholder="Password" required
-                             style="width: 100%; padding: 12px; margin: 8px 0; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(30, 30, 30, 0.8); color: white; backdrop-filter: blur(10px);">
-                      <button type="submit" class="btn" style="width: 100%; margin-top: 16px;">Sign In</button>
-                      <button type="button" class="btn" onclick="showSignup()" style="width: 100%; background: #6b7280;">Create Account</button>
+                    <h3>🔐 Sign In to Continue</h3>
+                    <form id="loginForm" style="max-width: 320px; margin: 0 auto;">
+                      <div style="margin-bottom: 16px;">
+                        <input type="text" id="username" placeholder="Enter your username" required 
+                               style="width: 100%; padding: 14px; margin: 8px 0; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; background: rgba(30, 30, 30, 0.8); color: white; backdrop-filter: blur(10px); font-size: 16px;">
+                      </div>
+                      <div style="margin-bottom: 20px;">
+                        <input type="password" id="password" placeholder="Enter your password" required
+                               style="width: 100%; padding: 14px; margin: 8px 0; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; background: rgba(30, 30, 30, 0.8); color: white; backdrop-filter: blur(10px); font-size: 16px;">
+                      </div>
+                      <button type="submit" class="btn" style="width: 100%; margin-bottom: 12px; padding: 14px; font-size: 16px;">Sign In</button>
+                      <button type="button" class="btn" onclick="showSignup()" style="width: 100%; background: rgba(80, 80, 80, 0.8); padding: 14px; font-size: 16px;">Create New Account</button>
                     </form>
                   </div>
                 </div>
@@ -640,16 +660,22 @@ if (process.env.NODE_ENV === 'development') {
                   </div>
                   <h1>Join Zebulon</h1>
                   <div class="status">
-                    <h3>📝 Create Account</h3>
-                    <form id="signupForm" style="max-width: 300px; margin: 0 auto;">
-                      <input type="text" id="username" placeholder="Username" required 
-                             style="width: 100%; padding: 12px; margin: 8px 0; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(30, 30, 30, 0.8); color: white; backdrop-filter: blur(10px);">
-                      <input type="email" id="email" placeholder="Email (optional)"
-                             style="width: 100%; padding: 12px; margin: 8px 0; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(30, 30, 30, 0.8); color: white; backdrop-filter: blur(10px);">
-                      <input type="password" id="password" placeholder="Password" required
-                             style="width: 100%; padding: 12px; margin: 8px 0; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(30, 30, 30, 0.8); color: white; backdrop-filter: blur(10px);">
-                      <button type="submit" class="btn" style="width: 100%; margin-top: 16px;">Create Account</button>
-                      <button type="button" class="btn" onclick="showLogin()" style="width: 100%; background: #6b7280;">Back to Login</button>
+                    <h3>📝 Create Your Account</h3>
+                    <form id="signupForm" style="max-width: 320px; margin: 0 auto;">
+                      <div style="margin-bottom: 16px;">
+                        <input type="text" id="username" placeholder="Choose a username" required 
+                               style="width: 100%; padding: 14px; margin: 8px 0; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; background: rgba(30, 30, 30, 0.8); color: white; backdrop-filter: blur(10px); font-size: 16px;">
+                      </div>
+                      <div style="margin-bottom: 16px;">
+                        <input type="email" id="email" placeholder="Email address (optional)"
+                               style="width: 100%; padding: 14px; margin: 8px 0; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; background: rgba(30, 30, 30, 0.8); color: white; backdrop-filter: blur(10px); font-size: 16px;">
+                      </div>
+                      <div style="margin-bottom: 16px;">
+                        <input type="password" id="password" placeholder="Create a secure password (min 6 characters)" required
+                               style="width: 100%; padding: 14px; margin: 8px 0; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; background: rgba(30, 30, 30, 0.8); color: white; backdrop-filter: blur(10px); font-size: 16px;">
+                      </div>
+                      <button type="submit" class="btn" style="width: 100%; margin-bottom: 12px; padding: 14px; font-size: 16px;">Create Account</button>
+                      <button type="button" class="btn" onclick="showLogin()" style="width: 100%; background: rgba(80, 80, 80, 0.8); padding: 14px; font-size: 16px;">Back to Sign In</button>
                     </form>
                   </div>
                 </div>
