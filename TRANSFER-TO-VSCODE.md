@@ -57,7 +57,7 @@ npm run dev
 ```
 
 ### 6. Access
-- Frontend: http://localhost:5173
+- Unified Interface: http://localhost:5000
 - Backend API: http://localhost:5000
 
 ## Project Structure

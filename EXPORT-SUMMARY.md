@@ -33,7 +33,7 @@ EXPORT-SUMMARY.md      # This summary file
    ```
 
 ### 🏗️ Architecture Overview
-- **Frontend**: React + TypeScript + Vite (port 5173)
+- **Frontend**: React + TypeScript + Vite (build only, served on port 5000)
 - **Backend**: Express + TypeScript + Prisma (port 5000)
 - **Database**: PostgreSQL with clean schema
 - **Authentication**: Session-based with bcrypt

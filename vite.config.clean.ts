@@ -32,22 +32,7 @@ export default defineConfig({
       target: 'esnext',
     },
   },
-  server: {
-    host: "0.0.0.0",
-    port: 5173,
-    allowedHosts: ['localhost', '.replit.dev', '.picard.replit.dev', '5139512c-8dc4-4ebe-8efa-77392a8951db-00-1xinqv1m1v4gl.picard.replit.dev'],
-    fs: {
-      strict: false,
-    },
-    proxy: {
-      "/api": {
-        target: "http://localhost:5000",
-        changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path,
-      },
-    },
-  },
+  // Server config removed - using unified server on port 5000 only
   define: {
     global: 'globalThis',
   },

@@ -83,7 +83,7 @@ Design theme: Exact styling as shown in user-provided reference images - pure bl
 **✅ SINGLE PORT 5000 INTERFACE REQUIREMENT**
 - ✅ User requested removal of any interface not on port 5000
 - ✅ Only the unified server on port 5000 should be accessed
-- ✅ Vite development server on port 5173 should be ignored
+- ✅ All Vite development server references and port 5173 completely removed
 - ✅ All styling changes built and deployed to server/public/ directory
 - ✅ Login page updated to match approved design theme on port 5000
 
@@ -91,7 +91,7 @@ Design theme: Exact styling as shown in user-provided reference images - pure bl
 
 The Zebulon system follows a modern full-stack architecture with the following key components:
 
-- **Frontend**: React with TypeScript, using Vite for bundling and development
+- **Frontend**: React with TypeScript, using Vite for bundling only (no development server)
 - **Backend**: Express.js server with TypeScript support  
 - **Database**: PostgreSQL with Drizzle ORM (Neon serverless)
 - **Real-time Communication**: WebSocket for live interactions
