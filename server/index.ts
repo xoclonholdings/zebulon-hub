@@ -28,12 +28,10 @@ app.use(session({
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// CORS - Secure configuration
+// CORS - Secure configuration for unified server
 const allowedOrigins = [
-  'http://localhost:5173',  // Vite dev server
-  'http://127.0.0.1:5173',  // Alternative localhost
-  'http://localhost:5000',  // Production same-port serving
-  'http://127.0.0.1:5000',  // Alternative localhost production
+  'http://localhost:5000',  // Unified server port
+  'http://127.0.0.1:5000',  // Alternative localhost unified port
   process.env.FRONTEND_URL  // Custom production frontend URL
 ].filter(Boolean);
 
@@ -1005,7 +1003,7 @@ async function startServer() {
       console.log(`🔒 Security: Multi-layer protection active`);
       
       if (process.env.NODE_ENV === 'development') {
-        console.log(`🔧 Development mode: Vite integrated`);
+        console.log(`🔧 Development mode: Unified architecture`);
         console.log(`🌍 Access your Zebulon AI System at: http://localhost:${PORT}`);
       }
     });
