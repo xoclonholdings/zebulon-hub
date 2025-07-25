@@ -493,13 +493,22 @@ if (process.env.NODE_ENV === 'development') {
               width: 80px;
               height: 80px;
               margin: 0 auto 2rem;
-              background: #3b82f6;
-              border-radius: 50%;
+              background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+              border-radius: 12px;
               display: flex;
               align-items: center;
               justify-content: center;
               font-size: 2rem;
               font-weight: bold;
+              box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.4);
+              overflow: hidden;
+              position: relative;
+            }
+            .logo img {
+              width: 100%;
+              height: 100%;
+              object-fit: contain;
+              background: white;
             }
             h1 {
               font-size: 2.5rem;
@@ -538,7 +547,9 @@ if (process.env.NODE_ENV === 'development') {
         <body>
           <div id="root">
             <div class="container">
-              <div class="logo">Z</div>
+              <div class="logo">
+                <img src="/zed-logo.jpg" alt="Zed AI Logo" />
+              </div>
               <h1>Zebulon AI System</h1>
               <div class="status">
                 <h3>✅ System Status: Operational</h3>
@@ -566,7 +577,9 @@ if (process.env.NODE_ENV === 'development') {
             function showLogin() {
               document.getElementById('root').innerHTML = \`
                 <div class="container">
-                  <div class="logo">Z</div>
+                  <div class="logo">
+                    <img src="/zed-logo.jpg" alt="Zed AI Logo" />
+                  </div>
                   <h1>Welcome to Zebulon</h1>
                   <div class="status">
                     <h3>🔐 Please Sign In</h3>
@@ -609,7 +622,9 @@ if (process.env.NODE_ENV === 'development') {
             function showSignup() {
               document.getElementById('root').innerHTML = \`
                 <div class="container">
-                  <div class="logo">Z</div>
+                  <div class="logo">
+                    <img src="/zed-logo.jpg" alt="Zed AI Logo" />
+                  </div>
                   <h1>Join Zebulon</h1>
                   <div class="status">
                     <h3>📝 Create Account</h3>
@@ -656,7 +671,9 @@ if (process.env.NODE_ENV === 'development') {
             function showDashboard(user) {
               document.getElementById('root').innerHTML = \`
                 <div class="container">
-                  <div class="logo">Z</div>
+                  <div class="logo">
+                    <img src="/zed-logo.jpg" alt="Zed AI Logo" />
+                  </div>
                   <h1>Hello, \${user.username}!</h1>
                   <div class="status">
                     <h3>💬 Chat with Zed</h3>
@@ -725,7 +742,9 @@ if (process.env.NODE_ENV === 'development') {
             function showChangePassword() {
               document.getElementById('root').innerHTML = \`
                 <div class="container">
-                  <div class="logo">Z</div>
+                  <div class="logo">
+                    <img src="/zed-logo.jpg" alt="Zed AI Logo" />
+                  </div>
                   <h1>Change Password</h1>
                   <div class="form-container">
                     <form id="changePasswordForm">
