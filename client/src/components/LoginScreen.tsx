@@ -97,7 +97,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
 
   return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center p-4" style={{ backgroundColor: '#000000' }}>
-      <Card className="w-full max-w-md border border-gray-600 rounded-2xl" style={{ backgroundColor: '#1a1a1a' }}>
+      <Card className="w-full max-w-md border border-gray-800 rounded-2xl" style={{ backgroundColor: '#000000' }}>
         <CardHeader className="text-center pb-6">
           <div className="flex justify-center mb-6">
             <img 
@@ -131,8 +131,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                 value={formData.username}
                 onChange={handleInputChange}
                 placeholder="Enter your username"
-                className="border-gray-600 text-white rounded-lg focus:border-purple-500 focus:ring-purple-500"
-                style={{ backgroundColor: '#0f0f0f' }}
+                className="border-gray-800 text-white rounded-lg focus:border-purple-500 focus:ring-purple-500"
+                style={{ backgroundColor: '#000000' }}
                 disabled={isLoading}
                 required
               />
@@ -148,8 +148,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                   value={formData.email}
                   onChange={handleInputChange}
                   placeholder="Enter your email"
-                  className="border-gray-600 text-white rounded-lg focus:border-purple-500 focus:ring-purple-500"
-                  style={{ backgroundColor: '#0f0f0f' }}
+                  className="border-gray-800 text-white rounded-lg focus:border-purple-500 focus:ring-purple-500"
+                  style={{ backgroundColor: '#000000' }}
                   disabled={isLoading}
                 />
               </div>
@@ -165,8 +165,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                   value={formData.password}
                   onChange={handleInputChange}
                   placeholder="Enter your password"
-                  className="border-gray-600 text-white rounded-lg pr-10 focus:border-purple-500 focus:ring-purple-500"
-                  style={{ backgroundColor: '#0f0f0f' }}
+                  className="border-gray-800 text-white rounded-lg pr-10 focus:border-purple-500 focus:ring-purple-500"
+                  style={{ backgroundColor: '#000000' }}
                   disabled={isLoading}
                   required
                 />
