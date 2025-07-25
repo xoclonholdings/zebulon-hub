@@ -34,7 +34,7 @@ function ErrorBoundary({ children }: { children: React.ReactNode }) {
         <h1>🚀 Zebulon AI System</h1>
         <p>Loading issue detected. Troubleshooting...</p>
         <div style={{ marginTop: '20px', padding: '10px', border: '1px solid #333' }}>
-          <p>Node.js: v18.20.8</p>
+          <p>Node.js: v24.4.0</p>
           <p>Vite: 5.4.19</p>
           <p>Error: {error?.message || 'Unknown error'}</p>
         </div>
