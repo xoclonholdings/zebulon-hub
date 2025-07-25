@@ -7,7 +7,7 @@ The Zebulon AI System is a next-generation personal AI ecosystem with complete o
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
-Design theme: Sleek black theme with pure black background, transparent Zed AI logo overlay, minimal dark gray containers with subtle white borders. No background filters or gradients on logo - keep it clean and transparent.
+Design theme: Exact styling as shown in user-provided reference images - pure black backgrounds, dark gray containers with rounded corners, purple/magenta Zebulon branding accents, clean minimalist interface with proper spacing. Transparent Zed AI logo overlay. No deviations from this approved design theme.
 
 ## Recent Changes (2025-07-25)
 
@@ -73,12 +73,12 @@ Design theme: Sleek black theme with pure black background, transparent Zed AI l
 - ✅ Logo properly served from static files with no filters or containers
 - ✅ Consistent dark theme across all interface elements (forms, buttons, chat)
 
-**✅ CONSISTENT BLACK ON BLACK THEME APPLIED**
-- ✅ Login page and main interface now match exactly
-- ✅ Pure black backgrounds with transparent Zed AI logo
-- ✅ Consistent subtle white borders (border-white/20) across all components
-- ✅ All input fields, cards, and containers use black on black theme
-- ✅ Eliminated gray backgrounds and blue borders for unified look
+**✅ APPROVED DESIGN THEME LOCKED IN**
+- ✅ User-provided reference images establish the exact styling requirements
+- ✅ Pure black backgrounds with dark gray containers and rounded corners
+- ✅ Purple/magenta Zebulon branding accents as shown in reference
+- ✅ Clean minimalist interface with proper spacing and transparent logo
+- ✅ No deviations from this approved design theme allowed
 
 ## System Architecture
 
