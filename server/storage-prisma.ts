@@ -18,6 +18,7 @@ export interface IStorage {
   // User management
   getUserById(id: number): Promise<User | null>;
   getUserByUsername(username: string): Promise<User | null>;
+  getUser(id: number): Promise<User | null>;
   createUser(user: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User>;
   
   // Chat messages
@@ -59,6 +60,10 @@ export class PrismaStorage implements IStorage {
     });
   }
 
+  async getUser(id: number): Promise<User | null> {
+    return await this.getUserById(id);
+  }
+
   async createUser(user: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User> {
     return await prisma.user.create({
       data: user
@@ -87,7 +92,16 @@ export class PrismaStorage implements IStorage {
 
   async createOracleQuery(query: Omit<OracleQuery, 'id' | 'createdAt'>): Promise<OracleQuery> {
     return await prisma.oracleQuery.create({
-      data: query
+      data: {
+        userId: query.userId,
+        naturalLanguage: query.naturalLanguage,
+        generatedSql: query.generatedSql,
+        result: query.result || null,
+        executionTime: query.executionTime,
+        status: query.status,
+        errorMessage: query.errorMessage,
+        executedAt: query.executedAt
+      }
     });
   }
 
@@ -155,7 +169,11 @@ export class PrismaStorage implements IStorage {
     if (existing) {
       return await prisma.userConfiguration.update({
         where: { id: existing.id },
-        data: config
+        data: {
+          encryptedConfig: config.encryptedConfig || existing.encryptedConfig,
+          configHash: config.configHash || existing.configHash,
+          encryptionVersion: config.encryptionVersion || existing.encryptionVersion
+        }
       });
     } else {
       return await prisma.userConfiguration.create({
@@ -163,7 +181,7 @@ export class PrismaStorage implements IStorage {
           userId,
           encryptedConfig: config.encryptedConfig || {},
           configHash: config.configHash || '',
-          ...config
+          encryptionVersion: config.encryptionVersion || 1
         }
       });
     }

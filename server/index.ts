@@ -1,5 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
-import { storage } from "./storage-clean";
+import { storage } from "./storage-prisma";
 import { initializeDatabase } from "./init-db";
 import path from "path";
 
