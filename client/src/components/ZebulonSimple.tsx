@@ -67,6 +67,8 @@ const ZebulonSimple: React.FC = () => {
   const { toast } = useToast();
   const [message, setMessage] = useState('');
   const [activeTab, setActiveTab] = useState('');
+  const [showChatInterface, setShowChatInterface] = useState(false);
+  const [showConfigInterface, setShowConfigInterface] = useState(false);
   const [showOracleDatabase, setShowOracleDatabase] = useState(false);
   const [showModuleSettings, setShowModuleSettings] = useState<{show: boolean, moduleName: string, displayName: string}>({
     show: false,
@@ -154,12 +156,14 @@ const ZebulonSimple: React.FC = () => {
     setActiveTab('');
     setActiveIntegration(null);
     setShowModuleSettings({ show: false, moduleName: '', displayName: '' });
+    setShowChatInterface(false);
+    setShowConfigInterface(false);
     
     // Small delay to ensure state is cleared
     setTimeout(() => {
       if (moduleName === 'config') {
-        // Config always opens internal settings
-        setActiveTab('config');
+        // Config always opens internal settings as full-screen overlay
+        setShowConfigInterface(true);
         toast({
           title: "Config Opened",
           description: "System settings panel loaded",
@@ -168,8 +172,8 @@ const ZebulonSimple: React.FC = () => {
       }
 
       if (moduleName === 'chat') {
-        // Chat module always opens internal chat interface
-        setActiveTab('chat');
+        // Chat module always opens internal chat interface as full-screen overlay
+        setShowChatInterface(true);
         toast({
           title: "Chat Opened", 
           description: "ZED chat interface loaded",
@@ -764,6 +768,172 @@ const ZebulonSimple: React.FC = () => {
             integration={activeIntegration}
             onClose={() => setActiveIntegration(null)}
           />
+        </div>
+      )}
+
+      {/* Chat Interface - Full Screen Overlay */}
+      {showChatInterface && (
+        <div className="fixed inset-0 z-50 bg-black">
+          <div className="h-full flex flex-col">
+            {/* Header */}
+            <div className="flex justify-between items-center p-4 border-b border-gray-800">
+              <h1 className="text-2xl font-bold text-white">ZED Chat Interface</h1>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setShowChatInterface(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                Back to Dashboard
+              </Button>
+            </div>
+            
+            {/* Chat Content */}
+            <div className="flex-1 p-6 space-y-4">
+              <ScrollArea className="h-96 w-full border border-gray-800 rounded-lg p-4" style={{ backgroundColor: '#111111' }}>
+                {isLoading ? (
+                  <div className="text-center text-gray-400">Loading messages...</div>
+                ) : messages.length === 0 ? (
+                  <div className="text-center text-gray-400">
+                    Start a conversation with ZED AI assistant
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {messages.map((msg) => (
+                      <div
+                        key={msg.id}
+                        className={`flex ${msg.aiCore === 'zed' ? 'justify-start' : 'justify-end'}`}
+                      >
+                        <div className={`flex items-start gap-3 ${msg.aiCore === 'zed' ? 'flex-row' : 'flex-row-reverse'}`}>
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white`} 
+                               style={{ backgroundColor: msg.aiCore === 'zed' ? '#7c3aed' : '#10b981' }}>
+                            {msg.aiCore === 'zed' ? 'Z' : 'U'}
+                          </div>
+                          <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                            msg.aiCore === 'zed' 
+                              ? 'bg-gray-800 text-white' 
+                              : 'bg-purple-600 text-white'
+                          }`}>
+                            <p className="text-sm">{msg.message}</p>
+                            <p className="text-xs opacity-70 mt-1">
+                              {new Date(msg.createdAt).toLocaleTimeString()}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </ScrollArea>
+              
+              <div className="flex gap-2">
+                <Input
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="Type your message to ZED..."
+                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                  className="flex-1 bg-gray-900 border-gray-700 text-white"
+                />
+                <Button onClick={handleSendMessage} disabled={sendMessageMutation.isPending || !message.trim()}>
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Config Interface - Full Screen Overlay */}
+      {showConfigInterface && (
+        <div className="fixed inset-0 z-50 bg-black">
+          <div className="h-full flex flex-col">
+            {/* Header */}
+            <div className="flex justify-between items-center p-4 border-b border-gray-800">
+              <h1 className="text-2xl font-bold text-white">System Configuration</h1>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setShowConfigInterface(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                Back to Dashboard
+              </Button>
+            </div>
+            
+            {/* Config Content */}
+            <div className="flex-1 p-6">
+              <div className="max-w-md mx-auto space-y-6">
+                <Card className="bg-gray-900 border-gray-800">
+                  <CardContent className="p-6">
+                    <h3 className="text-lg font-semibold text-white mb-4">Change Password</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="current-password" className="text-gray-300">Current Password</Label>
+                        <Input
+                          id="current-password"
+                          type="password"
+                          value={passwordData.currentPassword}
+                          onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
+                          className="bg-gray-800 border-gray-700 text-white"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="new-password" className="text-gray-300">New Password</Label>
+                        <Input
+                          id="new-password"
+                          type="password"
+                          value={passwordData.newPassword}
+                          onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
+                          className="bg-gray-800 border-gray-700 text-white"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="confirm-password" className="text-gray-300">Confirm New Password</Label>
+                        <Input
+                          id="confirm-password"
+                          type="password"
+                          value={passwordData.confirmPassword}
+                          onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                          className="bg-gray-800 border-gray-700 text-white"
+                        />
+                      </div>
+                      <Button 
+                        onClick={handlePasswordChange}
+                        disabled={changePasswordMutation.isPending}
+                        className="w-full bg-purple-600 hover:bg-purple-700"
+                      >
+                        {changePasswordMutation.isPending ? 'Changing...' : 'Change Password'}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card className="bg-gray-900 border-gray-800">
+                  <CardContent className="p-6">
+                    <h3 className="text-lg font-semibold text-white mb-4">System Information</h3>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Environment:</span>
+                        <span className="text-white">Development</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Port:</span>
+                        <span className="text-white">5000</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Database:</span>
+                        <span className="text-green-400">Connected</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Version:</span>
+                        <span className="text-white">1.0.0</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
