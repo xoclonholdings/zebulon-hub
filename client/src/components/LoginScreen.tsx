@@ -1,0 +1,228 @@
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import ZebulonLogo from './ZebulonLogo';
+import { Eye, EyeOff, LogIn, UserPlus } from 'lucide-react';
+import { useMutation } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+
+interface LoginScreenProps {
+  onLoginSuccess: (user: any) => void;
+}
+
+const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [formData, setFormData] = useState({
+    username: '',
+    password: '',
+    email: ''
+  });
+  const [error, setError] = useState('');
+
+  const loginMutation = useMutation({
+    mutationFn: async (data: { username: string; password: string }) => {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(error);
+      }
+      return await response.json();
+    },
+    onSuccess: (user) => {
+      setError('');
+      onLoginSuccess(user);
+    },
+    onError: (error: any) => {
+      setError(error.message || 'Login failed');
+    }
+  });
+
+  const signUpMutation = useMutation({
+    mutationFn: async (data: { username: string; password: string; email?: string }) => {
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(error);
+      }
+      return await response.json();
+    },
+    onSuccess: (user) => {
+      setError('');
+      onLoginSuccess(user);
+    },
+    onError: (error: any) => {
+      setError(error.message || 'Sign up failed');
+    }
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (!formData.username || !formData.password) {
+      setError('Username and password are required');
+      return;
+    }
+
+    if (isSignUp) {
+      signUpMutation.mutate(formData);
+    } else {
+      loginMutation.mutate({
+        username: formData.username,
+        password: formData.password
+      });
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }));
+  };
+
+  const isLoading = loginMutation.isPending || signUpMutation.isPending;
+
+  return (
+    <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-black opacity-50"></div>
+      
+      <Card className="w-full max-w-md bg-gray-900/95 border-blue-500/30 backdrop-blur-sm relative z-10">
+        <CardHeader className="text-center space-y-4">
+          <div className="flex justify-center">
+            <ZebulonLogo size={64} className="animate-pulse" />
+          </div>
+          <div>
+            <CardTitle className="text-2xl font-bold text-blue-400">
+              Zebulon AI System
+            </CardTitle>
+            <p className="text-sm text-gray-400 mt-2">
+              Secure Access Portal
+            </p>
+          </div>
+        </CardHeader>
+
+        <CardContent className="space-y-6">
+          {error && (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username"
+                name="username"
+                type="text"
+                value={formData.username}
+                onChange={handleInputChange}
+                placeholder="Enter your username"
+                className="bg-black/50 border-gray-600 text-white"
+                disabled={isLoading}
+                required
+              />
+            </div>
+
+            {isSignUp && (
+              <div className="space-y-2">
+                <Label htmlFor="email">Email (Optional)</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  placeholder="Enter your email"
+                  className="bg-black/50 border-gray-600 text-white"
+                  disabled={isLoading}
+                />
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  placeholder="Enter your password"
+                  className="bg-black/50 border-gray-600 text-white pr-10"
+                  disabled={isLoading}
+                  required
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                  onClick={() => setShowPassword(!showPassword)}
+                  disabled={isLoading}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full bg-blue-600 hover:bg-blue-700"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>{isSignUp ? 'Creating Account...' : 'Signing In...'}</span>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-2">
+                  {isSignUp ? <UserPlus className="h-4 w-4" /> : <LogIn className="h-4 w-4" />}
+                  <span>{isSignUp ? 'Create Account' : 'Sign In'}</span>
+                </div>
+              )}
+            </Button>
+          </form>
+
+          <div className="text-center">
+            <Button
+              variant="ghost"
+              className="text-blue-400 hover:text-blue-300"
+              onClick={() => {
+                setIsSignUp(!isSignUp);
+                setError('');
+                setFormData({ username: '', password: '', email: '' });
+              }}
+              disabled={isLoading}
+            >
+              {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
+            </Button>
+          </div>
+
+          <div className="text-center text-xs text-gray-500 mt-4">
+            <p>Zebulon AI System v1.0</p>
+            <p>Local Processing • Secure • Private</p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default LoginScreen;

@@ -4,10 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Activity } from 'lucide-react';
+import { Send, Activity, LogOut } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/AuthContext';
 import ZebulonLogo from './ZebulonLogo';
 
 interface ChatMessage {
@@ -25,31 +26,35 @@ interface SystemStatus {
   };
 }
 
-interface ZebulonSimpleProps {
-  userId: number;
-  systemStatus: SystemStatus;
-}
-
-const ZebulonSimple: React.FC<ZebulonSimpleProps> = ({ userId, systemStatus }) => {
+const ZebulonSimple: React.FC = () => {
+  const { user, logout } = useAuth();
+  const systemStatus: SystemStatus = {
+    zedCore: {
+      active: true,
+      memory: 45,
+      tasks: 3
+    }
+  };
   const { toast } = useToast();
   const [message, setMessage] = useState('');
   const queryClient = useQueryClient();
 
   // Get chat messages
   const { data: messages = [], isLoading } = useQuery<ChatMessage[]>({
-    queryKey: ['/api/chat', userId],
+    queryKey: ['/api/chat', user?.id],
+    enabled: !!user,
   });
 
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (messageText: string) => {
-      return await apiRequest(`/api/chat/${userId}`, 'POST', {
+      return await apiRequest(`/api/chat/${user?.id}`, 'POST', {
         message: messageText,
         aiCore: 'zed'
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/chat', userId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/chat', user?.id] });
       setMessage('');
       toast({
         title: "Message Sent",
@@ -87,12 +92,23 @@ const ZebulonSimple: React.FC<ZebulonSimpleProps> = ({ userId, systemStatus }) =
             <ZebulonLogo size={32} className="hover:scale-110 transition-transform" />
             <div>
               <h1 className="text-xl font-bold text-blue-400">Zebulon AI System</h1>
-              <p className="text-sm text-gray-400">Intelligent Assistant • Local Processing</p>
+              <p className="text-sm text-gray-400">Welcome, {user?.username} • Local Processing</p>
             </div>
           </div>
-          <Badge variant="outline" className="text-green-400 border-green-400">
-            Active
-          </Badge>
+          <div className="flex items-center space-x-3">
+            <Badge variant="outline" className="text-green-400 border-green-400">
+              Active
+            </Badge>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={logout}
+              className="text-gray-400 hover:text-white"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
+            </Button>
+          </div>
         </div>
       </header>
 

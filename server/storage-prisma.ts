@@ -20,6 +20,7 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | null>;
   getUser(id: number): Promise<User | null>;
   createUser(user: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User>;
+  updateUserLogin(id: number): Promise<User>;
   
   // Chat messages
   getChatMessages(userId: number): Promise<ChatMessage[]>;
@@ -67,6 +68,15 @@ export class PrismaStorage implements IStorage {
   async createUser(user: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User> {
     return await prisma.user.create({
       data: user
+    });
+  }
+
+  async updateUserLogin(id: number): Promise<User> {
+    return await prisma.user.update({
+      where: { id },
+      data: { 
+        updatedAt: new Date() // Track login via updatedAt for now
+      }
     });
   }
 
