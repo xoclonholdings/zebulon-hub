@@ -150,32 +150,56 @@ const ZebulonSimple: React.FC = () => {
       description: `Processing ${moduleName} module...`,
     });
     
-    if (moduleName === 'config') {
-      // Config always opens internal settings
-      setActiveTab('config');
-      return;
-    }
-
-    if (moduleName === 'chat') {
-      // Chat module always opens internal chat interface
-      setActiveTab('chat');
-      return;
-    }
-
-    // Check if integration exists for this module
-    const existingIntegration = moduleIntegrations.find(m => m.moduleName === moduleName);
+    // Clear any existing states first
+    setActiveTab('');
+    setActiveIntegration(null);
+    setShowModuleSettings({ show: false, moduleName: '', displayName: '' });
     
-    if (existingIntegration?.isConnected) {
-      // Open the integrated app
-      setActiveIntegration(existingIntegration);
-    } else {
-      // Open settings to configure integration
-      setShowModuleSettings({
-        show: true,
-        moduleName,
-        displayName
-      });
-    }
+    // Small delay to ensure state is cleared
+    setTimeout(() => {
+      if (moduleName === 'config') {
+        // Config always opens internal settings
+        setActiveTab('config');
+        toast({
+          title: "Config Opened",
+          description: "System settings panel loaded",
+        });
+        return;
+      }
+
+      if (moduleName === 'chat') {
+        // Chat module always opens internal chat interface
+        setActiveTab('chat');
+        toast({
+          title: "Chat Opened", 
+          description: "ZED chat interface loaded",
+        });
+        return;
+      }
+
+      // Check if integration exists for this module
+      const existingIntegration = moduleIntegrations.find(m => m.moduleName === moduleName);
+      
+      if (existingIntegration?.isConnected) {
+        // Open the integrated app
+        setActiveIntegration(existingIntegration);
+        toast({
+          title: "App Opened",
+          description: `${displayName} integration loaded`,
+        });
+      } else {
+        // Open settings to configure integration
+        setShowModuleSettings({
+          show: true,
+          moduleName,
+          displayName
+        });
+        toast({
+          title: "Settings Opened",
+          description: `Configure ${displayName} integration`,
+        });
+      }
+    }, 100);
   };
 
   const handleIntegrationSave = (integration: ModuleIntegration) => {
