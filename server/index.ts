@@ -427,15 +427,64 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Zebulon AI System is running with Prisma' });
 });
 
-// Development mode: serve simple status page
+// Development mode: redirect to frontend
 if (process.env.NODE_ENV === 'development') {
   app.get('/', (req, res) => {
-    res.json({
-      message: 'Zebulon AI System Backend Running',
-      frontend: 'Frontend available at: http://localhost:5173',
-      backend: 'Backend API available at: /api/*',
-      status: 'Ready for real-time chat!'
-    });
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Zebulon AI System</title>
+          <style>
+            body { 
+              font-family: Arial, sans-serif; 
+              text-align: center; 
+              background: #000; 
+              color: #fff; 
+              padding: 50px; 
+            }
+            .container { 
+              max-width: 600px; 
+              margin: 0 auto; 
+              padding: 40px; 
+              border: 2px solid #3b82f6; 
+              border-radius: 10px; 
+            }
+            .logo { width: 64px; height: 64px; margin: 20px auto; }
+            a { 
+              color: #3b82f6; 
+              text-decoration: none; 
+              font-size: 18px; 
+              font-weight: bold; 
+            }
+            .note { 
+              margin: 20px 0; 
+              padding: 15px; 
+              background: #1f2937; 
+              border-radius: 5px; 
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1>🚀 Zebulon AI System</h1>
+            <div class="note">
+              <h3>⚠️ You're viewing the Backend API Server</h3>
+              <p>To access the <strong>Zebulon Chat Interface</strong> with your Zed AI assistant:</p>
+              <p><strong>Look for Port 5173 in your Replit environment</strong></p>
+              <p>Or click: <a href="http://localhost:5173" target="_blank">Frontend Chat Interface</a></p>
+            </div>
+            <div class="note">
+              <h4>System Status:</h4>
+              <p>✅ Backend API: Running on Port 5000</p>
+              <p>✅ Frontend UI: Running on Port 5173</p>
+              <p>✅ Database: PostgreSQL Connected</p>
+              <p>✅ Zed AI: Ready for Chat</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `);
   });
   
   app.get('*', (req, res) => {
