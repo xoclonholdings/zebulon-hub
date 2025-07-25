@@ -143,34 +143,33 @@ const ZebulonSimple: React.FC = () => {
   });
 
   // Handle module click - check if integration exists
-  const handleModuleClick = async (moduleName: string, displayName: string) => {
-    console.log('Module clicked:', moduleName, displayName);
+  const handleModuleClick = (moduleName: string, displayName: string) => {
+    // Add visual feedback with toast notification
+    toast({
+      title: `${displayName} Clicked`,
+      description: `Processing ${moduleName} module...`,
+    });
     
     if (moduleName === 'config') {
       // Config always opens internal settings
-      console.log('Opening config tab');
       setActiveTab('config');
       return;
     }
 
     if (moduleName === 'chat') {
       // Chat module always opens internal chat interface
-      console.log('Opening chat tab');
       setActiveTab('chat');
       return;
     }
 
     // Check if integration exists for this module
     const existingIntegration = moduleIntegrations.find(m => m.moduleName === moduleName);
-    console.log('Existing integration for', moduleName, ':', existingIntegration);
     
     if (existingIntegration?.isConnected) {
       // Open the integrated app
-      console.log('Opening integrated app for', moduleName);
       setActiveIntegration(existingIntegration);
     } else {
       // Open settings to configure integration
-      console.log('Opening settings for', moduleName);
       setShowModuleSettings({
         show: true,
         moduleName,
@@ -275,7 +274,11 @@ const ZebulonSimple: React.FC = () => {
           <div 
             className="p-6 rounded-2xl cursor-pointer hover:opacity-80 transition-all duration-200 border border-gray-800" 
             style={{ backgroundColor: '#000000' }}
-            onClick={() => handleModuleClick('chat', 'ZED')}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleModuleClick('chat', 'ZED');
+            }}
           >
             <div className="flex flex-col items-center space-y-3">
               <MessageCircle className="h-10 w-10 text-purple-400" />
@@ -338,7 +341,11 @@ const ZebulonSimple: React.FC = () => {
           <div 
             className="p-6 rounded-2xl cursor-pointer hover:opacity-80 transition-all duration-200 border border-gray-800" 
             style={{ backgroundColor: '#000000' }}
-            onClick={() => handleModuleClick('config', 'Config')}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleModuleClick('config', 'Config');
+            }}
           >
             <div className="flex flex-col items-center space-y-3">
               <Settings className="h-10 w-10 text-gray-400" />
@@ -716,20 +723,24 @@ const ZebulonSimple: React.FC = () => {
 
       {/* Module Settings Interface */}
       {showModuleSettings.show && (
-        <ModuleSettings
-          moduleName={showModuleSettings.moduleName}
-          displayName={showModuleSettings.displayName}
-          onClose={() => setShowModuleSettings({ show: false, moduleName: '', displayName: '' })}
-          onSave={handleIntegrationSave}
-        />
+        <div className="fixed inset-0 z-50">
+          <ModuleSettings
+            moduleName={showModuleSettings.moduleName}
+            displayName={showModuleSettings.displayName}
+            onClose={() => setShowModuleSettings({ show: false, moduleName: '', displayName: '' })}
+            onSave={handleIntegrationSave}
+          />
+        </div>
       )}
 
       {/* Active Module Integration Interface */}
       {activeIntegration && (
-        <ModuleIntegrationComponent
-          integration={activeIntegration}
-          onClose={() => setActiveIntegration(null)}
-        />
+        <div className="fixed inset-0 z-50">
+          <ModuleIntegrationComponent
+            integration={activeIntegration}
+            onClose={() => setActiveIntegration(null)}
+          />
+        </div>
       )}
     </div>
   );
