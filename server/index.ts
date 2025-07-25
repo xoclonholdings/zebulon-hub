@@ -415,25 +415,7 @@ app.post('/api/chat/:userId', requireAuth, async (req: AuthenticatedRequest, res
   }
 });
 
-app.post('/api/chat', requireAuth, async (req: AuthenticatedRequest, res) => {
-  try {
-    const { message, aiCore = 'zed' } = req.body;
-    
-    if (!message) {
-      return res.status(400).json({ error: 'Message is required' });
-    }
-    
-    // Use the authenticated user's ID
-    const chatMessage = await storage.createChatMessage({
-      userId: req.session.userId!,
-      message,
-      aiCore
-    });
-    res.json(chatMessage);
-  } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+
 
 app.get('/api/system/status', async (req, res) => {
   try {
