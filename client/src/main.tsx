@@ -35,7 +35,7 @@ function ErrorBoundary({ children }: { children: React.ReactNode }) {
         <p>Loading issue detected. Troubleshooting...</p>
         <div style={{ marginTop: '20px', padding: '10px', border: '1px solid #333' }}>
           <p>Node.js: v24.4.0</p>
-          <p>Vite: 5.4.19</p>
+          <p>Vite: v6.3.5</p>
           <p>Error: {error?.message || 'Unknown error'}</p>
         </div>
         <button 
