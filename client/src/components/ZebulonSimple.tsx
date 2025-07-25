@@ -180,124 +180,87 @@ const ZebulonSimple: React.FC = () => {
         </div>
       </header>
 
-      {/* Main Navigation Grid */}
-      <div className="px-6 mb-8">
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          <div className="p-4 rounded-2xl cursor-pointer hover:opacity-80 transition-opacity" style={{ backgroundColor: '#1a1a1a' }}>
-            <div className="flex items-center space-x-3">
-              <Database className="h-6 w-6 text-white" />
-              <span className="text-white font-medium">Zed</span>
-            </div>
-          </div>
-          <div className="p-4 rounded-2xl cursor-pointer hover:opacity-80 transition-opacity" style={{ backgroundColor: '#1a1a1a' }}>
-            <div className="flex items-center space-x-3">
-              <Shield className="h-6 w-6 text-white" />
-              <span className="text-white font-medium">Zeta</span>
-            </div>
-          </div>
-          <div className="p-4 rounded-2xl cursor-pointer hover:opacity-80 transition-opacity" style={{ backgroundColor: '#1a1a1a' }}>
-            <div className="flex items-center space-x-3">
-              <Lock className="h-6 w-6 text-white" />
-              <span className="text-white font-medium">Fantasma</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Zed Core Section */}
-        <div className="text-center mb-6">
-          <div className="flex items-center justify-center mb-2">
-            <Database className="h-6 w-6 text-white mr-2" />
-            <span className="text-xl font-bold text-white">Zed Core</span>
-          </div>
-          <p className="text-gray-400">Oracle database management and AI assistance</p>
-        </div>
-
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          <div className="p-4 rounded-2xl cursor-pointer hover:opacity-80 transition-opacity" style={{ backgroundColor: '#1a1a1a' }}>
-            <div className="flex items-center space-x-3">
-              <Database className="h-6 w-6 text-white" />
-              <div>
-                <span className="text-white font-medium block">Zed: Active</span>
-              </div>
-            </div>
-          </div>
-          <div className="p-4 rounded-2xl cursor-pointer hover:opacity-80 transition-opacity" style={{ backgroundColor: '#1a1a1a' }}>
-            <div className="flex items-center space-x-3">
-              <Shield className="h-6 w-6 text-white" />
-              <div>
-                <span className="text-white font-medium block">Zeta: Monitoring</span>
-              </div>
-            </div>
-          </div>
-          <div className="p-4 rounded-2xl cursor-pointer hover:opacity-80 transition-opacity" style={{ backgroundColor: '#1a1a1a' }}>
-            <div className="flex items-center space-x-3">
-              <Lock className="h-6 w-6 text-white" />
-              <div>
-                <span className="text-white font-medium block">Fantasma: Secure</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Icon Grid */}
+      {/* Main Interface Grid */}
+      <div className="px-8 mb-8">
+        {/* Primary Module Grid */}
         <div className="grid grid-cols-3 gap-6 mb-8">
           <div 
-            className="flex flex-col items-center space-y-2 cursor-pointer hover:opacity-80 transition-opacity"
+            className="p-6 rounded-2xl cursor-pointer hover:opacity-80 transition-all duration-200 border border-gray-800" 
+            style={{ backgroundColor: '#000000' }}
             onClick={() => setActiveTab('chat')}
           >
-            <MessageCircle className="h-8 w-8 text-white" />
-            <span className="text-white text-sm">Chat</span>
+            <div className="flex flex-col items-center space-y-3">
+              <MessageCircle className="h-10 w-10 text-purple-400" />
+              <span className="text-white font-bold text-lg">Chat</span>
+              <span className="text-gray-400 text-sm text-center">AI Assistant</span>
+            </div>
           </div>
-          <div className="flex flex-col items-center space-y-2 cursor-pointer hover:opacity-80 transition-opacity">
-            <FileText className="h-8 w-8 text-white" />
-            <span className="text-white text-sm">Notes</span>
-          </div>
-          <div className="flex flex-col items-center space-y-2 cursor-pointer hover:opacity-80 transition-opacity">
-            <Settings className="h-8 w-8 text-white" />
-            <span className="text-white text-sm">Config</span>
-          </div>
-          <div className="flex flex-col items-center space-y-2 cursor-pointer hover:opacity-80 transition-opacity">
-            <Music className="h-8 w-8 text-white" />
-            <span className="text-white text-sm">Music</span>
-          </div>
-          <div className="flex flex-col items-center space-y-2 cursor-pointer hover:opacity-80 transition-opacity">
-            <Database className="h-8 w-8 text-white" />
-            <span className="text-white text-sm">Oracle</span>
-          </div>
+          
           <div 
-            className="flex flex-col items-center space-y-2 cursor-pointer hover:opacity-80 transition-opacity"
+            className="p-6 rounded-2xl cursor-pointer hover:opacity-80 transition-all duration-200 border border-gray-800" 
+            style={{ backgroundColor: '#000000' }}
             onClick={() => setActiveTab('status')}
           >
-            <Activity className="h-8 w-8 text-white" />
-            <span className="text-white text-sm">Status</span>
+            <div className="flex flex-col items-center space-y-3">
+              <Activity className="h-10 w-10 text-green-400" />
+              <span className="text-white font-bold text-lg">Status</span>
+              <span className="text-gray-400 text-sm text-center">System Health</span>
+            </div>
           </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-6 mb-8">
-          <div className="flex flex-col items-center space-y-2 cursor-pointer hover:opacity-80 transition-opacity">
-            <Calendar className="h-8 w-8 text-white" />
-            <span className="text-white text-sm">Calendar</span>
-          </div>
-          <div className="flex flex-col items-center space-y-2 cursor-pointer hover:opacity-80 transition-opacity">
-            <Camera className="h-8 w-8 text-white" />
-            <span className="text-white text-sm">Photos</span>
-          </div>
-          <div className="flex flex-col items-center space-y-2 cursor-pointer hover:opacity-80 transition-opacity">
-            <FileText className="h-8 w-8 text-white" />
-            <span className="text-white text-sm">Notes</span>
-          </div>
+          
           <div 
-            className="flex flex-col items-center space-y-2 cursor-pointer hover:opacity-80 transition-opacity"
+            className="p-6 rounded-2xl cursor-pointer hover:opacity-80 transition-all duration-200 border border-gray-800" 
+            style={{ backgroundColor: '#000000' }}
             onClick={() => setActiveTab('admin')}
           >
-            <Shield className="h-8 w-8 text-white" />
-            <span className="text-white text-sm">Admin</span>
+            <div className="flex flex-col items-center space-y-3">
+              <Shield className="h-10 w-10 text-blue-400" />
+              <span className="text-white font-bold text-lg">Admin</span>
+              <span className="text-gray-400 text-sm text-center">Security Panel</span>
+            </div>
           </div>
         </div>
 
-        {/* Time Display */}
-        <div className="flex justify-end mb-4">
-          <div className="px-4 py-2 rounded-lg text-gray-300" style={{ backgroundColor: '#1a1a1a' }}>
+        {/* Secondary Module Grid */}
+        <div className="grid grid-cols-3 gap-6 mb-8">
+          <div className="p-6 rounded-2xl cursor-pointer hover:opacity-80 transition-all duration-200 border border-gray-800" style={{ backgroundColor: '#000000' }}>
+            <div className="flex flex-col items-center space-y-3">
+              <Music className="h-10 w-10 text-pink-400" />
+              <span className="text-white font-bold text-lg">Music</span>
+              <span className="text-gray-400 text-sm text-center">Audio Control</span>
+            </div>
+          </div>
+          
+          <div className="p-6 rounded-2xl cursor-pointer hover:opacity-80 transition-all duration-200 border border-gray-800" style={{ backgroundColor: '#000000' }}>
+            <div className="flex flex-col items-center space-y-3">
+              <Database className="h-10 w-10 text-orange-400" />
+              <span className="text-white font-bold text-lg">Oracle</span>
+              <span className="text-gray-400 text-sm text-center">Database Core</span>
+            </div>
+          </div>
+          
+          <div className="p-6 rounded-2xl cursor-pointer hover:opacity-80 transition-all duration-200 border border-gray-800" style={{ backgroundColor: '#000000' }}>
+            <div className="flex flex-col items-center space-y-3">
+              <Settings className="h-10 w-10 text-gray-400" />
+              <span className="text-white font-bold text-lg">Config</span>
+              <span className="text-gray-400 text-sm text-center">System Settings</span>
+            </div>
+          </div>
+        </div>
+
+        {/* System Status Bar */}
+        <div className="flex justify-between items-center p-4 rounded-xl border border-gray-800" style={{ backgroundColor: '#000000' }}>
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-green-400 text-sm font-medium">Zed Core Active</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+              <span className="text-blue-400 text-sm font-medium">Database Connected</span>
+            </div>
+          </div>
+          <div className="text-gray-300 text-sm font-mono">
             {new Date().toLocaleTimeString()}
           </div>
         </div>
