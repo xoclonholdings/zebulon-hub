@@ -1,0 +1,86 @@
+ZEBULON CORE — FINAL SYSTEM READINESS CHECKLIST
+
+1. CORE FUNCTIONALITY
+	•	Zebulon Core launches without error and displays the following six module tiles:
+	•	ZED (Chat)
+	•	ZYNC (IDE)
+	•	ZETA (Security)
+	•	ZWAP! (Finance)
+	•	ZULU (Repair)
+	•	CONFIG (System Settings)
+	•	Each module either opens its assigned integration or prompts the user to connect one if not yet configured
+	•	Admin User can initiate workflows with logic and time duration instructions
+
+⸻
+
+2. OFFLINE + RESILIENT SETUP
+	•	Zebulon system can boot and run even without an internet connection
+	•	Modules load local UI and assets without remote dependency
+	•	Fonts, stylesheets, and scripts are bundled with the system
+	•	No external APIs or online calls are required to open or operate modules
+
+⸻
+
+3. ORACLE DATABASE (NEON)
+	•	Neon database is live, connected, and stores:
+	•	Integration metadata
+	•	Admin workflow logs
+	•	Module activity
+	•	Database can be accessed locally and does not require remote reauthentication
+	•	Prisma schema is clean and current with no unused tables or fields
+	•	Verified connection to Neon is referenced only through secure local connection config
+
+⸻
+
+4. MODULE OPERATIONAL STATUS
+	•	ZED: Operational with local logic routing for text-based input
+	•	ZYNC: Interface opens with basic file handling (edit, save, run)
+	•	ZETA: Security panel loads and reflects logs, alerts, or diagnostics
+	•	ZWAP!: Opens and either loads wallet connection or prompts for finance module setup
+	•	ZULU: Loads repair logic and shows options like fix, reset, diagnose, or detangle
+	•	CONFIG: Settings panel opens with Admin-only controls
+
+⸻
+
+5. CLEAN FILE + SCRIPT STRUCTURE
+	•	package.json only includes required scripts:
+	•	"start": "NODE_ENV=production node dist/server/index.js"
+	•	"dev": "NODE_ENV=development tsx server/index.ts"
+	•	.replit contains: run = "npm run dev"
+	•	All unused files, folders, and modules have been removed
+	•	Final project includes:
+	•	/server
+	•	/components or /public
+	•	/prisma
+	•	.replit
+	•	tsconfig.server.json
+	•	package.json
+
+⸻
+
+6. SECURITY + ADMIN CONTROL
+	•	Only Admin User can:
+	•	Launch or schedule workflows
+	•	Connect or disconnect module apps
+	•	Access or update Oracle Database
+	•	All AI modules operate only through the Zebulon Core — no direct communication between modules
+	•	No debug logs or open ports are left exposed
+
+⸻
+
+7. EXPORT + BACKUP READY
+	•	Entire project folder is portable
+	•	Neon DB configuration is stored in environment variables, not hardcoded
+	•	All .env files are clean, minimal, and scoped
+	•	Admin backup, reset, or export can be triggered from the CONFIG panel
+
+⸻
+
+8. STORAGE OPTIMIZATION
+	•	All unused modules, folders, and orphaned assets from earlier builds have been removed
+	•	.map, .test, and .log files not required for production are deleted
+	•	Node cache and unnecessary large dependency bundles have been cleared
+	•	node_modules has been pruned using: npm prune --production
+	•	The dist/ folder only contains production runtime files
+	•	All public assets (images, fonts, etc.) are compressed and deduplicated
+	•	Old logs, debug dumps, and migration states are not stored in Neon unnecessarily
