@@ -96,17 +96,17 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
   const isLoading = loginMutation.isPending || signUpMutation.isPending;
 
   return (
-    <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
-      <Card className="w-full max-w-md bg-gray-800/90 border border-gray-700 rounded-xl">
+    <div className="min-h-screen bg-black text-white flex items-center justify-center p-4" style={{ backgroundColor: '#000000' }}>
+      <Card className="w-full max-w-md border border-gray-600 rounded-2xl" style={{ backgroundColor: '#1a1a1a' }}>
         <CardHeader className="text-center pb-6">
           <div className="flex justify-center mb-6">
             <img 
               src={zedLogoPath} 
               alt="Zed AI Logo" 
-              className="w-16 h-16 object-contain"
+              className="w-16 h-16 object-contain opacity-90"
             />
           </div>
-          <CardTitle className="text-2xl font-bold text-purple-400 mb-2">
+          <CardTitle className="text-2xl font-bold mb-2" style={{ color: '#a855f7' }}>
             ZEBULON
           </CardTitle>
           <p className="text-gray-400 text-sm">
@@ -131,7 +131,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                 value={formData.username}
                 onChange={handleInputChange}
                 placeholder="Enter your username"
-                className="bg-gray-900/80 border-gray-600 text-white rounded-lg"
+                className="border-gray-600 text-white rounded-lg focus:border-purple-500 focus:ring-purple-500"
+                style={{ backgroundColor: '#0f0f0f' }}
                 disabled={isLoading}
                 required
               />
@@ -147,7 +148,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                   value={formData.email}
                   onChange={handleInputChange}
                   placeholder="Enter your email"
-                  className="bg-gray-900/80 border-gray-600 text-white rounded-lg"
+                  className="border-gray-600 text-white rounded-lg focus:border-purple-500 focus:ring-purple-500"
+                  style={{ backgroundColor: '#0f0f0f' }}
                   disabled={isLoading}
                 />
               </div>
@@ -163,7 +165,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                   value={formData.password}
                   onChange={handleInputChange}
                   placeholder="Enter your password"
-                  className="bg-gray-900/80 border-gray-600 text-white rounded-lg pr-10"
+                  className="border-gray-600 text-white rounded-lg pr-10 focus:border-purple-500 focus:ring-purple-500"
+                  style={{ backgroundColor: '#0f0f0f' }}
                   disabled={isLoading}
                   required
                 />
@@ -182,7 +185,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
 
             <Button
               type="submit"
-              className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg"
+              className="w-full text-white font-medium rounded-lg hover:opacity-90 transition-opacity"
+              style={{ backgroundColor: '#a855f7' }}
               disabled={isLoading}
             >
               {isLoading ? (
@@ -202,7 +206,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
           <div className="text-center">
             <Button
               variant="ghost"
-              className="text-purple-400 hover:text-purple-300"
+              className="hover:opacity-80 transition-opacity"
+              style={{ color: '#a855f7' }}
               onClick={() => {
                 setIsSignUp(!isSignUp);
                 setError('');
