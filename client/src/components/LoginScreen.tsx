@@ -97,26 +97,31 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
 
   return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-black opacity-50"></div>
-      
-      <Card className="w-full max-w-md bg-gray-900/95 border-blue-500/30 backdrop-blur-sm relative z-10">
-        <CardHeader className="text-center space-y-4">
-          <div className="flex justify-center">
+      {/* Header with Logo */}
+      <div className="absolute top-0 left-0 right-0 bg-gray-900 border-b border-blue-500/30 p-4 z-20">
+        <div className="flex items-center justify-center">
+          <div className="flex items-center space-x-3">
             <img 
               src={zedLogoPath} 
               alt="Zed AI Logo" 
-              className="w-16 h-16 object-contain hover:scale-105 transition-transform"
+              className="w-8 h-8 object-contain hover:scale-110 transition-transform"
             />
+            <div className="text-center">
+              <h1 className="text-xl font-bold text-blue-400">Zebulon AI System</h1>
+              <p className="text-sm text-gray-400">Secure Authentication</p>
+            </div>
           </div>
-          <div>
-            <CardTitle className="text-2xl font-bold text-blue-400">
-              Zebulon AI System
-            </CardTitle>
-            <p className="text-sm text-gray-400 mt-2">
-              Secure Access Portal
-            </p>
-          </div>
+        </div>
+      </div>
+
+      <Card className="w-full max-w-md bg-gray-900 border border-blue-500/30 mt-20 z-10">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-bold text-blue-400">
+            {isSignUp ? 'Create Account' : 'Sign In'}
+          </CardTitle>
+          <p className="text-gray-400 text-sm mt-2">
+            {isSignUp ? 'Join the Zebulon AI ecosystem' : 'Access your AI assistant'}
+          </p>
         </CardHeader>
 
         <CardContent className="space-y-6">
@@ -128,7 +133,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="username" className="text-gray-300">Username</Label>
               <Input
                 id="username"
                 name="username"
@@ -136,7 +141,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                 value={formData.username}
                 onChange={handleInputChange}
                 placeholder="Enter your username"
-                className="bg-black/50 border-gray-600 text-white"
+                className="bg-black border-blue-500/30 text-white focus:border-blue-400 focus:ring-blue-400/20 placeholder:text-gray-500"
                 disabled={isLoading}
                 required
               />
@@ -144,7 +149,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
 
             {isSignUp && (
               <div className="space-y-2">
-                <Label htmlFor="email">Email (Optional)</Label>
+                <Label htmlFor="email" className="text-gray-300">Email (Optional)</Label>
                 <Input
                   id="email"
                   name="email"
@@ -152,14 +157,14 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                   value={formData.email}
                   onChange={handleInputChange}
                   placeholder="Enter your email"
-                  className="bg-black/50 border-gray-600 text-white"
+                  className="bg-black border-blue-500/30 text-white focus:border-blue-400 focus:ring-blue-400/20 placeholder:text-gray-500"
                   disabled={isLoading}
                 />
               </div>
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-gray-300">Password</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -168,7 +173,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                   value={formData.password}
                   onChange={handleInputChange}
                   placeholder="Enter your password"
-                  className="bg-black/50 border-gray-600 text-white pr-10"
+                  className="bg-black border-blue-500/30 text-white focus:border-blue-400 focus:ring-blue-400/20 placeholder:text-gray-500 pr-10"
                   disabled={isLoading}
                   required
                 />
@@ -187,7 +192,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
 
             <Button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
               disabled={isLoading}
             >
               {isLoading ? (
@@ -219,9 +224,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
             </Button>
           </div>
 
-          <div className="text-center text-xs text-gray-500 mt-4">
-            <p>Zebulon AI System v1.0</p>
-            <p>Local Processing • Secure • Private</p>
+          <div className="text-center text-xs text-gray-500 mt-6 border-t border-blue-500/20 pt-4">
+            <p className="font-mono">Zebulon AI System v1.0</p>
+            <p className="text-blue-400/70 mt-1">Local Processing • Secure • Private</p>
           </div>
         </CardContent>
       </Card>
