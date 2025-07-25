@@ -11,7 +11,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
-import zedLogoPath from '@assets/Zed-ai-logo_1753425830375.jpg';
+import zedLogoPath from '@assets/Zed-ai-logo_1753438730084.png';
 
 interface ChatMessage {
   id: number;
@@ -151,11 +151,6 @@ const ZebulonSimple: React.FC = () => {
               src={zedLogoPath} 
               alt="Zed AI Logo" 
               className="w-8 h-8 object-contain"
-              style={{ 
-                backgroundColor: '#000000',
-                mixBlendMode: 'multiply',
-                filter: 'brightness(1.2) contrast(1.1)'
-              }}
             />
             <div>
               <h1 className="text-2xl font-bold" style={{ color: '#a855f7' }}>ZEBULON</h1>

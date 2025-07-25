@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import zedLogoPath from '@assets/Zed-ai-logo_1753425830375.jpg';
+import zedLogoPath from '@assets/Zed-ai-logo_1753438730084.png';
 import { Eye, EyeOff, LogIn, UserPlus } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -104,11 +104,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
               src={zedLogoPath} 
               alt="Zed AI Logo" 
               className="w-16 h-16 object-contain opacity-90"
-              style={{ 
-                backgroundColor: '#000000',
-                mixBlendMode: 'multiply',
-                filter: 'brightness(1.2) contrast(1.1)'
-              }}
             />
           </div>
           <CardTitle className="text-2xl font-bold mb-2" style={{ color: '#a855f7' }}>
