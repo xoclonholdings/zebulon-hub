@@ -1,5 +1,6 @@
 import { useState } from "react";
 import ZebulonCommandCenter from "@/components/ZebulonCommandCenter";
+import ApiTest from "@/components/ApiTest";
 
 export default function Dashboard() {
   const mockSystemStatus = {
@@ -34,9 +35,14 @@ export default function Dashboard() {
   };
 
   return (
-    <ZebulonCommandCenter 
-      userId={1} 
-      systemStatus={mockSystemStatus}
-    />
+    <div className="min-h-screen bg-black">
+      <div className="p-4">
+        <ApiTest />
+      </div>
+      <ZebulonCommandCenter 
+        userId={1} 
+        systemStatus={mockSystemStatus}
+      />
+    </div>
   );
 }
