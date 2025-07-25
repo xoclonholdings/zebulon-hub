@@ -2,9 +2,11 @@ import express, { type Request, Response, NextFunction } from "express";
 import { storage } from "./storage-clean";
 import { initializeDatabase } from "./init-db";
 import path from "path";
+import { fileURLToPath } from 'url';
 
-// CommonJS compatibility
-const __dirname = process.cwd();
+// ESM compatibility
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 5000;

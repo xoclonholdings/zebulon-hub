@@ -1,36 +1,45 @@
-import { 
-  users, chatMessages, oracleQueries, systemStatus, userTasks, userNotes,
-  type User, type InsertUser, type ChatMessage, type InsertChatMessage,
-  type OracleQuery, type InsertOracleQuery, type UserTask, type InsertTask,
-  type UserNote, type InsertNote, type SystemStatus
-} from "@shared/schema";
-import { db } from "./db";
-import { eq, desc } from "drizzle-orm";
+import { PrismaClient } from '@prisma/client';
+import type { 
+  User, 
+  ChatMessage, 
+  OracleQuery, 
+  SystemStatus,
+  UserTask,
+  UserNote,
+  UserConfiguration,
+  InsertUser,
+  InsertChatMessage,
+  InsertOracleQuery,
+  InsertUserTask,
+  InsertUserNote
+} from '@shared/schema-prisma';
+
+const prisma = new PrismaClient();
 
 export interface IStorage {
   // Users
-  getUser(id: number): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
+  getUser(id: number): Promise<User | null>;
+  getUserByUsername(username: string): Promise<User | null>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, updates: Partial<User>): Promise<User>;
   
   // Chat Messages
-  createChatMessage(message: InsertChatMessage & { response?: string; metadata?: any }): Promise<ChatMessage>;
+  createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
   getChatMessages(userId: number, limit?: number): Promise<ChatMessage[]>;
   
   // Oracle Queries
-  createOracleQuery(query: InsertOracleQuery & { sqlQuery?: string; results?: any; executionTime?: number }): Promise<OracleQuery>;
+  createOracleQuery(query: InsertOracleQuery): Promise<OracleQuery>;
   getOracleQueries(userId: number, limit?: number): Promise<OracleQuery[]>;
   
   // Tasks
   getUserTasks(userId: number): Promise<UserTask[]>;
-  createTask(task: InsertTask): Promise<UserTask>;
+  createTask(task: InsertUserTask): Promise<UserTask>;
   updateTask(id: number, updates: Partial<UserTask>): Promise<UserTask>;
   deleteTask(id: number): Promise<boolean>;
   
   // Notes
   getUserNotes(userId: number): Promise<UserNote[]>;
-  createNote(note: InsertNote): Promise<UserNote>;
+  createNote(note: InsertUserNote): Promise<UserNote>;
   updateNote(id: number, updates: Partial<UserNote>): Promise<UserNote>;
   deleteNote(id: number): Promise<boolean>;
   

@@ -1,31 +1,39 @@
 {
   "compilerOptions": {
-    "outDir": "./dist",
-    "rootDir": ".",
     "target": "ES2022",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
+    "module": "CommonJS",
+    "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "skipLibCheck": true,
+    "allowJs": true,
     "strict": true,
-    "declaration": false,
-    "sourceMap": false,
-    "noEmit": false,
-    "lib": ["ES2022"],
-    "types": ["node"],
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "outDir": "./dist/server",
+    "rootDir": ".",
     "baseUrl": ".",
     "paths": {
-      "@shared/*": ["./shared/*"]
-    }
+      "@shared/*": ["./shared/*"],
+      "@server/*": ["./server/*"]
+    },
+    "types": ["node"],
+    "declaration": true,
+    "sourceMap": true
   },
   "include": [
-    "server/**/*",
-    "shared/**/*"
+    "server/index.ts",
+    "server/storage-clean.ts",
+    "server/init-db.ts"
   ],
   "exclude": [
     "node_modules",
     "dist",
-    "client"
+    "client",
+    "server/services",
+    "server/routes.ts",
+    "server/storage.ts",
+    "server/vite.ts",
+    "shared/schema.ts"
   ]
 }

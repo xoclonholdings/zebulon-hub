@@ -1,48 +1,68 @@
-import { db } from "./db";
-import { users, systemStatus } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcrypt';
+
+const prisma = new PrismaClient();
 
 export async function initializeDatabase() {
   try {
-    // Check if default user exists
-    const existingUsers = await db.select().from(users).limit(1);
+    console.log('Initializing database with Prisma...');
     
-    if (existingUsers.length === 0) {
-      // Create default Zebulon user
-      await db.insert(users).values({
-        username: "zebulon",
-        password: "oracle_admin", // In production, this would be hashed
-        codename: "Oracle Prime",
-        role: "Admin",
-        theme: "dark"
-      });
+    // Check if admin user exists
+    const existingAdmin = await prisma.user.findUnique({
+      where: { username: 'admin' }
+    });
+
+    if (!existingAdmin) {
+      // Create default admin user
+      const hashedPassword = await bcrypt.hash('zebulon2025', 10);
       
-      console.log("✓ Created default Zebulon user");
-    }
-    
-    // Initialize system status entries
-    const systemComponents = [
-      { component: "oracle", status: "offline", metrics: { connections: 0, uptime: "0%" } },
-      { component: "fantasma", status: "active", metrics: { scansCompleted: 0, threatsDetected: 0 } },
-      { component: "zeta", status: "monitoring", metrics: { alertsActive: 0, vaultSecure: true } }
-    ];
-    
-    for (const comp of systemComponents) {
-      const existing = await db
-        .select()
-        .from(systemStatus)
-        .where(eq(systemStatus.component, comp.component))
-        .limit(1);
-        
-      if (existing.length === 0) {
-        await db.insert(systemStatus).values(comp);
+      const adminUser = await prisma.user.create({
+        data: {
+          username: 'admin',
+          passwordHash: hashedPassword,
+          codename: 'System Administrator',
+          role: 'Administrator',
+          theme: 'dark',
+          isAdmin: true
+        }
+      });
+
+      console.log('Default admin user created:', adminUser.username);
+
+      // Create default Zebulon configuration
+      await prisma.zebulonConfig.create({
+        data: {
+          userId: adminUser.id
+        }
+      });
+
+      console.log('Default Zebulon configuration created');
+
+      // Create initial system status entries
+      const components = ['zed-core', 'zeta-core', 'fantasma-firewall', 'oracle-engine', 'security-manager'];
+      
+      for (const component of components) {
+        await prisma.systemStatus.create({
+          data: {
+            component,
+            status: 'active',
+            details: `${component} initialized successfully`
+          }
+        });
       }
+
+      console.log('System status entries created');
     }
-    
-    console.log("✓ Database initialized successfully");
-    
+
+    console.log('Database initialization completed');
+    return true;
   } catch (error) {
-    console.error("Database initialization error:", error);
-    throw error;
+    console.error('Database initialization failed:', error);
+    return false;
   }
+}
+
+// Initialize on import in development
+if (process.env.NODE_ENV === 'development') {
+  initializeDatabase().catch(console.error);
 }

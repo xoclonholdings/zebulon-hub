@@ -1,0 +1,234 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  passwordHash String   @map("password_hash")
+  codename     String?
+  role         String   @default("user")
+  theme        String   @default("dark")
+  isAdmin      Boolean  @default(false) @map("is_admin")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  chatMessages         ChatMessage[]
+  oracleQueries        OracleQuery[]
+  tasks                UserTask[]
+  notes                UserNote[]
+  configurations       UserConfiguration[]
+  processAuthorizations ProcessAuthorization[]
+  memoryEntries        ZedMemoryEntry[]
+  memoryAssociations   ZedMemoryAssociation[]
+  conversationContext  ZedConversationContext[]
+  learningPatterns     ZedLearningPattern[]
+  zebulonConfigs       ZebulonConfig[]
+
+  @@map("users")
+}
+
+model ChatMessage {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  message   String
+  aiCore    String   @default("zed") @map("ai_core")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("chat_messages")
+}
+
+model OracleQuery {
+  id              Int       @id @default(autoincrement())
+  userId          Int       @map("user_id")
+  naturalLanguage String    @map("natural_language")
+  generatedSql    String?   @map("generated_sql")
+  result          Json?
+  executionTime   Int?      @map("execution_time")
+  status          String    @default("pending")
+  errorMessage    String?   @map("error_message")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  executedAt      DateTime? @map("executed_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("oracle_queries")
+}
+
+model SystemStatus {
+  id            Int      @id @default(autoincrement())
+  component     String   @unique
+  status        String
+  lastChecked   DateTime @default(now()) @map("last_checked")
+  details       String?
+  responseTime  Int?     @map("response_time")
+  errorCount    Int      @default(0) @map("error_count")
+  uptime        Int      @default(0)
+  memoryUsage   Float?   @map("memory_usage")
+  cpuUsage      Float?   @map("cpu_usage")
+
+  @@map("system_status")
+}
+
+model UserTask {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  title       String
+  description String?
+  completed   Boolean  @default(false)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("user_tasks")
+}
+
+model UserNote {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  content   String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("user_notes")
+}
+
+model UserConfiguration {
+  id                Int      @id @default(autoincrement())
+  userId            Int      @map("user_id")
+  encryptedConfig   Json     @map("encrypted_config")
+  configHash        String   @map("config_hash")
+  encryptionVersion Int      @default(1) @map("encryption_version")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("user_configurations")
+}
+
+model ProcessAuthorization {
+  id          Int       @id @default(autoincrement())
+  userId      Int       @map("user_id")
+  processType String    @map("process_type")
+  description String
+  parameters  Json
+  status      String    @default("pending")
+  priority    String    @default("medium")
+  autoApprove Boolean   @default(false) @map("auto_approve")
+  requestedAt DateTime  @default(now()) @map("requested_at")
+  approvedAt  DateTime? @map("approved_at")
+  rejectedAt  DateTime? @map("rejected_at")
+  executedAt  DateTime? @map("executed_at")
+  approvedBy  Int?      @map("approved_by")
+  result      Json?
+  errorMessage String?  @map("error_message")
+  timeoutMs   Int       @default(300000) @map("timeout_ms")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("process_authorizations")
+}
+
+model ZedMemoryEntry {
+  id              Int       @id @default(autoincrement())
+  userId          Int       @map("user_id")
+  memoryType      String    @map("memory_type")
+  category        String
+  key             String
+  encryptedContent Json     @map("encrypted_content")
+  contentHash     String    @map("content_hash")
+  importance      Int       @default(5)
+  confidence      Int       @default(8)
+  source          String
+  encryptedTags   String[]  @map("encrypted_tags")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  lastAccessed    DateTime  @default(now()) @map("last_accessed")
+  accessCount     Int       @default(0) @map("access_count")
+  expiresAt       DateTime? @map("expires_at")
+  isActive        Boolean   @default(true) @map("is_active")
+
+  user User @relation(fields: [userId], references: [id])
+  fromAssociations ZedMemoryAssociation[] @relation("FromMemory")
+  toAssociations   ZedMemoryAssociation[] @relation("ToMemory")
+
+  @@map("zed_memory_entries")
+}
+
+model ZedMemoryAssociation {
+  id              Int    @id @default(autoincrement())
+  userId          Int    @map("user_id")
+  fromMemoryId    Int    @map("from_memory_id")
+  toMemoryId      Int    @map("to_memory_id")
+  associationType String @map("association_type")
+  strength        Int    @default(5)
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  user       User           @relation(fields: [userId], references: [id])
+  fromMemory ZedMemoryEntry @relation("FromMemory", fields: [fromMemoryId], references: [id])
+  toMemory   ZedMemoryEntry @relation("ToMemory", fields: [toMemoryId], references: [id])
+
+  @@map("zed_memory_associations")
+}
+
+model ZedConversationContext {
+  id                  Int      @id @default(autoincrement())
+  userId              Int      @map("user_id")
+  sessionId           String   @map("session_id")
+  encryptedContext    Json     @map("encrypted_context")
+  encryptedSummary    String?  @map("encrypted_summary")
+  encryptedMood       String?  @map("encrypted_mood")
+  encryptedTaskContext Json?   @map("encrypted_task_context")
+  memoryReferences    Int[]    @map("memory_references")
+  contextHash         String   @map("context_hash")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("zed_conversation_context")
+}
+
+model ZedLearningPattern {
+  id               Int      @id @default(autoincrement())
+  userId           Int      @map("user_id")
+  patternType      String   @map("pattern_type")
+  patternData      Json     @map("pattern_data")
+  confidence       Int      @default(5)
+  observationCount Int      @default(1) @map("observation_count")
+  lastObserved     DateTime @default(now()) @map("last_observed")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("zed_learning_patterns")
+}
+
+model ZebulonConfig {
+  id                Int    @id @default(autoincrement())
+  userId            Int    @unique @map("user_id")
+  themeSettings     String @default("{\"primaryColor\":\"#8b5cf6\",\"secondaryColor\":\"#3b82f6\",\"backgroundColor\":\"#000000\",\"textColor\":\"#ffffff\",\"opacity\":95,\"glowIntensity\":50,\"animationSpeed\":\"normal\",\"logoSize\":100}") @map("theme_settings")
+  zedCoreSettings   String @default("{\"enabled\":true,\"responseDelay\":500,\"contextMemory\":100,\"autoApproval\":false,\"learningMode\":true,\"personality\":\"balanced\",\"voiceEnabled\":false,\"adaptiveBehavior\":false}") @map("zed_core_settings")
+  zetaCoreSettings  String @default("{\"enabled\":true,\"securityLevel\":\"high\",\"autoBlock\":true,\"threatDetection\":true,\"auditLevel\":\"standard\",\"alertThreshold\":\"medium\",\"realTimeMonitoring\":true,\"behaviorAnalysis\":true}") @map("zeta_core_settings")
+  fantasmaSettings  String @default("{\"enabled\":true,\"stealthMode\":false,\"scanInterval\":60,\"deepScanEnabled\":false,\"autoQuarantine\":false,\"trafficObfuscation\":false,\"logRetention\":30,\"emergencyMode\":false}") @map("fantasma_settings")
+  interfaceSettings String @default("{\"layout\":\"grid\",\"widgetSize\":\"medium\",\"chatPosition\":\"center\",\"enableVoice\":false,\"enableGestures\":false,\"autoHide\":false,\"compactMode\":false,\"multiMonitor\":false}") @map("interface_settings")
+  oracleSettings    String @default("{\"defaultTimeout\":30,\"maxConnections\":5,\"autoCommit\":false,\"queryLogging\":true,\"performanceMode\":\"balanced\",\"compressionEnabled\":false,\"encryptionLevel\":\"standard\"}") @map("oracle_settings")
+  behaviorSettings  String @default("{\"contextAwareness\":75,\"adaptivePersonality\":true,\"learningFromInteractions\":true,\"proactiveAssistance\":false,\"emotionalIntelligence\":false,\"customRoutines\":[],\"workflowAutomation\":false}") @map("behavior_settings")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("zebulon_configs")
+}
