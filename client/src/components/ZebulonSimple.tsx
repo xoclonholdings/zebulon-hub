@@ -222,7 +222,11 @@ const ZebulonSimple: React.FC = () => {
 
         {/* Secondary Module Grid */}
         <div className="grid grid-cols-3 gap-6 mb-8">
-          <div className="p-6 rounded-2xl cursor-pointer hover:opacity-80 transition-all duration-200 border border-gray-800" style={{ backgroundColor: '#000000' }}>
+          <div 
+            className="p-6 rounded-2xl cursor-pointer hover:opacity-80 transition-all duration-200 border border-gray-800" 
+            style={{ backgroundColor: '#000000' }}
+            onClick={() => setActiveTab('music')}
+          >
             <div className="flex flex-col items-center space-y-3">
               <Music className="h-10 w-10 text-pink-400" />
               <span className="text-white font-bold text-lg">Music</span>
@@ -230,7 +234,11 @@ const ZebulonSimple: React.FC = () => {
             </div>
           </div>
           
-          <div className="p-6 rounded-2xl cursor-pointer hover:opacity-80 transition-all duration-200 border border-gray-800" style={{ backgroundColor: '#000000' }}>
+          <div 
+            className="p-6 rounded-2xl cursor-pointer hover:opacity-80 transition-all duration-200 border border-gray-800" 
+            style={{ backgroundColor: '#000000' }}
+            onClick={() => setActiveTab('oracle')}
+          >
             <div className="flex flex-col items-center space-y-3">
               <Database className="h-10 w-10 text-orange-400" />
               <span className="text-white font-bold text-lg">Oracle</span>
@@ -238,7 +246,11 @@ const ZebulonSimple: React.FC = () => {
             </div>
           </div>
           
-          <div className="p-6 rounded-2xl cursor-pointer hover:opacity-80 transition-all duration-200 border border-gray-800" style={{ backgroundColor: '#000000' }}>
+          <div 
+            className="p-6 rounded-2xl cursor-pointer hover:opacity-80 transition-all duration-200 border border-gray-800" 
+            style={{ backgroundColor: '#000000' }}
+            onClick={() => setActiveTab('config')}
+          >
             <div className="flex flex-col items-center space-y-3">
               <Settings className="h-10 w-10 text-gray-400" />
               <span className="text-white font-bold text-lg">Config</span>
@@ -272,6 +284,9 @@ const ZebulonSimple: React.FC = () => {
                 {activeTab === 'chat' && 'Chat with Zed AI'}
                 {activeTab === 'status' && 'System Status'}
                 {activeTab === 'admin' && 'Admin Panel'}
+                {activeTab === 'music' && 'Music Control'}
+                {activeTab === 'oracle' && 'Oracle Database'}
+                {activeTab === 'config' && 'System Configuration'}
               </h2>
               <Button 
                 variant="ghost" 
@@ -419,6 +434,138 @@ const ZebulonSimple: React.FC = () => {
                       {changePasswordMutation.isPending ? 'Changing...' : 'Change Password'}
                     </Button>
                   </form>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'music' && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="p-4 rounded-lg border border-gray-800" style={{ backgroundColor: '#000000' }}>
+                    <h3 className="text-lg font-semibold text-white mb-4">Audio Controls</h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-300">System Volume</span>
+                        <Badge variant="outline" className="text-green-400 border-green-400">85%</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-300">Audio Input</span>
+                        <Badge variant="outline" className="text-blue-400 border-blue-400">Active</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-300">Output Device</span>
+                        <Badge variant="outline" className="text-purple-400 border-purple-400">Speakers</Badge>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-4 rounded-lg border border-gray-800" style={{ backgroundColor: '#000000' }}>
+                    <h3 className="text-lg font-semibold text-white mb-4">Audio Processing</h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-300">Voice Recognition</span>
+                        <Badge variant="outline" className="text-green-400 border-green-400">Enabled</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-300">Audio Analysis</span>
+                        <Badge variant="outline" className="text-orange-400 border-orange-400">Processing</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-300">Real-time Mode</span>
+                        <Badge variant="outline" className="text-pink-400 border-pink-400">Active</Badge>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-center text-gray-400">
+                  <p>Music and audio control functionality ready for implementation</p>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'oracle' && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="p-4 rounded-lg border border-gray-800" style={{ backgroundColor: '#000000' }}>
+                    <h3 className="text-lg font-semibold text-white mb-4">Database Status</h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-300">Connection</span>
+                        <Badge variant="outline" className="text-green-400 border-green-400">Connected</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-300">Provider</span>
+                        <Badge variant="outline" className="text-orange-400 border-orange-400">PostgreSQL</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-300">Tables</span>
+                        <Badge variant="outline" className="text-blue-400 border-blue-400">3 Active</Badge>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-4 rounded-lg border border-gray-800" style={{ backgroundColor: '#000000' }}>
+                    <h3 className="text-lg font-semibold text-white mb-4">Data Overview</h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-300">Users</span>
+                        <Badge variant="outline" className="text-purple-400 border-purple-400">2 Records</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-300">Messages</span>
+                        <Badge variant="outline" className="text-green-400 border-green-400">Active Logging</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-300">System Status</span>
+                        <Badge variant="outline" className="text-blue-400 border-blue-400">Monitoring</Badge>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-center text-gray-400">
+                  <p>Oracle database core is operational and ready for advanced queries</p>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'config' && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="p-4 rounded-lg border border-gray-800" style={{ backgroundColor: '#000000' }}>
+                    <h3 className="text-lg font-semibold text-white mb-4">System Settings</h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-300">Environment</span>
+                        <Badge variant="outline" className="text-green-400 border-green-400">Development</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-300">Port</span>
+                        <Badge variant="outline" className="text-blue-400 border-blue-400">5000</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-300">Architecture</span>
+                        <Badge variant="outline" className="text-purple-400 border-purple-400">Unified</Badge>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-4 rounded-lg border border-gray-800" style={{ backgroundColor: '#000000' }}>
+                    <h3 className="text-lg font-semibold text-white mb-4">AI Configuration</h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-300">Zed Core</span>
+                        <Badge variant="outline" className="text-green-400 border-green-400">Active</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-300">Response Mode</span>
+                        <Badge variant="outline" className="text-orange-400 border-orange-400">Contextual</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-300">Memory</span>
+                        <Badge variant="outline" className="text-pink-400 border-pink-400">Persistent</Badge>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-center text-gray-400">
+                  <p>System configuration and settings management interface</p>
                 </div>
               </div>
             )}
