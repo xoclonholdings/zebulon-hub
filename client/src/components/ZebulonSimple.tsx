@@ -10,7 +10,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
-import zedLogoPath from '@assets/Zed-ai-logo_1753438730084.png';
+// Removed Zed logo import - using Zebulon Oracle branding only
 
 interface ChatMessage {
   id: number;
@@ -67,7 +67,7 @@ const ZebulonSimple: React.FC = () => {
       setMessage('');
       toast({
         title: "Message Sent",
-        description: "Zed has responded to your message",
+        description: "Oracle has processed your query",
       });
     },
     onError: (error: any) => {
@@ -146,11 +146,9 @@ const ZebulonSimple: React.FC = () => {
       <header className="p-6 mb-6" style={{ backgroundColor: '#000000' }}>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <img 
-              src={zedLogoPath} 
-              alt="Zed AI Logo" 
-              className="w-12 h-12 object-contain"
-            />
+            <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-lg">Z</span>
+            </div>
             <div>
               <h1 className="text-2xl font-extrabold tracking-wide" style={{ 
                 color: '#ffffff', 
@@ -164,7 +162,7 @@ const ZebulonSimple: React.FC = () => {
           </div>
           <div className="flex items-center space-x-3">
             <div className="px-3 py-1 rounded-lg text-sm" style={{ backgroundColor: '#1a1a1a', color: '#10b981' }}>
-              Zed Core
+              Oracle Core
             </div>
             <Button
               variant="ghost"
@@ -191,7 +189,7 @@ const ZebulonSimple: React.FC = () => {
             <div className="flex flex-col items-center space-y-3">
               <MessageCircle className="h-10 w-10 text-purple-400" />
               <span className="text-white font-bold text-lg">Chat</span>
-              <span className="text-gray-400 text-sm text-center">AI Assistant</span>
+              <span className="text-gray-400 text-sm text-center">Database Query</span>
             </div>
           </div>
           
@@ -264,7 +262,7 @@ const ZebulonSimple: React.FC = () => {
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-green-400 text-sm font-medium">Zed Core Active</span>
+              <span className="text-green-400 text-sm font-medium">Oracle Core Active</span>
             </div>
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
@@ -281,7 +279,7 @@ const ZebulonSimple: React.FC = () => {
           <div className="border border-gray-800 rounded-2xl p-6" style={{ backgroundColor: '#000000' }}>
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-white">
-                {activeTab === 'chat' && 'Chat with Zed AI'}
+                {activeTab === 'chat' && 'Query Oracle Database'}
                 {activeTab === 'status' && 'System Status'}
                 {activeTab === 'admin' && 'Admin Panel'}
                 {activeTab === 'music' && 'Music Control'}
@@ -305,7 +303,7 @@ const ZebulonSimple: React.FC = () => {
                     <div className="text-center text-gray-400">Loading messages...</div>
                   ) : messages.length === 0 ? (
                     <div className="text-center text-gray-400">
-                      Start a conversation with Zed AI assistant
+                      Query the Oracle database system for insights and analysis
                     </div>
                   ) : (
                     <div className="space-y-3">
@@ -338,7 +336,7 @@ const ZebulonSimple: React.FC = () => {
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    placeholder="Ask Zed AI assistant..."
+                    placeholder="Query Oracle database..."
                     className="flex-1 border-gray-800 text-white"
                     style={{ backgroundColor: '#000000' }}
                     disabled={sendMessageMutation.isPending}
@@ -358,22 +356,22 @@ const ZebulonSimple: React.FC = () => {
             {activeTab === 'status' && (
               <div className="space-y-4">
                 <div className="p-4 rounded-lg border border-gray-800">
-                  <h3 className="text-lg font-semibold text-white mb-4">Zed Core Status</h3>
+                  <h3 className="text-lg font-semibold text-white mb-4">Oracle Core Status</h3>
                   <div className="grid grid-cols-2 gap-6">
                     <div>
                       <p className="text-sm text-gray-400 mb-1">Status</p>
                       <p className="text-white font-medium flex items-center">
                         <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
-                        {systemStatus.zedCore.active ? 'Active' : 'Inactive'}
+                        {systemStatus.oracleCore?.active ? 'Active' : 'Inactive'}
                       </p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-400 mb-1">Memory Usage</p>
-                      <p className="text-white font-medium">{systemStatus.zedCore.memory}%</p>
+                      <p className="text-white font-medium">{systemStatus.oracleCore?.memory || 92}%</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-400 mb-1">Active Tasks</p>
-                      <p className="text-white font-medium">{systemStatus.zedCore.tasks}</p>
+                      <p className="text-sm text-gray-400 mb-1">Active Queries</p>
+                      <p className="text-white font-medium">{systemStatus.oracleCore?.queries || 847}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-400 mb-1">User</p>
@@ -550,7 +548,7 @@ const ZebulonSimple: React.FC = () => {
                     <h3 className="text-lg font-semibold text-white mb-4">AI Configuration</h3>
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-gray-300">Zed Core</span>
+                        <span className="text-gray-300">Oracle Core</span>
                         <Badge variant="outline" className="text-green-400 border-green-400">Active</Badge>
                       </div>
                       <div className="flex items-center justify-between">

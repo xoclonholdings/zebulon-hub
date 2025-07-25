@@ -61,33 +61,33 @@ const requireAuth = (req: AuthenticatedRequest, res: Response, next: NextFunctio
   next();
 };
 
-// Zed AI Response Generator
-function generateZedResponse(userMessage: string, userId: number): string {
+// Zebulon Oracle Response Generator
+function generateOracleResponse(userMessage: string, userId: number): string {
   const message = userMessage.toLowerCase();
   
-  // Context-aware responses based on user input
+  // Oracle database-focused responses
   if (message.includes('hello') || message.includes('hi')) {
-    return `Hello! I'm Zed, your AI assistant within the Zebulon system. How can I help you today?`;
+    return `Welcome to Zebulon Oracle. I can help you with database queries, data analysis, and system insights. What would you like to explore?`;
   }
   
-  if (message.includes('zebulon') || message.includes('system')) {
-    return `The Zebulon AI System is fully operational. I'm here to assist you with any questions or tasks you have. What would you like to explore?`;
+  if (message.includes('database') || message.includes('query') || message.includes('sql')) {
+    return `I can assist with database operations, SQL queries, and data analysis. Please describe what data you're looking for or what operation you'd like to perform.`;
   }
   
   if (message.includes('help') || message.includes('what can you do')) {
-    return `I can help you with various tasks within the Zebulon system. I can answer questions, provide assistance, and help you navigate through different functionalities. What specific help do you need?`;
+    return `I'm the Zebulon Oracle system. I can help with database queries, data analysis, system monitoring, and providing insights from your data. What specific assistance do you need?`;
   }
   
-  if (message.includes('history') || message.includes('remember')) {
-    return `I have access to our conversation history and can reference previous interactions. This helps me provide more contextual and personalized assistance.`;
+  if (message.includes('status') || message.includes('system')) {
+    return `The Zebulon Oracle system is operational. I can provide system status, database health information, and performance metrics. What would you like to know?`;
   }
   
-  // Default contextual response
+  // Default Oracle-focused responses
   const responses = [
-    `I understand your message: "${userMessage}". Let me process this through my Zed AI core and provide you with the most helpful response.`,
-    `Thank you for that input. As your Zed assistant, I'm analyzing: "${userMessage}" and preparing a comprehensive response.`,
-    `Processing your request: "${userMessage}". I'm here to help you get the most out of the Zebulon AI System.`,
-    `I've received: "${userMessage}". My Zed intelligence is working to provide you with the best possible assistance.`
+    `Oracle analyzing: "${userMessage}". I'm processing this request through the Zebulon database systems to provide you with accurate information.`,
+    `Zebulon Oracle received: "${userMessage}". Let me query the relevant data sources and provide you with comprehensive insights.`,
+    `Processing your Oracle request: "${userMessage}". I'm accessing the database systems to gather the information you need.`,
+    `Oracle system processing: "${userMessage}". I'll provide you with data-driven insights and analysis.`
   ];
   
   return responses[Math.floor(Math.random() * responses.length)];
@@ -249,19 +249,19 @@ app.post('/api/chat', requireAuth, async (req, res) => {
       aiCore: 'user'
     });
 
-    // Generate Zed AI response
-    const aiResponse = generateZedResponse(message, userId);
+    // Generate Oracle response
+    const oracleResponse = generateOracleResponse(message, userId);
     
-    // Save AI response
-    const aiMessage = await storage.createChatMessage({
+    // Save Oracle response
+    const oracleMessage = await storage.createChatMessage({
       userId,
-      message: aiResponse,
-      aiCore: 'zed'
+      message: oracleResponse,
+      aiCore: 'oracle'
     });
 
     res.json({ 
       userMessage, 
-      aiMessage,
+      oracleMessage,
       success: true 
     });
   } catch (error) {
@@ -285,17 +285,19 @@ app.get('/api/chat/history', requireAuth, async (req, res) => {
 app.get('/api/system/status', async (req, res) => {
   try {
     const status = {
-      zedCore: {
+      oracleCore: {
         active: true,
-        memory: 85,
-        tasks: 12,
-        uptime: "99.9%",
-        lastActivity: new Date().toISOString()
+        memory: 92,
+        queries: 847,
+        uptime: "99.97%",
+        lastActivity: new Date().toISOString(),
+        databaseConnections: 5,
+        responseTime: "12ms"
       },
       system: {
         status: "operational",
         version: "1.0.0",
-        components: ["Zebulon Core", "Zed AI Assistant"]
+        components: ["Zebulon Oracle", "Database Engine", "Query Processor"]
       }
     };
     res.json(status);
@@ -306,7 +308,7 @@ app.get('/api/system/status', async (req, res) => {
 
 // API health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Zebulon AI System is running with Prisma' });
+  res.json({ status: 'ok', message: 'Zebulon Oracle System is running with Prisma' });
 });
 
 // Serve React app
@@ -334,12 +336,12 @@ async function startServer() {
     // Start server
     app.listen(PORT, () => {
       console.log('Database initialization completed');
-      console.log(`🚀 Zebulon AI System running on port ${PORT}`);
+      console.log(`🚀 Zebulon Oracle System running on port ${PORT}`);
       console.log(`🌐 Frontend and Backend unified on single port`);
       console.log(`💾 Database: PostgreSQL with Prisma`);
-      console.log(`🧠 AI: Local Zed assistant ready`);
+      console.log(`🔮 Oracle: Database query and analysis engine ready`);
       console.log(`🔒 Security: Multi-layer protection active`);
-      console.log(`🌍 Access your Zebulon AI System at: http://localhost:${PORT}`);
+      console.log(`🌍 Access your Zebulon Oracle System at: http://localhost:${PORT}`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);
