@@ -39,7 +39,7 @@ const ZebulonSimple: React.FC = () => {
   };
   const { toast } = useToast();
   const [message, setMessage] = useState('');
-  const [activeTab, setActiveTab] = useState('chat');
+  const [activeTab, setActiveTab] = useState('');
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -264,185 +264,166 @@ const ZebulonSimple: React.FC = () => {
           </div>
         </div>
 
-        {/* Active Module Content */}
-        <div className="border border-gray-800 rounded-2xl p-6" style={{ backgroundColor: '#000000' }}>
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-white">
-              {activeTab === 'chat' && 'Chat with Zed AI'}
-              {activeTab === 'status' && 'System Status'}
-              {activeTab === 'admin' && 'Admin Panel'}
-            </h2>
-            <div className="flex items-center space-x-2">
+        {/* Active Module Content - Only show when a tab is selected */}
+        {activeTab && (
+          <div className="border border-gray-800 rounded-2xl p-6" style={{ backgroundColor: '#000000' }}>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-white">
+                {activeTab === 'chat' && 'Chat with Zed AI'}
+                {activeTab === 'status' && 'System Status'}
+                {activeTab === 'admin' && 'Admin Panel'}
+              </h2>
               <Button 
-                variant={activeTab === 'chat' ? 'default' : 'ghost'} 
+                variant="ghost" 
                 size="sm"
-                onClick={() => setActiveTab('chat')}
-                className={activeTab === 'chat' ? 'text-white' : 'text-gray-400 hover:text-white'}
-                style={activeTab === 'chat' ? { backgroundColor: '#a855f7' } : {}}
+                onClick={() => setActiveTab('')}
+                className="text-gray-400 hover:text-white"
               >
-                Chat
-              </Button>
-              <Button 
-                variant={activeTab === 'status' ? 'default' : 'ghost'} 
-                size="sm"
-                onClick={() => setActiveTab('status')}
-                className={activeTab === 'status' ? 'text-white' : 'text-gray-400 hover:text-white'}
-                style={activeTab === 'status' ? { backgroundColor: '#10b981' } : {}}
-              >
-                Status
-              </Button>
-              <Button 
-                variant={activeTab === 'admin' ? 'default' : 'ghost'} 
-                size="sm"
-                onClick={() => setActiveTab('admin')}
-                className={activeTab === 'admin' ? 'text-white' : 'text-gray-400 hover:text-white'}
-                style={activeTab === 'admin' ? { backgroundColor: '#3b82f6' } : {}}
-              >
-                Admin
+                Back to Dashboard
               </Button>
             </div>
-          </div>
 
-          {activeTab === 'chat' && (
-            <div className="space-y-4">
-              <ScrollArea className="h-96 w-full border border-gray-800 rounded-lg p-4" style={{ backgroundColor: '#000000' }}>
-                {isLoading ? (
-                  <div className="text-center text-gray-400">Loading messages...</div>
-                ) : messages.length === 0 ? (
-                  <div className="text-center text-gray-400">
-                    Start a conversation with Zed AI assistant
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {messages.map((msg) => (
-                      <div
-                        key={msg.id}
-                        className={`flex ${msg.aiCore === 'zed' ? 'justify-start' : 'justify-end'}`}
-                      >
-                        <div className={`flex items-start gap-3 ${msg.aiCore === 'zed' ? 'flex-row' : 'flex-row-reverse'}`}>
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white`} 
-                               style={{ backgroundColor: msg.aiCore === 'zed' ? '#a855f7' : '#10b981' }}>
-                            {msg.aiCore === 'zed' ? 'Z' : 'U'}
-                          </div>
-                          <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg shadow text-white`} 
-                               style={{ backgroundColor: msg.aiCore === 'zed' ? '#a855f7' : '#10b981' }}>
-                            <p className="text-sm">{msg.message}</p>
-                            <p className="text-xs opacity-70 mt-1">
-                              {new Date(msg.createdAt).toLocaleTimeString()}
-                            </p>
+            {activeTab === 'chat' && (
+              <div className="space-y-4">
+                <ScrollArea className="h-96 w-full border border-gray-800 rounded-lg p-4" style={{ backgroundColor: '#000000' }}>
+                  {isLoading ? (
+                    <div className="text-center text-gray-400">Loading messages...</div>
+                  ) : messages.length === 0 ? (
+                    <div className="text-center text-gray-400">
+                      Start a conversation with Zed AI assistant
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {messages.map((msg) => (
+                        <div
+                          key={msg.id}
+                          className={`flex ${msg.aiCore === 'zed' ? 'justify-start' : 'justify-end'}`}
+                        >
+                          <div className={`flex items-start gap-3 ${msg.aiCore === 'zed' ? 'flex-row' : 'flex-row-reverse'}`}>
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white`} 
+                                 style={{ backgroundColor: msg.aiCore === 'zed' ? '#a855f7' : '#10b981' }}>
+                              {msg.aiCore === 'zed' ? 'Z' : 'U'}
+                            </div>
+                            <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg shadow text-white`} 
+                                 style={{ backgroundColor: msg.aiCore === 'zed' ? '#a855f7' : '#10b981' }}>
+                              <p className="text-sm">{msg.message}</p>
+                              <p className="text-xs opacity-70 mt-1">
+                                {new Date(msg.createdAt).toLocaleTimeString()}
+                              </p>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </ScrollArea>
+                      ))}
+                    </div>
+                  )}
+                </ScrollArea>
 
-              <div className="flex space-x-2">
-                <Input
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="Ask Zed AI assistant..."
-                  className="flex-1 border-gray-800 text-white"
-                  style={{ backgroundColor: '#000000' }}
-                  disabled={sendMessageMutation.isPending}
-                />
-                <Button
-                  onClick={handleSendMessage}
-                  disabled={!message.trim() || sendMessageMutation.isPending}
-                  className="text-white"
-                  style={{ backgroundColor: '#a855f7' }}
-                >
-                  <Send className="h-4 w-4" />
-                </Button>
+                <div className="flex space-x-2">
+                  <Input
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="Ask Zed AI assistant..."
+                    className="flex-1 border-gray-800 text-white"
+                    style={{ backgroundColor: '#000000' }}
+                    disabled={sendMessageMutation.isPending}
+                  />
+                  <Button
+                    onClick={handleSendMessage}
+                    disabled={!message.trim() || sendMessageMutation.isPending}
+                    className="text-white"
+                    style={{ backgroundColor: '#a855f7' }}
+                  >
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {activeTab === 'status' && (
-            <div className="space-y-4">
-              <div className="p-4 rounded-lg border border-gray-800">
-                <h3 className="text-lg font-semibold text-white mb-4">Zed Core Status</h3>
-                <div className="grid grid-cols-2 gap-6">
-                  <div>
-                    <p className="text-sm text-gray-400 mb-1">Status</p>
-                    <p className="text-white font-medium flex items-center">
-                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
-                      {systemStatus.zedCore.active ? 'Active' : 'Inactive'}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-400 mb-1">Memory Usage</p>
-                    <p className="text-white font-medium">{systemStatus.zedCore.memory}%</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-400 mb-1">Active Tasks</p>
-                    <p className="text-white font-medium">{systemStatus.zedCore.tasks}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-400 mb-1">User</p>
-                    <p className="text-white font-medium">{user?.username}</p>
+            {activeTab === 'status' && (
+              <div className="space-y-4">
+                <div className="p-4 rounded-lg border border-gray-800">
+                  <h3 className="text-lg font-semibold text-white mb-4">Zed Core Status</h3>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <p className="text-sm text-gray-400 mb-1">Status</p>
+                      <p className="text-white font-medium flex items-center">
+                        <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
+                        {systemStatus.zedCore.active ? 'Active' : 'Inactive'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-400 mb-1">Memory Usage</p>
+                      <p className="text-white font-medium">{systemStatus.zedCore.memory}%</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-400 mb-1">Active Tasks</p>
+                      <p className="text-white font-medium">{systemStatus.zedCore.tasks}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-400 mb-1">User</p>
+                      <p className="text-white font-medium">{user?.username}</p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {activeTab === 'admin' && (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-4">Change Password</h3>
-                <form onSubmit={handlePasswordChange} className="space-y-4">
-                  <div>
-                    <Label htmlFor="currentPassword" className="text-white">Current Password</Label>
-                    <Input
-                      id="currentPassword"
-                      type="password"
-                      value={passwordData.currentPassword}
-                      onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
-                      className="border-gray-800 text-white"
-                      style={{ backgroundColor: '#000000' }}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="newPassword" className="text-white">New Password</Label>
-                    <Input
-                      id="newPassword"
-                      type="password"
-                      value={passwordData.newPassword}
-                      onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
-                      className="border-gray-800 text-white"
-                      style={{ backgroundColor: '#000000' }}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="confirmPassword" className="text-white">Confirm New Password</Label>
-                    <Input
-                      id="confirmPassword"
-                      type="password"
-                      value={passwordData.confirmPassword}
-                      onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
-                      className="border-gray-800 text-white"
-                      style={{ backgroundColor: '#000000' }}
-                      required
-                    />
-                  </div>
-                  <Button
-                    type="submit"
-                    disabled={changePasswordMutation.isPending}
-                    className="text-white"
-                    style={{ backgroundColor: '#3b82f6' }}
-                  >
-                    {changePasswordMutation.isPending ? 'Changing...' : 'Change Password'}
-                  </Button>
-                </form>
+            {activeTab === 'admin' && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-white mb-4">Change Password</h3>
+                  <form onSubmit={handlePasswordChange} className="space-y-4">
+                    <div>
+                      <Label htmlFor="currentPassword" className="text-white">Current Password</Label>
+                      <Input
+                        id="currentPassword"
+                        type="password"
+                        value={passwordData.currentPassword}
+                        onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
+                        className="border-gray-800 text-white"
+                        style={{ backgroundColor: '#000000' }}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="newPassword" className="text-white">New Password</Label>
+                      <Input
+                        id="newPassword"
+                        type="password"
+                        value={passwordData.newPassword}
+                        onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
+                        className="border-gray-800 text-white"
+                        style={{ backgroundColor: '#000000' }}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="confirmPassword" className="text-white">Confirm New Password</Label>
+                      <Input
+                        id="confirmPassword"
+                        type="password"
+                        value={passwordData.confirmPassword}
+                        onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
+                        className="border-gray-800 text-white"
+                        style={{ backgroundColor: '#000000' }}
+                        required
+                      />
+                    </div>
+                    <Button
+                      type="submit"
+                      disabled={changePasswordMutation.isPending}
+                      className="text-white"
+                      style={{ backgroundColor: '#3b82f6' }}
+                    >
+                      {changePasswordMutation.isPending ? 'Changing...' : 'Change Password'}
+                    </Button>
+                  </form>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
