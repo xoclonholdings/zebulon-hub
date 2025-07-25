@@ -2,20 +2,15 @@ import { PrismaClient } from '@prisma/client';
 import type { 
   User, 
   ChatMessage, 
-  OracleQuery, 
-  SystemStatus,
-  UserTask,
-  UserNote,
-  UserConfiguration,
-  ProcessAuthorization
-} from '@prisma/client';
+  SystemStatus
+} from '../shared/schema';
 
 const prisma = new PrismaClient({
   log: process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
 });
 
 export interface IStorage {
-  // User management
+  // User management  
   getUserById(id: number): Promise<User | null>;
   getUserByUsername(username: string): Promise<User | null>;
   getUser(id: number): Promise<User | null>;
@@ -26,26 +21,9 @@ export interface IStorage {
   getChatMessages(userId: number): Promise<ChatMessage[]>;
   createChatMessage(message: Omit<ChatMessage, 'id' | 'createdAt'>): Promise<ChatMessage>;
   
-  // Oracle queries
-  getOracleQueries(userId: number): Promise<OracleQuery[]>;
-  createOracleQuery(query: Omit<OracleQuery, 'id' | 'createdAt'>): Promise<OracleQuery>;
-  
-  // System status
+  // System status  
   getSystemStatus(): Promise<SystemStatus[]>;
   updateSystemStatus(component: string, status: Partial<SystemStatus>): Promise<SystemStatus>;
-  
-  // Tasks
-  getUserTasks(userId: number): Promise<UserTask[]>;
-  createTask(task: Omit<UserTask, 'id' | 'createdAt'>): Promise<UserTask>;
-  updateTask(id: number, updates: Partial<UserTask>): Promise<UserTask>;
-  
-  // Notes
-  getUserNotes(userId: number): Promise<UserNote[]>;
-  createNote(note: Omit<UserNote, 'id' | 'createdAt' | 'updatedAt'>): Promise<UserNote>;
-  
-  // Configuration
-  getUserConfiguration(userId: number): Promise<UserConfiguration | null>;
-  updateUserConfiguration(userId: number, config: Partial<UserConfiguration>): Promise<UserConfiguration>;
 }
 
 export class PrismaStorage implements IStorage {
@@ -67,7 +45,11 @@ export class PrismaStorage implements IStorage {
 
   async createUser(user: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User> {
     return await prisma.user.create({
-      data: user
+      data: {
+        username: user.username,
+        passwordHash: user.passwordHash,
+        role: user.role || 'user'
+      }
     });
   }
 

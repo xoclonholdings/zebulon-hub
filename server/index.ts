@@ -205,11 +205,7 @@ app.post('/api/auth/signup', async (req, res) => {
     const user = await storage.createUser({
       username,
       passwordHash,
-      email: email || null,
-      codename: null,
-      role: 'user',
-      theme: 'dark',
-      isAdmin: false
+      role: 'user'
     });
 
     // Set session
@@ -223,7 +219,6 @@ app.post('/api/auth/signup', async (req, res) => {
     res.json({
       id: user.id,
       username: user.username,
-      email: user.email,
       role: user.role
     });
   } catch (error) {
@@ -266,7 +261,6 @@ app.post('/api/auth/login', async (req, res) => {
     res.json({
       id: user.id,
       username: user.username,
-      email: user.email,
       role: user.role
     });
   } catch (error) {
@@ -295,7 +289,6 @@ app.get('/api/auth/me', async (req: AuthenticatedRequest, res) => {
     res.json({
       id: user.id,
       username: user.username,
-      email: user.email,
       role: user.role
     });
   } catch (error) {
