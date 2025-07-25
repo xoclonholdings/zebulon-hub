@@ -162,6 +162,15 @@ Design theme: Exact styling as shown in user-provided reference images - pure bl
 - ✅ Export formats: JSON and TXT with proper file download functionality
 - ✅ Search and filtering by label, description, status, and memory type
 
+**✅ SINGLE-SERVER ORACLE-ONLY DEPLOYMENT (2025-07-25)**
+- ✅ Permanently eliminated dual-server setup as requested by user
+- ✅ Disabled Vite development server to run only Oracle system on port 5000
+- ✅ Confirmed single-process deployment with unified frontend and backend
+- ✅ Oracle Database interface accessible at main route with "Zebulon Core" button
+- ✅ Clean startup with no competing server processes or port conflicts
+- ✅ System now runs exclusively as Oracle Database management interface
+- ✅ All authentication, memory management, and API endpoints functioning properly
+
 ## System Architecture
 
 The Zebulon system follows a modern full-stack architecture with the following key components:
