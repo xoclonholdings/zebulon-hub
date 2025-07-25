@@ -1,22 +1,6 @@
 import { createRoot } from "react-dom/client";
+import App from "./App";
 import "./index.css";
-
-// Simple test component first
-function TestApp() {
-  return (
-    <div style={{ color: 'white', backgroundColor: 'black', padding: '20px', minHeight: '100vh' }}>
-      <h1>🚀 Zebulon AI System</h1>
-      <p>Frontend is loading correctly!</p>
-      <p>Node.js: v20.19.3</p>
-      <p>Vite: 5.4.19</p>
-      <div style={{ marginTop: '20px', padding: '10px', border: '1px solid #333' }}>
-        <p>✅ React is working</p>
-        <p>✅ CSS is loading</p>
-        <p>✅ TypeScript compilation successful</p>
-      </div>
-    </div>
-  );
-}
 
 const rootElement = document.getElementById("root");
 if (!rootElement) {
@@ -24,8 +8,8 @@ if (!rootElement) {
 }
 
 try {
-  createRoot(rootElement).render(<TestApp />);
-  console.log("✅ Zebulon UI successfully mounted - Test Mode");
+  createRoot(rootElement).render(<App />);
+  console.log("✅ Zebulon UI successfully mounted with Node.js v18.20.8");
 } catch (error) {
   console.error("❌ Failed to mount Zebulon UI:", error);
   if (rootElement) {

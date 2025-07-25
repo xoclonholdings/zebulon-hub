@@ -12,7 +12,7 @@ Preferred communication style: Simple, everyday language.
 
 **✅ PROJECT CLEANED & OPTIMIZED: Node.js 18 Compatibility Achieved**
 - ✅ PostgreSQL 17.5 via Neon.tech with all system components active
-- ✅ Node.js compatibility: Targeting v18.20.8 (stable LTS version)
+- ✅ Node.js v18.20.8: Locked via programming_language_install_tool (stable LTS)
 - ✅ TypeScript compilation: All compilation errors resolved
 - ✅ Storage optimization: Reduced from 524MB to 55MB (90% reduction)
 - ✅ Vite v5.4.19: Compatible with Node.js 18.x (zero crypto.hash issues)
