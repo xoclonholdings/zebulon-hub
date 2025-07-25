@@ -566,7 +566,9 @@ if (process.env.NODE_ENV === 'development') {
           
           <script type="module">
             // Check auth status and show appropriate interface
-            fetch('/api/auth/me')
+            fetch('/api/auth/me', {
+              credentials: 'same-origin'
+            })
               .then(res => res.ok ? res.json() : null)
               .then(user => {
                 if (user) {
@@ -600,13 +602,19 @@ if (process.env.NODE_ENV === 'development') {
               
               document.getElementById('loginForm').onsubmit = async (e) => {
                 e.preventDefault();
-                const username = document.getElementById('username').value;
-                const password = document.getElementById('password').value;
+                const username = document.getElementById('username').value.trim();
+                const password = document.getElementById('password').value.trim();
+                
+                if (!username || !password) {
+                  alert('Please enter both username and password');
+                  return;
+                }
                 
                 try {
                   const res = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
                     body: JSON.stringify({ username, password })
                   });
                   
@@ -614,9 +622,11 @@ if (process.env.NODE_ENV === 'development') {
                     const user = await res.json();
                     showDashboard(user);
                   } else {
-                    alert('Login failed - please check your credentials');
+                    const error = await res.json();
+                    alert('Login failed: ' + (error.error || 'Please check your credentials'));
                   }
                 } catch (err) {
+                  console.error('Login error:', err);
                   alert('Network error - please try again');
                 }
               };
@@ -647,14 +657,25 @@ if (process.env.NODE_ENV === 'development') {
               
               document.getElementById('signupForm').onsubmit = async (e) => {
                 e.preventDefault();
-                const username = document.getElementById('username').value;
-                const email = document.getElementById('email').value;
-                const password = document.getElementById('password').value;
+                const username = document.getElementById('username').value.trim();
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value.trim();
+                
+                if (!username || !password) {
+                  alert('Please enter both username and password');
+                  return;
+                }
+                
+                if (password.length < 6) {
+                  alert('Password must be at least 6 characters long');
+                  return;
+                }
                 
                 try {
                   const res = await fetch('/api/auth/signup', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
                     body: JSON.stringify({ username, email, password })
                   });
                   
@@ -663,9 +684,10 @@ if (process.env.NODE_ENV === 'development') {
                     showDashboard(user);
                   } else {
                     const error = await res.json();
-                    alert('Signup failed: ' + (error.message || 'Please try again'));
+                    alert('Signup failed: ' + (error.error || 'Please try again'));
                   }
                 } catch (err) {
+                  console.error('Signup error:', err);
                   alert('Network error - please try again');
                 }
               };
@@ -707,21 +729,37 @@ if (process.env.NODE_ENV === 'development') {
               input.value = '';
               
               try {
-                await fetch('/api/chat', {
+                const res = await fetch('/api/chat', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
+                  credentials: 'same-origin',
                   body: JSON.stringify({ message })
                 });
                 
+                if (res.status === 401) {
+                  alert('Session expired. Please log in again.');
+                  showLogin();
+                  return;
+                }
+                
                 loadMessages();
               } catch (err) {
+                console.error('Send message error:', err);
                 alert('Failed to send message - please try again');
               }
             }
             
             async function loadMessages() {
               try {
-                const res = await fetch('/api/chat/history');
+                const res = await fetch('/api/chat/history', {
+                  credentials: 'same-origin'
+                });
+                
+                if (res.status === 401) {
+                  showLogin();
+                  return;
+                }
+                
                 const data = await res.json();
                 const messagesDiv = document.getElementById('messages');
                 
@@ -733,12 +771,20 @@ if (process.env.NODE_ENV === 'development') {
                 
                 messagesDiv.scrollTop = messagesDiv.scrollHeight;
               } catch (err) {
-                console.error('Failed to load messages');
+                console.error('Failed to load messages:', err);
               }
             }
             
             async function logout() {
-              await fetch('/api/auth/logout', { method: 'POST' });
+              try {
+                await fetch('/api/auth/logout', { 
+                  method: 'POST',
+                  credentials: 'same-origin'
+                });
+              } catch (err) {
+                console.error('Logout error:', err);
+              }
+              // Always redirect to login regardless of response
               showLogin();
             }
             
@@ -793,8 +839,15 @@ if (process.env.NODE_ENV === 'development') {
                   const res = await fetch('/api/auth/change-password', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
                     body: JSON.stringify({ currentPassword, newPassword })
                   });
+                  
+                  if (res.status === 401) {
+                    alert('Session expired. Please log in again.');
+                    showLogin();
+                    return;
+                  }
                   
                   if (res.ok) {
                     alert('Password changed successfully!');
@@ -804,6 +857,7 @@ if (process.env.NODE_ENV === 'development') {
                     alert('Failed to change password: ' + (error.error || 'Please try again'));
                   }
                 } catch (err) {
+                  console.error('Change password error:', err);
                   alert('Network error - please try again');
                 }
               };
