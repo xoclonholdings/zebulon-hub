@@ -44,3 +44,18 @@ model SystemStatus {
 
   @@map("system_status")
 }
+
+// Oracle Database - Manual memory system for Zebulon
+model OracleMemory {
+  id           Int      @id @default(autoincrement())
+  label        String   @unique
+  description  String
+  content      String
+  memoryType   String   @map("memory_type") // workflow, response, repair, security, data-tag, custom
+  status       String   @default("active") // active, locked
+  createdBy    String   @map("created_by")
+  createdAt    DateTime @default(now()) @map("created_at")
+  lastModified DateTime @updatedAt @map("last_modified")
+
+  @@map("oracle_memory")
+}

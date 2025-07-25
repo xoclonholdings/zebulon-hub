@@ -11,6 +11,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import zebulonLogoPath from '@assets/Zed-ai-logo_1753441894358.png';
+import OracleDatabase from './OracleDatabase';
 
 interface ChatMessage {
   id: number;
@@ -49,6 +50,7 @@ const ZebulonSimple: React.FC = () => {
   const { toast } = useToast();
   const [message, setMessage] = useState('');
   const [activeTab, setActiveTab] = useState('');
+  const [showOracleDatabase, setShowOracleDatabase] = useState(false);
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -175,7 +177,7 @@ const ZebulonSimple: React.FC = () => {
             <div 
               className="px-3 py-1 rounded-lg text-sm cursor-pointer hover:opacity-80 transition-opacity duration-200" 
               style={{ backgroundColor: '#1a1a1a', color: '#10b981' }}
-              onClick={() => setActiveTab('oracle')}
+              onClick={() => setShowOracleDatabase(true)}
             >
               Zebulon Core
             </div>
@@ -298,7 +300,7 @@ const ZebulonSimple: React.FC = () => {
                 {activeTab === 'status' && 'ZYNC IDE System'}
                 {activeTab === 'admin' && 'ZETA Security Panel'}
                 {activeTab === 'zwap' && 'ZWAP! Financial Utility'}
-                {activeTab === 'oracle' && 'Oracle Database Core'}
+
                 {activeTab === 'zulu' && 'ZULU System Repairs'}
                 {activeTab === 'config' && 'System Configuration'}
               </h2>
@@ -630,6 +632,13 @@ const ZebulonSimple: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Oracle Database Interface - Full Screen Overlay */}
+      {showOracleDatabase && (
+        <div className="fixed inset-0 z-50">
+          <OracleDatabase onClose={() => setShowOracleDatabase(false)} />
+        </div>
+      )}
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { User, ChatMessage, SystemStatus } from '../shared/schema.js';
+import { User, ChatMessage, SystemStatus, OracleMemory, InsertOracleMemory } from '../shared/schema.js';
 
 // Initialize Prisma Client
 const prisma = new PrismaClient({
@@ -96,6 +96,71 @@ export class PrismaStorage {
         lastChecked: new Date(),
         ...status
       }
+    });
+  }
+
+  // Oracle Memory management
+  async getOracleMemories(): Promise<OracleMemory[]> {
+    return await prisma.oracleMemory.findMany({
+      orderBy: { lastModified: 'desc' }
+    });
+  }
+
+  async getOracleMemoryByLabel(label: string): Promise<OracleMemory | null> {
+    return await prisma.oracleMemory.findUnique({
+      where: { label }
+    });
+  }
+
+  async createOracleMemory(memory: InsertOracleMemory): Promise<OracleMemory> {
+    return await prisma.oracleMemory.create({
+      data: {
+        ...memory,
+        status: memory.status || 'active',
+        createdAt: new Date(),
+        lastModified: new Date()
+      }
+    });
+  }
+
+  async updateOracleMemory(label: string, updates: Partial<OracleMemory>): Promise<OracleMemory> {
+    return await prisma.oracleMemory.update({
+      where: { label },
+      data: {
+        ...updates,
+        lastModified: new Date()
+      }
+    });
+  }
+
+  async deleteOracleMemory(label: string): Promise<void> {
+    await prisma.oracleMemory.delete({
+      where: { label }
+    });
+  }
+
+  async searchOracleMemories(searchTerm?: string, status?: string, memoryType?: string): Promise<OracleMemory[]> {
+    const where: any = {};
+    
+    if (searchTerm) {
+      where.OR = [
+        { label: { contains: searchTerm, mode: 'insensitive' } },
+        { description: { contains: searchTerm, mode: 'insensitive' } },
+        { content: { contains: searchTerm, mode: 'insensitive' } }
+      ];
+    }
+    
+    if (status) {
+      where.status = status;
+    }
+    
+    if (memoryType) {
+      where.memoryType = memoryType;
+    }
+
+    return await prisma.oracleMemory.findMany({
+      where,
+      orderBy: { lastModified: 'desc' }
     });
   }
 }

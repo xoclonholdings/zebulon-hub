@@ -305,6 +305,173 @@ app.get('/api/system/status', async (req, res) => {
   }
 });
 
+// Oracle Memory endpoints - Admin only access
+const requireAdmin = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  // For now, treating all authenticated users as admin
+  // In production, check user.role === 'admin'
+  next();
+};
+
+// Get all Oracle memories
+app.get('/api/oracle/memories', requireAdmin, async (req, res) => {
+  try {
+    const { search, status, type } = req.query;
+    const memories = await storage.searchOracleMemories(
+      search as string,
+      status as string,
+      type as string
+    );
+    res.json({ memories });
+  } catch (error) {
+    console.error('Get Oracle memories error:', error);
+    res.status(500).json({ error: 'Failed to fetch Oracle memories' });
+  }
+});
+
+// Get specific Oracle memory by label
+app.get('/api/oracle/recall/:label', requireAdmin, async (req, res) => {
+  try {
+    const { label } = req.params;
+    const memory = await storage.getOracleMemoryByLabel(label);
+    
+    if (!memory) {
+      return res.status(404).json({ error: 'Memory not found' });
+    }
+    
+    res.json({ memory });
+  } catch (error) {
+    console.error('Recall Oracle memory error:', error);
+    res.status(500).json({ error: 'Failed to recall memory' });
+  }
+});
+
+// Store new Oracle memory
+app.post('/api/oracle/store', requireAdmin, async (req, res) => {
+  try {
+    const { label, description, content, memoryType } = req.body;
+    const userId = (req as AuthenticatedRequest).session.userId!;
+    
+    if (!label || !description || !content || !memoryType) {
+      return res.status(400).json({ 
+        error: 'Label, description, content, and memory type are required' 
+      });
+    }
+
+    // Check if label already exists
+    const existing = await storage.getOracleMemoryByLabel(label);
+    if (existing) {
+      return res.status(409).json({ error: 'Memory with this label already exists' });
+    }
+
+    const memory = await storage.createOracleMemory({
+      label,
+      description,
+      content,
+      memoryType,
+      createdBy: 'admin' // In production, use actual username
+    });
+
+    res.json({ memory, message: 'Memory stored successfully' });
+  } catch (error) {
+    console.error('Store Oracle memory error:', error);
+    res.status(500).json({ error: 'Failed to store memory' });
+  }
+});
+
+// Lock/unlock Oracle memory
+app.patch('/api/oracle/lock', requireAdmin, async (req, res) => {
+  try {
+    const { label, status } = req.body;
+    
+    if (!label || !status || !['active', 'locked'].includes(status)) {
+      return res.status(400).json({ 
+        error: 'Valid label and status (active/locked) are required' 
+      });
+    }
+
+    const memory = await storage.updateOracleMemory(label, { status });
+    res.json({ memory, message: `Memory ${status} successfully` });
+  } catch (error) {
+    console.error('Lock Oracle memory error:', error);
+    res.status(500).json({ error: 'Failed to update memory status' });
+  }
+});
+
+// Export Oracle memory
+app.get('/api/oracle/export/:label', requireAdmin, async (req, res) => {
+  try {
+    const { label } = req.params;
+    const { format = 'json' } = req.query;
+    
+    const memory = await storage.getOracleMemoryByLabel(label);
+    if (!memory) {
+      return res.status(404).json({ error: 'Memory not found' });
+    }
+
+    let filename: string;
+    let contentType: string;
+    let data: string;
+
+    switch (format) {
+      case 'txt':
+        filename = `${label}.txt`;
+        contentType = 'text/plain';
+        data = `Label: ${memory.label}\nDescription: ${memory.description}\nType: ${memory.memoryType}\nStatus: ${memory.status}\nCreated: ${memory.createdAt}\nLast Modified: ${memory.lastModified}\n\nContent:\n${memory.content}`;
+        break;
+      case 'json':
+        filename = `${label}.json`;
+        contentType = 'application/json';
+        data = JSON.stringify(memory, null, 2);
+        break;
+      default:
+        return res.status(400).json({ error: 'Unsupported format. Use json or txt' });
+    }
+
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Type', contentType);
+    res.send(data);
+  } catch (error) {
+    console.error('Export Oracle memory error:', error);
+    res.status(500).json({ error: 'Failed to export memory' });
+  }
+});
+
+// Update Oracle memory
+app.patch('/api/oracle/memories/:label', requireAdmin, async (req, res) => {
+  try {
+    const { label } = req.params;
+    const updates = req.body;
+    
+    // Don't allow changing the label itself or creation metadata
+    delete updates.id;
+    delete updates.label;
+    delete updates.createdBy;
+    delete updates.createdAt;
+
+    const memory = await storage.updateOracleMemory(label, updates);
+    res.json({ memory, message: 'Memory updated successfully' });
+  } catch (error) {
+    console.error('Update Oracle memory error:', error);
+    res.status(500).json({ error: 'Failed to update memory' });
+  }
+});
+
+// Delete Oracle memory
+app.delete('/api/oracle/memories/:label', requireAdmin, async (req, res) => {
+  try {
+    const { label } = req.params;
+    
+    await storage.deleteOracleMemory(label);
+    res.json({ message: 'Memory deleted successfully' });
+  } catch (error) {
+    console.error('Delete Oracle memory error:', error);
+    res.status(500).json({ error: 'Failed to delete memory' });
+  }
+});
+
 // API health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Zebulon Oracle System is running with Prisma' });
