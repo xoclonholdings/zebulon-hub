@@ -16,6 +16,7 @@
     "db:migrate": "npx prisma migrate dev"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.37.0",
     "@neondatabase/serverless": "^1.0.1",
     "@prisma/client": "^6.1.0",
     "@radix-ui/react-accordion": "^1.2.1",

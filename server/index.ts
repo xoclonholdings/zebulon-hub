@@ -5,6 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { storage } from './storage-prisma.js';
 import gedcomRoutes from './routes/gedcom.js';
+import knowledgeRoutes from './routes/knowledge.js';
 import { getActiveConnection } from './db-dual.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -458,6 +459,7 @@ app.delete('/api/oracle/memories/:label', requireAdmin, async (req, res) => {
 
 // GEDCOM routes
 app.use('/api/gedcom', gedcomRoutes);
+app.use('/api/knowledge', knowledgeRoutes);
 
 // ✅ 4. Placeholder API routes for each tile
 // GET /api/chat (ZED)
