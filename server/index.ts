@@ -459,6 +459,117 @@ app.delete('/api/oracle/memories/:label', requireAdmin, async (req, res) => {
 // GEDCOM routes
 app.use('/api/gedcom', gedcomRoutes);
 
+// ✅ 4. Placeholder API routes for each tile
+// GET /api/chat (ZED)
+app.get('/api/chat', requireAuth, async (req, res) => {
+  try {
+    res.json({
+      module: 'ZED',
+      description: 'Chat Interface Module',
+      status: 'ready',
+      features: ['real-time messaging', 'AI assistance', 'conversation history'],
+      lastActivity: new Date().toISOString(),
+      activeUsers: 1,
+      totalMessages: 127
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch chat data' });
+  }
+});
+
+// GET /api/code (ZYNC)
+app.get('/api/code', requireAuth, async (req, res) => {
+  try {
+    res.json({
+      module: 'ZYNC',
+      description: 'IDE Interface Module',
+      status: 'ready',
+      features: ['code editor', 'syntax highlighting', 'version control'],
+      projects: 5,
+      languages: ['TypeScript', 'JavaScript', 'Python', 'SQL'],
+      lastCommit: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch code data' });
+  }
+});
+
+// GET /api/security/logs (ZETA)
+app.get('/api/security/logs', requireAuth, async (req, res) => {
+  try {
+    res.json({
+      module: 'ZETA',
+      description: 'Security Panel Module',
+      status: 'secure',
+      features: ['threat monitoring', 'access logs', 'security alerts'],
+      threatLevel: 'low',
+      blockedAttempts: 0,
+      lastScan: new Date().toISOString(),
+      logs: [
+        { time: new Date().toISOString(), event: 'User login', status: 'success' },
+        { time: new Date(Date.now() - 3600000).toISOString(), event: 'System scan', status: 'clean' }
+      ]
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch security data' });
+  }
+});
+
+// GET /api/finance/wallet (ZWAP)
+app.get('/api/finance/wallet', requireAuth, async (req, res) => {
+  try {
+    res.json({
+      module: 'ZWAP!',
+      description: 'Financial Utility Module',
+      status: 'active',
+      features: ['account overview', 'financial tools', 'budget tracking'],
+      balance: 0.00,
+      currency: 'USD',
+      accounts: [],
+      recentTransactions: [],
+      lastUpdate: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch finance data' });
+  }
+});
+
+// GET /api/system/repair (ZULU -> LEGACY)
+app.get('/api/system/repair', requireAuth, async (req, res) => {
+  try {
+    res.json({
+      module: 'LEGACY',
+      description: 'Genealogy Archive Module',
+      status: 'operational',
+      features: ['GEDCOM processing', 'family tree browsing', 'data export'],
+      uploadedFiles: 1,
+      totalIndividuals: 0,
+      totalFamilies: 0,
+      lastUpload: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch system data' });
+  }
+});
+
+// GET /api/settings/update (Config)
+app.get('/api/settings/update', requireAuth, async (req, res) => {
+  try {
+    res.json({
+      module: 'Config',
+      description: 'System Settings Module',
+      status: 'ready',
+      features: ['user preferences', 'system configuration', 'module management'],
+      version: '1.0.0',
+      environment: process.env.NODE_ENV || 'development',
+      uptime: process.uptime(),
+      lastConfigUpdate: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch settings data' });
+  }
+});
+
 // API health check with database status
 app.get('/api/health', (req, res) => {
   const dbStatus = getActiveConnection();
