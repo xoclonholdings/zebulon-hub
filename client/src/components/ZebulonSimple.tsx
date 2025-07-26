@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Label } from '@/components/ui/label';
-import { Send, Activity, LogOut, Settings, MessageCircle, Shield, DollarSign, Wrench, Lock, Database } from 'lucide-react';
+import { Send, Activity, LogOut, Settings, MessageCircle, Shield, DollarSign, Wrench, Lock, Database, FolderTree } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -14,6 +14,7 @@ import zebulonLogoPath from '@assets/Zed-ai-logo_1753441894358.png';
 import OracleDatabase from './OracleDatabase';
 import ModuleSettings from './ModuleSettings';
 import ModuleIntegrationComponent from './ModuleIntegration';
+import GenealogyModule from './GenealogyModule';
 
 
 
@@ -64,6 +65,7 @@ const ZebulonSimple: React.FC = () => {
 
   const [showConfigInterface, setShowConfigInterface] = useState(false);
   const [showOracleDatabase, setShowOracleDatabase] = useState(false);
+  const [showGenealogyModule, setShowGenealogyModule] = useState(false);
   const [showModuleSettings, setShowModuleSettings] = useState<{show: boolean, moduleName: string, displayName: string}>({
     show: false,
     moduleName: '',
@@ -122,8 +124,8 @@ const ZebulonSimple: React.FC = () => {
     setActiveTab('');
     setActiveIntegration(null);
     setShowModuleSettings({ show: false, moduleName: '', displayName: '' });
-
     setShowConfigInterface(false);
+    setShowGenealogyModule(false);
     
     // Small delay to ensure state is cleared
     setTimeout(() => {
@@ -133,6 +135,16 @@ const ZebulonSimple: React.FC = () => {
         toast({
           title: "Config Opened",
           description: "System settings panel loaded",
+        });
+        return;
+      }
+
+      if (moduleName === 'genealogy') {
+        // Genealogy opens internal module directly
+        setShowGenealogyModule(true);
+        toast({
+          title: "Legacy Archive Opened",
+          description: "Genealogy module loaded",
         });
         return;
       }
@@ -307,12 +319,12 @@ const ZebulonSimple: React.FC = () => {
           <div 
             className="p-6 rounded-2xl cursor-pointer hover:opacity-80 transition-all duration-200 border border-gray-800" 
             style={{ backgroundColor: '#000000' }}
-            onClick={() => handleModuleClick('zulu', 'ZULU')}
+            onClick={() => handleModuleClick('genealogy', 'LEGACY')}
           >
             <div className="flex flex-col items-center space-y-3">
-              <Wrench className="h-10 w-10 text-orange-400" />
-              <span className="text-white font-bold text-lg">ZULU</span>
-              <span className="text-gray-400 text-sm text-center">System Repairs</span>
+              <FolderTree className="h-10 w-10 text-orange-400" />
+              <span className="text-white font-bold text-lg">LEGACY</span>
+              <span className="text-gray-400 text-sm text-center">Genealogy Archive</span>
             </div>
           </div>
           
@@ -760,6 +772,11 @@ const ZebulonSimple: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Genealogy Module */}
+      {showGenealogyModule && (
+        <GenealogyModule onBack={() => setShowGenealogyModule(false)} />
       )}
     </div>
   );

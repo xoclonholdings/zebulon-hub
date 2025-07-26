@@ -4,6 +4,7 @@ import bcrypt from 'bcrypt';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { storage } from './storage-prisma.js';
+import gedcomRoutes from './routes/gedcom.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -453,6 +454,9 @@ app.delete('/api/oracle/memories/:label', requireAdmin, async (req, res) => {
     res.status(500).json({ error: 'Failed to delete memory' });
   }
 });
+
+// GEDCOM routes
+app.use('/api/gedcom', gedcomRoutes);
 
 // API health check
 app.get('/api/health', (req, res) => {
