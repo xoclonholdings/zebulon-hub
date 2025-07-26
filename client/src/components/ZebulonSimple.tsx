@@ -139,12 +139,12 @@ const ZebulonSimple: React.FC = () => {
         return;
       }
 
-      if (moduleName === 'genealogy') {
-        // Genealogy opens internal module directly
-        setShowGenealogyModule(true);
+      if (moduleName === 'system') {
+        // ZULU system repairs - show system diagnostic interface
+        setActiveTab('zulu');
         toast({
-          title: "Legacy Archive Opened",
-          description: "Genealogy module loaded",
+          title: "ZULU System Repairs",
+          description: "System diagnostic tools loaded",
         });
         return;
       }
@@ -319,12 +319,12 @@ const ZebulonSimple: React.FC = () => {
           <div 
             className="p-6 rounded-2xl cursor-pointer hover:opacity-80 transition-all duration-200 border border-gray-800" 
             style={{ backgroundColor: '#000000' }}
-            onClick={() => handleModuleClick('genealogy', 'LEGACY')}
+            onClick={() => handleModuleClick('system', 'ZULU')}
           >
             <div className="flex flex-col items-center space-y-3">
               <FolderTree className="h-10 w-10 text-orange-400" />
-              <span className="text-white font-bold text-lg">LEGACY</span>
-              <span className="text-gray-400 text-sm text-center">Genealogy Archive</span>
+              <span className="text-white font-bold text-lg">ZULU</span>
+              <span className="text-gray-400 text-sm text-center">System Repairs</span>
             </div>
           </div>
           

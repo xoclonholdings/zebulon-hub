@@ -534,18 +534,18 @@ app.get('/api/finance/wallet', requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/system/repair (ZULU -> LEGACY)
+// GET /api/system/repair (ZULU)
 app.get('/api/system/repair', requireAuth, async (req, res) => {
   try {
     res.json({
-      module: 'LEGACY',
-      description: 'Genealogy Archive Module',
+      module: 'ZULU',
+      description: 'System Repairs and Maintenance Module',
       status: 'operational',
-      features: ['GEDCOM processing', 'family tree browsing', 'data export'],
-      uploadedFiles: 1,
-      totalIndividuals: 0,
-      totalFamilies: 0,
-      lastUpload: new Date().toISOString()
+      features: ['system diagnostics', 'repair tools', 'maintenance scheduling', 'performance optimization'],
+      systemHealth: 'good',
+      lastDiagnostic: new Date().toISOString(),
+      repairJobs: [],
+      maintenanceSchedule: new Date().toISOString()
     });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch system data' });

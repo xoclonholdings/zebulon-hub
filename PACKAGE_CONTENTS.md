@@ -99,11 +99,11 @@ npm start
    - Integration ready for financial apps
    - Data visualization ready
 
-5. **LEGACY (Orange)** - Genealogy Archive
-   - **Built-in GEDCOM processing**
-   - Upload .ged files
-   - Browse family trees
-   - Export JSON/TXT data
+5. **ZULU (Orange)** - System Repairs and Maintenance
+   - **Built-in system diagnostics**
+   - CPU and memory monitoring
+   - Repair tools and auto cleanup
+   - Performance optimization
 
 6. **Config (Gray)** - System Settings
    - Internal configuration panel

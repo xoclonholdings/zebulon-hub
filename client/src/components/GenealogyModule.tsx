@@ -309,7 +309,7 @@ export default function GenealogyModule({ onBack }: GenealogyModuleProps) {
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Dashboard
             </Button>
-            <h1 className="text-3xl font-bold text-white">Legacy Archive</h1>
+            <h1 className="text-3xl font-bold text-white">ZULU</h1>
           </div>
         </div>
 
