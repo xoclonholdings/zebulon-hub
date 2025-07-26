@@ -99,7 +99,7 @@ async function executeWithFailover<T>(operation: () => Promise<T>): Promise<T> {
 }
 
 // Initialize the database connection
-await initializeDatabase();
+initializeDatabase().catch(console.error);
 
 export { db, executeWithFailover, activeConnection };
 export function getActiveConnection() {
