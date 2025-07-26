@@ -5,6 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { storage } from './storage-prisma.js';
 import gedcomRoutes from './routes/gedcom.js';
+import { getActiveConnection } from './db-dual.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -458,9 +459,14 @@ app.delete('/api/oracle/memories/:label', requireAdmin, async (req, res) => {
 // GEDCOM routes
 app.use('/api/gedcom', gedcomRoutes);
 
-// API health check
+// API health check with database status
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Zebulon Oracle System is running with Prisma' });
+  const dbStatus = getActiveConnection();
+  res.json({ 
+    status: 'ok', 
+    message: 'Zebulon Oracle System is running with Prisma',
+    database: dbStatus
+  });
 });
 
 // Serve React app

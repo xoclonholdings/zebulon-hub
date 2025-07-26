@@ -1,27 +1,29 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
-import * as schema from "@shared/schema";
+import { PrismaClient } from '@prisma/client';
 
-neonConfig.webSocketConstructor = ws;
+// Extend console.log to handle unknown error types
+function logError(message: string, error: unknown) {
+  const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+  console.log(`${message}: ${errorMessage}`);
+}
 
 // Dual Database Configuration
 const NEON_URL = process.env.DATABASE_URL_NEON || process.env.DATABASE_URL;
-const LOCAL_URL = process.env.DATABASE_URL_LOCAL || 'postgresql://postgres:postgres@localhost:5432/zebulon_local';
+const LOCAL_URL = process.env.DATABASE_URL_LOCAL || `postgresql://${process.env.PGUSER}:${process.env.PGPASSWORD}@${process.env.PGHOST}:${process.env.PGPORT}/${process.env.PGDATABASE}`;
 
 let activeConnection: 'neon' | 'local' = 'neon';
-let db: ReturnType<typeof drizzle>;
+let db: PrismaClient;
 
 async function testConnection(url: string): Promise<boolean> {
   try {
-    const testPool = new Pool({ connectionString: url });
-    const client = await testPool.connect();
-    await client.query('SELECT 1');
-    client.release();
-    await testPool.end();
+    const testClient = new PrismaClient({
+      datasources: { db: { url } }
+    });
+    await testClient.$connect();
+    await testClient.$queryRaw`SELECT 1`;
+    await testClient.$disconnect();
     return true;
   } catch (error) {
-    console.log(`Database connection test failed for ${url}:`, error.message);
+    logError(`Database connection test failed for ${url}`, error);
     return false;
   }
 }
@@ -32,18 +34,22 @@ async function initializeDatabase() {
   // First try Neon (primary online database)
   if (NEON_URL && await testConnection(NEON_URL)) {
     console.log('✅ Connected to Neon database (online mode)');
-    const pool = new Pool({ connectionString: NEON_URL });
-    db = drizzle({ client: pool, schema });
+    db = new PrismaClient({
+      datasources: { db: { url: NEON_URL } }
+    });
+    await db.$connect();
     activeConnection = 'neon';
     return db;
   }
   
   // Fallback to local database
   console.log('⚠️  Neon database unavailable, switching to local database...');
-  if (await testConnection(LOCAL_URL)) {
+  if (LOCAL_URL && await testConnection(LOCAL_URL)) {
     console.log('✅ Connected to local database (offline mode)');
-    const pool = new Pool({ connectionString: LOCAL_URL });
-    db = drizzle({ client: pool, schema });
+    db = new PrismaClient({
+      datasources: { db: { url: LOCAL_URL } }
+    });
+    await db.$connect();
     activeConnection = 'local';
     return db;
   }
@@ -56,11 +62,16 @@ async function switchToBackup() {
   const backupUrl = activeConnection === 'neon' ? LOCAL_URL : NEON_URL;
   const backupMode = activeConnection === 'neon' ? 'local' : 'neon';
   
-  if (await testConnection(backupUrl)) {
+  if (backupUrl && await testConnection(backupUrl)) {
     console.log(`🔄 Switching from ${activeConnection} to ${backupMode} database`);
-    const pool = new Pool({ connectionString: backupUrl });
-    db = drizzle({ client: pool, schema });
-    activeConnection = backupMode;
+    // Disconnect current database
+    await db.$disconnect();
+    // Connect to backup database
+    db = new PrismaClient({
+      datasources: { db: { url: backupUrl } }
+    });
+    await db.$connect();
+    activeConnection = backupMode as 'neon' | 'local';
     return true;
   }
   return false;
