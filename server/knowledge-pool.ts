@@ -254,7 +254,7 @@ class KnowledgePoolManager {
       const data = await response.json();
       return data.response || 'No response generated';
     } catch (error) {
-      throw new Error(`Ollama connection failed: ${error.message}`);
+      throw new Error(`Ollama connection failed: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   }
 

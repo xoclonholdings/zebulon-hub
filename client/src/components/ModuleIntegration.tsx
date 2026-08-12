@@ -48,7 +48,7 @@ const ModuleIntegrationComponent: React.FC<ModuleIntegrationProps> = ({ integrat
           React.useEffect(() => {
             try {
               // Create a function to safely execute the script
-              const executeScript = new Function(integration.integrationScript);
+              const executeScript = new Function(integration.integrationScript as string);
               executeScript();
             } catch (error) {
               console.error('Error executing custom script:', error);

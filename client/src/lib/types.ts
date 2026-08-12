@@ -6,6 +6,13 @@ export interface WebSocketMessage {
   timestamp: number;
 }
 
+export interface VoiceRecognitionResult {
+  recognized: boolean;
+  confidence: number;
+  message: string;
+  transcript?: string;
+}
+
 
 
 export interface SystemStatus {

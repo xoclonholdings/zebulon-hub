@@ -59,7 +59,8 @@ zebulon-oracle-system/
 ## Environment Requirements
 - Node.js 24+
 - PostgreSQL database
-- Environment variables: DATABASE_URL
+- Environment variables: `DATABASE_URL`
+- Client build variable: `VITE_ZAR_APP_URL` (the authenticated ZAR/ZCOS application origin used by the ZILLION gateway)
 
 ## Authentication
 The system includes built-in authentication with secure session management. Users can create accounts, log in, and manage their profiles through the admin panel.

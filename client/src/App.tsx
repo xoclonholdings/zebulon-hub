@@ -7,6 +7,8 @@ import { AuthProvider, useAuth } from "@/context/AuthContext";
 import Dashboard from "@/pages/dashboard";
 import NotFound from "@/pages/not-found";
 import LoginScreen from "@/components/LoginScreen";
+import ZebulonConstellationPage from "@/zcos/ZebulonConstellationPage";
+import ZillionGateway from "@/zcos/ZillionGateway";
 
 function Router() {
   const { user, isLoading, login } = useAuth();
@@ -29,7 +31,10 @@ function Router() {
   return (
     <div className="mobile-viewport mobile-container bg-black overflow-hidden">
       <Switch>
-        <Route path="/" component={Dashboard} />
+        <Route path="/" component={ZebulonConstellationPage} />
+        <Route path="/galaxy/zillion" component={ZillionGateway} />
+        <Route path="/nexys" component={Dashboard} />
+        <Route path="/legacy" component={Dashboard} />
         <Route component={NotFound} />
       </Switch>
     </div>
