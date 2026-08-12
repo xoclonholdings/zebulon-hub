@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { GALAXY_CONSTELLATION, galaxyById } from "./galaxyConstellation";
-import { ZILLION_OPERATOR_PATH, zillionOperatorUrl } from "./ZillionGateway";
+import { ZILLION_OPERATOR_PATH, zcosOperatorUrl, zillionOperatorUrl } from "./ZillionGateway";
 
 describe("ZCOS constellation routing", () => {
   it("contains the eight canonical application galaxies", () => {
@@ -14,5 +14,11 @@ describe("ZCOS constellation routing", () => {
     expect(galaxyById("zillion")).toMatchObject({ console: "PROSPER", route: "/galaxy/zillion" });
     expect(ZILLION_OPERATOR_PATH).toBe("/workspaces/finance");
     expect(zillionOperatorUrl("https://zar.example")).toBe("https://zar.example/workspaces/finance");
+  });
+
+  it("keeps ZAR and sibling galaxies in the shared runtime", () => {
+    expect(galaxyById("zar")?.route).toBe("/nexys");
+    expect(zcosOperatorUrl("https://zar.example", "/nexys")).toBe("https://zar.example/nexys");
+    expect(zcosOperatorUrl("https://zar.example", "/galaxy/zeta")).toBe("https://zar.example/galaxy/zeta");
   });
 });
