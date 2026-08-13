@@ -6,96 +6,94 @@ import { fileURLToPath } from 'url';
 import { storage } from './storage-prisma.js';
 import gedcomRoutes from './routes/gedcom.js';
 import knowledgeRoutes from './routes/knowledge.js';
+import zcosCanonicalRoutes from './routes/zcos-canonical.js';
 import { getActiveConnection } from './db-dual.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = Number(process.env.PORT || 5000);
+const production = process.env.NODE_ENV === 'production';
 
-// Trust proxy for session security
+const configuredOrigins = String(process.env.ALLOWED_FRONTEND_ORIGINS || process.env.FRONTEND_URL || '')
+  .split(',')
+  .map((value) => value.trim())
+  .filter(Boolean);
+const allowedOrigins = new Set(configuredOrigins);
+
+if (production && !process.env.SESSION_SECRET) {
+  throw new Error('SESSION_SECRET is required in production');
+}
+
 app.set('trust proxy', 1);
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.has(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-zcos-galaxy');
+    res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+    res.header('Vary', 'Origin');
+  }
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
 
-// Middleware
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Session middleware
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'zebulon-secret-key',
+  name: 'zcos.sid',
+  secret: process.env.SESSION_SECRET || 'development-only-zcos-session',
   resave: false,
   saveUninitialized: false,
+  proxy: production,
   cookie: {
-    secure: false,
+    secure: production,
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
-  }
+    sameSite: production ? 'none' : 'lax',
+    maxAge: 24 * 60 * 60 * 1000,
+  },
 }));
 
-// Serve static files from built public directory
 app.use(express.static(path.join(__dirname, '../dist/public')));
 
-// Request logging
 app.use((req, res, next) => {
   const start = Date.now();
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (req.path.startsWith("/api")) {
-      console.log(`${req.method} ${req.path} ${res.statusCode} in ${duration}ms`);
+  res.on('finish', () => {
+    if (req.path.startsWith('/api')) {
+      console.log(`${req.method} ${req.path} ${res.statusCode} in ${Date.now() - start}ms`);
     }
   });
   next();
 });
 
-// Authentication middleware
 interface AuthenticatedRequest extends Request {
-  session: {
+  session: session.Session & {
     userId?: number;
     user?: any;
-  } & session.Session;
+  };
 }
 
 const requireAuth = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  if (!req.session.userId) {
-    return res.status(401).json({ error: 'Authentication required' });
-  }
+  if (!req.session.userId) return res.status(401).json({ error: 'Authentication required' });
   next();
 };
 
-
-
-// Authentication endpoints
 app.post('/api/auth/login', async (req, res) => {
   try {
-    const { username, password } = req.body;
-    
-    if (!username || !password) {
-      return res.status(400).json({ error: 'Username and password are required' });
-    }
+    const { username, password } = req.body || {};
+    if (!username || !password) return res.status(400).json({ error: 'Username and password are required' });
 
-    const user = await storage.getUserByUsername(username);
-    if (!user) {
+    const user = await storage.getUserByUsername(String(username));
+    if (!user || !(await bcrypt.compare(String(password), user.passwordHash))) {
       return res.status(401).json({ error: 'Invalid username or password' });
     }
 
-    const isValidPassword = await bcrypt.compare(password, user.passwordHash);
-    if (!isValidPassword) {
-      return res.status(401).json({ error: 'Invalid username or password' });
-    }
-
-    // Update last login
     await storage.updateUserLogin(user.id);
-
-    // Set session
     (req as AuthenticatedRequest).session.userId = user.id;
-    (req as AuthenticatedRequest).session.user = user;
-
-    res.json({
-      id: user.id,
-      username: user.username,
-      role: user.role
-    });
+    (req as AuthenticatedRequest).session.user = { id: user.id, username: user.username, role: user.role };
+    res.json({ id: user.id, username: user.username, role: user.role });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -104,37 +102,15 @@ app.post('/api/auth/login', async (req, res) => {
 
 app.post('/api/auth/signup', async (req, res) => {
   try {
-    const { username, password } = req.body;
-    
-    if (!username || !password) {
-      return res.status(400).json({ error: 'Username and password are required' });
-    }
+    const { username, password } = req.body || {};
+    if (!username || !password) return res.status(400).json({ error: 'Username and password are required' });
+    if (String(password).length < 8) return res.status(400).json({ error: 'Password must be at least 8 characters long' });
+    if (await storage.getUserByUsername(String(username))) return res.status(409).json({ error: 'Username already exists' });
 
-    if (password.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters long' });
-    }
-
-    const existingUser = await storage.getUserByUsername(username);
-    if (existingUser) {
-      return res.status(409).json({ error: 'Username already exists' });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = await storage.createUser({
-      username,
-      passwordHash: hashedPassword,
-      role: 'user'
-    });
-
-    // Set session
-    (req as AuthenticatedRequest).session.userId = newUser.id;
-    (req as AuthenticatedRequest).session.user = newUser;
-
-    res.json({
-      id: newUser.id,
-      username: newUser.username,
-      role: newUser.role
-    });
+    const user = await storage.createUser({ username: String(username), passwordHash: await bcrypt.hash(String(password), 12), role: 'user' });
+    (req as AuthenticatedRequest).session.userId = user.id;
+    (req as AuthenticatedRequest).session.user = { id: user.id, username: user.username, role: user.role };
+    res.status(201).json({ id: user.id, username: user.username, role: user.role });
   } catch (error) {
     console.error('Signup error:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -143,481 +119,119 @@ app.post('/api/auth/signup', async (req, res) => {
 
 app.get('/api/auth/me', requireAuth, async (req, res) => {
   try {
-    const userId = (req as AuthenticatedRequest).session.userId!;
-    const user = await storage.getUser(userId);
-    
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    res.json({
-      id: user.id,
-      username: user.username,
-      role: user.role
-    });
+    const user = await storage.getUser((req as AuthenticatedRequest).session.userId!);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json({ id: user.id, username: user.username, role: user.role });
   } catch (error) {
-    console.error('Get user error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 app.post('/api/auth/logout', (req, res) => {
-  (req as AuthenticatedRequest).session.destroy((err) => {
-    if (err) {
-      console.error('Logout error:', err);
-      return res.status(500).json({ error: 'Failed to logout' });
-    }
-    res.json({ message: 'Logged out successfully' });
+  (req as AuthenticatedRequest).session.destroy((error) => {
+    if (error) return res.status(500).json({ error: 'Failed to logout' });
+    res.clearCookie('zcos.sid');
+    res.json({ success: true });
   });
 });
 
 app.post('/api/auth/change-password', requireAuth, async (req, res) => {
   try {
-    const { currentPassword, newPassword } = req.body;
-    const userId = (req as AuthenticatedRequest).session.userId!;
-    
-    if (!currentPassword || !newPassword) {
-      return res.status(400).json({ error: 'Current password and new password are required' });
-    }
-
-    if (newPassword.length < 6) {
-      return res.status(400).json({ error: 'New password must be at least 6 characters long' });
-    }
-
-    const user = await storage.getUser(userId);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    const isValidPassword = await bcrypt.compare(currentPassword, user.passwordHash);
-    if (!isValidPassword) {
-      return res.status(401).json({ error: 'Current password is incorrect' });
-    }
-
-    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-    await storage.updateUserPassword(userId, hashedNewPassword);
-
-    res.json({ message: 'Password changed successfully' });
-  } catch (error) {
-    console.error('Change password error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-
-
-// System status endpoint
-app.get('/api/system/status', async (req, res) => {
-  try {
-    const status = {
-      oracleCore: {
-        active: true,
-        memory: 92,
-        queries: 847,
-        uptime: "99.97%",
-        lastActivity: new Date().toISOString(),
-        databaseConnections: 5,
-        responseTime: "12ms"
-      },
-      system: {
-        status: "operational",
-        version: "1.0.0",
-        components: ["Zebulon Oracle", "Database Engine", "Query Processor"]
-      }
-    };
-    res.json(status);
-  } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// Module Integration API endpoints
-app.get('/api/modules', async (req, res) => {
-  try {
-    const modules = await storage.getModuleIntegrations();
-    res.json(modules);
-  } catch (error) {
-    console.error('Get modules error:', error);
-    res.status(500).json({ error: 'Failed to fetch modules' });
-  }
-});
-
-app.get('/api/modules/:moduleName', async (req, res) => {
-  try {
-    const { moduleName } = req.params;
-    const module = await storage.getModuleIntegration(moduleName);
-    if (!module) {
-      return res.status(404).json({ error: 'Module not found' });
-    }
-    res.json(module);
-  } catch (error) {
-    console.error('Get module error:', error);
-    res.status(500).json({ error: 'Failed to fetch module' });
-  }
-});
-
-app.post('/api/modules', requireAuth, async (req, res) => {
-  try {
-    const moduleData = req.body;
-    const module = await storage.createModuleIntegration(moduleData);
-    res.json(module);
-  } catch (error) {
-    console.error('Create module error:', error);
-    res.status(500).json({ error: 'Failed to create module integration' });
-  }
-});
-
-app.put('/api/modules/:moduleName', requireAuth, async (req, res) => {
-  try {
-    const { moduleName } = req.params;
-    const updateData = req.body;
-    const module = await storage.updateModuleIntegration(moduleName, updateData);
-    res.json(module);
-  } catch (error) {
-    console.error('Update module error:', error);
-    res.status(500).json({ error: 'Failed to update module integration' });
-  }
-});
-
-app.delete('/api/modules/:moduleName', requireAuth, async (req, res) => {
-  try {
-    const { moduleName } = req.params;
-    await storage.deleteModuleIntegration(moduleName);
+    const { currentPassword, newPassword } = req.body || {};
+    const user = await storage.getUser((req as AuthenticatedRequest).session.userId!);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (!currentPassword || !newPassword || String(newPassword).length < 8) return res.status(400).json({ error: 'Valid current and new passwords are required' });
+    if (!(await bcrypt.compare(String(currentPassword), user.passwordHash))) return res.status(401).json({ error: 'Current password is incorrect' });
+    await storage.updateUserPassword(user.id, await bcrypt.hash(String(newPassword), 12));
     res.json({ success: true });
   } catch (error) {
-    console.error('Delete module error:', error);
-    res.status(500).json({ error: 'Failed to delete module integration' });
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// Oracle Memory endpoints - Admin only access
-const requireAdmin = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  if (!req.session.userId) {
-    return res.status(401).json({ error: 'Authentication required' });
-  }
-  // For now, treating all authenticated users as admin
-  // In production, check user.role === 'admin'
-  next();
-};
-
-// Get all Oracle memories
-app.get('/api/oracle/memories', requireAdmin, async (req, res) => {
-  try {
-    const { search, status, type } = req.query;
-    const memories = await storage.searchOracleMemories(
-      search as string,
-      status as string,
-      type as string
-    );
-    res.json({ memories });
-  } catch (error) {
-    console.error('Get Oracle memories error:', error);
-    res.status(500).json({ error: 'Failed to fetch Oracle memories' });
-  }
-});
-
-// Get specific Oracle memory by label
-app.get('/api/oracle/recall/:label', requireAdmin, async (req, res) => {
-  try {
-    const { label } = req.params;
-    const memory = await storage.getOracleMemoryByLabel(label);
-    
-    if (!memory) {
-      return res.status(404).json({ error: 'Memory not found' });
-    }
-    
-    res.json({ memory });
-  } catch (error) {
-    console.error('Recall Oracle memory error:', error);
-    res.status(500).json({ error: 'Failed to recall memory' });
-  }
-});
-
-// Store new Oracle memory
-app.post('/api/oracle/store', requireAdmin, async (req, res) => {
-  try {
-    const { label, description, content, memoryType } = req.body;
-    const userId = (req as AuthenticatedRequest).session.userId!;
-    
-    if (!label || !description || !content || !memoryType) {
-      return res.status(400).json({ 
-        error: 'Label, description, content, and memory type are required' 
-      });
-    }
-
-    // Check if label already exists
-    const existing = await storage.getOracleMemoryByLabel(label);
-    if (existing) {
-      return res.status(409).json({ error: 'Memory with this label already exists' });
-    }
-
-    const memory = await storage.createOracleMemory({
-      label,
-      description,
-      content,
-      memoryType,
-      createdBy: 'admin' // In production, use actual username
-    });
-
-    res.json({ memory, message: 'Memory stored successfully' });
-  } catch (error) {
-    console.error('Store Oracle memory error:', error);
-    res.status(500).json({ error: 'Failed to store memory' });
-  }
-});
-
-// Lock/unlock Oracle memory
-app.patch('/api/oracle/lock', requireAdmin, async (req, res) => {
-  try {
-    const { label, status } = req.body;
-    
-    if (!label || !status || !['active', 'locked'].includes(status)) {
-      return res.status(400).json({ 
-        error: 'Valid label and status (active/locked) are required' 
-      });
-    }
-
-    const memory = await storage.updateOracleMemory(label, { status });
-    res.json({ memory, message: `Memory ${status} successfully` });
-  } catch (error) {
-    console.error('Lock Oracle memory error:', error);
-    res.status(500).json({ error: 'Failed to update memory status' });
-  }
-});
-
-// Export Oracle memory
-app.get('/api/oracle/export/:label', requireAdmin, async (req, res) => {
-  try {
-    const { label } = req.params;
-    const { format = 'json' } = req.query;
-    
-    const memory = await storage.getOracleMemoryByLabel(label);
-    if (!memory) {
-      return res.status(404).json({ error: 'Memory not found' });
-    }
-
-    let filename: string;
-    let contentType: string;
-    let data: string;
-
-    switch (format) {
-      case 'txt':
-        filename = `${label}.txt`;
-        contentType = 'text/plain';
-        data = `Label: ${memory.label}\nDescription: ${memory.description}\nType: ${memory.memoryType}\nStatus: ${memory.status}\nCreated: ${memory.createdAt}\nLast Modified: ${memory.lastModified}\n\nContent:\n${memory.content}`;
-        break;
-      case 'json':
-        filename = `${label}.json`;
-        contentType = 'application/json';
-        data = JSON.stringify(memory, null, 2);
-        break;
-      default:
-        return res.status(400).json({ error: 'Unsupported format. Use json or txt' });
-    }
-
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    res.setHeader('Content-Type', contentType);
-    res.send(data);
-  } catch (error) {
-    console.error('Export Oracle memory error:', error);
-    res.status(500).json({ error: 'Failed to export memory' });
-  }
-});
-
-// Update Oracle memory
-app.patch('/api/oracle/memories/:label', requireAdmin, async (req, res) => {
-  try {
-    const { label } = req.params;
-    const updates = req.body;
-    
-    // Don't allow changing the label itself or creation metadata
-    delete updates.id;
-    delete updates.label;
-    delete updates.createdBy;
-    delete updates.createdAt;
-
-    const memory = await storage.updateOracleMemory(label, updates);
-    res.json({ memory, message: 'Memory updated successfully' });
-  } catch (error) {
-    console.error('Update Oracle memory error:', error);
-    res.status(500).json({ error: 'Failed to update memory' });
-  }
-});
-
-// Delete Oracle memory
-app.delete('/api/oracle/memories/:label', requireAdmin, async (req, res) => {
-  try {
-    const { label } = req.params;
-    
-    await storage.deleteOracleMemory(label);
-    res.json({ message: 'Memory deleted successfully' });
-  } catch (error) {
-    console.error('Delete Oracle memory error:', error);
-    res.status(500).json({ error: 'Failed to delete memory' });
-  }
-});
-
-// GEDCOM routes
-app.use('/api/gedcom', gedcomRoutes);
-app.use('/api/knowledge', knowledgeRoutes);
-
-// ✅ 4. Placeholder API routes for each tile
-// GET /api/chat (ZED)
-app.get('/api/chat', requireAuth, async (req, res) => {
-  try {
-    res.json({
-      module: 'ZED',
-      description: 'Chat Interface Module',
-      status: 'ready',
-      features: ['real-time messaging', 'AI assistance', 'conversation history'],
-      lastActivity: new Date().toISOString(),
-      activeUsers: 1,
-      totalMessages: 127
-    });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch chat data' });
-  }
-});
-
-// GET /api/code (ZYNC)
-app.get('/api/code', requireAuth, async (req, res) => {
-  try {
-    res.json({
-      module: 'ZYNC',
-      description: 'IDE Interface Module',
-      status: 'ready',
-      features: ['code editor', 'syntax highlighting', 'version control'],
-      projects: 5,
-      languages: ['TypeScript', 'JavaScript', 'Python', 'SQL'],
-      lastCommit: new Date().toISOString()
-    });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch code data' });
-  }
-});
-
-// GET /api/security/logs (ZETA)
-app.get('/api/security/logs', requireAuth, async (req, res) => {
-  try {
-    res.json({
-      module: 'ZETA',
-      description: 'Security Panel Module',
-      status: 'secure',
-      features: ['threat monitoring', 'access logs', 'security alerts'],
-      threatLevel: 'low',
-      blockedAttempts: 0,
-      lastScan: new Date().toISOString(),
-      logs: [
-        { time: new Date().toISOString(), event: 'User login', status: 'success' },
-        { time: new Date(Date.now() - 3600000).toISOString(), event: 'System scan', status: 'clean' }
-      ]
-    });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch security data' });
-  }
-});
-
-// GET /api/finance/wallet (ZWAP)
-app.get('/api/finance/wallet', requireAuth, async (req, res) => {
-  try {
-    res.json({
-      module: 'ZWAP!',
-      description: 'Financial Utility Module',
-      status: 'active',
-      features: ['account overview', 'financial tools', 'budget tracking'],
-      balance: 0.00,
-      currency: 'USD',
-      accounts: [],
-      recentTransactions: [],
-      lastUpdate: new Date().toISOString()
-    });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch finance data' });
-  }
-});
-
-// GET /api/system/repair (ZULU)
-app.get('/api/system/repair', requireAuth, async (req, res) => {
-  try {
-    res.json({
-      module: 'ZULU',
-      description: 'System Repairs and Maintenance Module',
-      status: 'operational',
-      features: ['system diagnostics', 'repair tools', 'maintenance scheduling', 'performance optimization'],
-      systemHealth: 'good',
-      lastDiagnostic: new Date().toISOString(),
-      repairJobs: [],
-      maintenanceSchedule: new Date().toISOString()
-    });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch system data' });
-  }
-});
-
-// GET /api/settings/update (Config)
-app.get('/api/settings/update', requireAuth, async (req, res) => {
-  try {
-    res.json({
-      module: 'Config',
-      description: 'System Settings Module',
-      status: 'ready',
-      features: ['user preferences', 'system configuration', 'module management'],
-      version: '1.0.0',
-      environment: process.env.NODE_ENV || 'development',
-      uptime: process.uptime(),
-      lastConfigUpdate: new Date().toISOString()
-    });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch settings data' });
-  }
-});
-
-// API health check with database status
-app.get('/api/health', (req, res) => {
-  const dbStatus = getActiveConnection();
-  res.json({ 
-    status: 'ok', 
-    message: 'Zebulon Oracle System is running with Prisma',
-    database: dbStatus
+app.get('/api/system/status', (_req, res) => {
+  res.json({
+    system: 'ZCOS',
+    status: 'operational',
+    version: 'migration',
+    canonicalAuthorities: ['identity', 'memory', 'knowledge', 'apps', 'desk', 'settings', 'portal'],
+    timestamp: new Date().toISOString(),
   });
 });
 
-// Serve React app
-const publicPath = path.join(__dirname, '../dist/public');
-app.get('*', (req, res) => {
-  if (!req.path.startsWith('/api')) {
-    res.sendFile(path.join(publicPath, 'index.html'));
-  } else {
-    res.status(404).json({ error: 'API endpoint not found' });
-  }
+app.get('/api/modules', requireAuth, async (_req, res) => {
+  try { res.json(await storage.getModuleIntegrations()); }
+  catch { res.status(500).json({ error: 'Failed to fetch modules' }); }
 });
 
-// Error handler
-app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-  const status = err.status || err.statusCode || 500;
-  const message = err.message || "Internal Server Error";
-  res.status(status).json({ message });
-  console.error(err);
-});
-
-async function startServer() {
+app.get('/api/modules/:moduleName', requireAuth, async (req, res) => {
   try {
-    console.log('Initializing database with Prisma...');
-    
-    // Start server
-    app.listen(PORT, () => {
-      console.log('Database initialization completed');
-      console.log(`🚀 Zebulon Oracle System running on port ${PORT}`);
-      console.log(`🌐 Frontend and Backend unified on single port`);
-      console.log(`💾 Database: PostgreSQL with Prisma`);
-      console.log(`🔮 Oracle: Database query and analysis engine ready`);
-      console.log(`🔒 Security: Multi-layer protection active`);
-      console.log(`🌍 Access your Zebulon Oracle System at: http://localhost:${PORT}`);
-    });
-  } catch (error) {
-    console.error('Failed to start server:', error);
-    process.exit(1);
-  }
+    const module = await storage.getModuleIntegration(req.params.moduleName);
+    if (!module) return res.status(404).json({ error: 'Module not found' });
+    res.json(module);
+  } catch { res.status(500).json({ error: 'Failed to fetch module' }); }
+});
+
+app.post('/api/modules', requireAuth, async (req, res) => {
+  try { res.status(201).json(await storage.createModuleIntegration(req.body)); }
+  catch { res.status(500).json({ error: 'Failed to create module integration' }); }
+});
+
+app.put('/api/modules/:moduleName', requireAuth, async (req, res) => {
+  try { res.json(await storage.updateModuleIntegration(req.params.moduleName, req.body)); }
+  catch { res.status(500).json({ error: 'Failed to update module integration' }); }
+});
+
+app.delete('/api/modules/:moduleName', requireAuth, async (req, res) => {
+  try { await storage.deleteModuleIntegration(req.params.moduleName); res.json({ success: true }); }
+  catch { res.status(500).json({ error: 'Failed to delete module integration' }); }
+});
+
+// OracleMemory is preserved as migration evidence only. Canonical writes use /api/zcos/:galaxy/memory.
+app.get('/api/oracle/memories', requireAuth, async (req, res) => {
+  try {
+    const { search, status, type } = req.query;
+    res.json({ legacy: true, memories: await storage.searchOracleMemories(search as string, status as string, type as string) });
+  } catch { res.status(500).json({ error: 'Failed to fetch legacy memories' }); }
+});
+
+app.get('/api/oracle/recall/:label', requireAuth, async (req, res) => {
+  try {
+    const memory = await storage.getOracleMemoryByLabel(req.params.label);
+    if (!memory) return res.status(404).json({ error: 'Memory not found' });
+    res.json({ legacy: true, memory });
+  } catch { res.status(500).json({ error: 'Failed to fetch legacy memory' }); }
+});
+
+for (const method of ['post', 'patch', 'delete'] as const) {
+  const route = method === 'post' ? '/api/oracle/store' : method === 'patch' ? '/api/oracle/memories/:label' : '/api/oracle/memories/:label';
+  app[method](route, requireAuth, (_req, res) => res.status(410).json({
+    error: 'Legacy OracleMemory is read-only during ZCOS migration. Use the canonical galaxy Memory endpoint.',
+  }));
 }
 
-startServer();
+app.use('/api/gedcom', gedcomRoutes);
+app.use('/api/knowledge', knowledgeRoutes);
+app.use('/api/zcos', zcosCanonicalRoutes);
+
+app.get(['/health', '/api/health'], (_req, res) => {
+  res.json({ ok: true, service: 'zcos', database: getActiveConnection(), timestamp: new Date().toISOString() });
+});
+
+const publicPath = path.join(__dirname, '../dist/public');
+app.get('*', (req, res) => {
+  if (req.path.startsWith('/api')) return res.status(404).json({ error: 'API endpoint not found' });
+  res.sendFile(path.join(publicPath, 'index.html'));
+});
+
+app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+  const status = Number(err.status || err.statusCode || 500);
+  const message = err.message || 'Internal Server Error';
+  if (status >= 500) console.error(err);
+  res.status(status).json({ error: message });
+});
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`ZCOS server listening on port ${PORT}`);
+  console.log(`Allowed frontend origins: ${configuredOrigins.join(', ') || '(same-origin only)'}`);
+});
