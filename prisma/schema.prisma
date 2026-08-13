@@ -131,3 +131,19 @@ model KnowledgeRecord {
   @@index([ownerUserId, galaxyId, lifecycleState])
   @@map("zcos_knowledge_records")
 }
+
+model SourceRecord {
+  id             String   @id @default(cuid())
+  ownerUserId    String   @map("owner_user_id")
+  galaxyId       String   @map("galaxy_id")
+  sourceType     String   @map("source_type")
+  sourceId       String   @map("source_id")
+  originClass    String?  @map("origin_class")
+  locator        String?
+  metadata       Json?
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@index([ownerUserId, galaxyId])
+  @@index([sourceType, sourceId])
+  @@map("zcos_source_records")
+}
