@@ -97,3 +97,19 @@ model MigrationBatch {
 
   @@map("zcos_migration_batches")
 }
+
+model MemoryRecord {
+  id             String   @id @default(cuid())
+  ownerUserId    String   @map("owner_user_id")
+  galaxyId       String   @map("galaxy_id")
+  memoryType     String   @map("memory_type")
+  canonicalName  String   @map("canonical_name")
+  content        String
+  lifecycleState String   @default("proposed") @map("lifecycle_state")
+  version        Int      @default(1)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@index([ownerUserId, galaxyId, lifecycleState])
+  @@map("zcos_memory_records")
+}
