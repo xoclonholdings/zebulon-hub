@@ -1,198 +1,152 @@
 import { PrismaClient } from '@prisma/client';
 import { User, SystemStatus, OracleMemory, InsertOracleMemory, ModuleIntegration, InsertModuleIntegration } from '../shared/schema.js';
 
-// Initialize Prisma Client
 const prisma = new PrismaClient({
-  log: ['error', 'warn', 'info', 'query'],
+  log: ['error', 'warn'],
 });
 
 export class PrismaStorage {
-  // User management
   async getUser(id: number): Promise<User | null> {
-    return await prisma.user.findUnique({
-      where: { id }
-    });
+    return await prisma.user.findUnique({ where: { id } }) as User | null;
   }
 
   async getUserByUsername(username: string): Promise<User | null> {
-    return await prisma.user.findUnique({
-      where: { username }
-    });
+    return await prisma.user.findUnique({ where: { username } }) as User | null;
   }
 
   async createUser(userData: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User> {
-    return await prisma.user.create({
-      data: {
-        ...userData,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
-    });
+    return await prisma.user.create({ data: { ...userData, createdAt: new Date(), updatedAt: new Date() } }) as User;
   }
 
   async updateUser(id: number, updates: Partial<User>): Promise<User> {
-    return await prisma.user.update({
-      where: { id },
-      data: {
-        ...updates,
-        updatedAt: new Date()
-      }
-    });
+    return await prisma.user.update({ where: { id }, data: { ...updates, updatedAt: new Date() } }) as User;
   }
 
   async updateUserLogin(id: number): Promise<User> {
-    return await prisma.user.update({
-      where: { id },
-      data: { 
-        updatedAt: new Date()
-      }
-    });
+    return await prisma.user.update({ where: { id }, data: { updatedAt: new Date() } }) as User;
   }
 
   async updateUserPassword(id: number, passwordHash: string): Promise<User> {
-    return await prisma.user.update({
-      where: { id },
-      data: { 
-        passwordHash,
-        updatedAt: new Date()
-      }
-    });
+    return await prisma.user.update({ where: { id }, data: { passwordHash, updatedAt: new Date() } }) as User;
   }
 
-
-
-  // System status management
   async getSystemStatus(): Promise<any[]> {
-    return await prisma.systemStatus.findMany({
-      orderBy: { lastChecked: 'desc' }
-    });
+    return await prisma.systemStatus.findMany({ orderBy: { lastChecked: 'desc' } });
   }
 
   async updateSystemStatus(component: string, status: any): Promise<any> {
     return await prisma.systemStatus.upsert({
       where: { component },
-      update: {
-        ...status,
-        lastChecked: new Date()
-      },
-      create: {
-        component,
-        status: status.status || 'unknown',
-        lastChecked: new Date(),
-        ...status
-      }
+      update: { ...status, lastChecked: new Date() },
+      create: { component, status: status.status || 'unknown', lastChecked: new Date(), ...status },
     });
   }
 
-  // Oracle Memory management
-  // Module Integration methods
   async getModuleIntegrations(): Promise<ModuleIntegration[]> {
-    return await prisma.moduleIntegration.findMany({
-      orderBy: { createdAt: 'desc' }
-    }) as ModuleIntegration[];
+    return await prisma.moduleIntegration.findMany({ orderBy: { createdAt: 'desc' } }) as ModuleIntegration[];
   }
 
   async getModuleIntegration(moduleName: string): Promise<ModuleIntegration | null> {
-    const integration = await prisma.moduleIntegration.findUnique({
-      where: { moduleName }
-    });
-    return integration as ModuleIntegration | null;
+    return await prisma.moduleIntegration.findUnique({ where: { moduleName } }) as ModuleIntegration | null;
   }
 
   async createModuleIntegration(data: InsertModuleIntegration): Promise<ModuleIntegration> {
-    const integration = await prisma.moduleIntegration.create({
-      data
-    });
-    return integration as ModuleIntegration;
+    return await prisma.moduleIntegration.create({ data }) as ModuleIntegration;
   }
 
   async updateModuleIntegration(moduleName: string, data: Partial<InsertModuleIntegration>): Promise<ModuleIntegration> {
-    const integration = await prisma.moduleIntegration.update({
-      where: { moduleName },
-      data: {
-        ...data,
-        updatedAt: new Date()
-      }
-    });
-    return integration as ModuleIntegration;
+    return await prisma.moduleIntegration.update({ where: { moduleName }, data: { ...data, updatedAt: new Date() } }) as ModuleIntegration;
   }
 
   async deleteModuleIntegration(moduleName: string): Promise<void> {
-    await prisma.moduleIntegration.delete({
-      where: { moduleName }
-    });
+    await prisma.moduleIntegration.delete({ where: { moduleName } });
   }
 
+  // Legacy Oracle memory remains read-only migration evidence for new ZCOS work.
   async getOracleMemories(): Promise<OracleMemory[]> {
-    const results = await prisma.oracleMemory.findMany({
-      orderBy: { lastModified: 'desc' }
-    });
-    return results as OracleMemory[];
+    return await prisma.oracleMemory.findMany({ orderBy: { lastModified: 'desc' } }) as OracleMemory[];
   }
 
   async getOracleMemoryByLabel(label: string): Promise<OracleMemory | null> {
-    const result = await prisma.oracleMemory.findUnique({
-      where: { label }
-    });
-    return result as OracleMemory | null;
+    return await prisma.oracleMemory.findUnique({ where: { label } }) as OracleMemory | null;
   }
 
   async createOracleMemory(memory: InsertOracleMemory): Promise<OracleMemory> {
-    const result = await prisma.oracleMemory.create({
-      data: {
-        ...memory,
-        status: memory.status || 'active',
-        createdAt: new Date(),
-        lastModified: new Date()
-      }
-    });
-    return result as OracleMemory;
+    return await prisma.oracleMemory.create({ data: { ...memory, status: memory.status || 'active', createdAt: new Date(), lastModified: new Date() } }) as OracleMemory;
   }
 
   async updateOracleMemory(label: string, updates: Partial<OracleMemory>): Promise<OracleMemory> {
-    const result = await prisma.oracleMemory.update({
-      where: { label },
-      data: {
-        ...updates,
-        lastModified: new Date()
-      }
-    });
-    return result as OracleMemory;
+    return await prisma.oracleMemory.update({ where: { label }, data: { ...updates, lastModified: new Date() } }) as OracleMemory;
   }
 
   async deleteOracleMemory(label: string): Promise<void> {
-    await prisma.oracleMemory.delete({
-      where: { label }
-    });
+    await prisma.oracleMemory.delete({ where: { label } });
   }
 
   async searchOracleMemories(searchTerm?: string, status?: string, memoryType?: string): Promise<OracleMemory[]> {
     const where: any = {};
-    
-    if (searchTerm) {
-      where.OR = [
-        { label: { contains: searchTerm, mode: 'insensitive' } },
-        { description: { contains: searchTerm, mode: 'insensitive' } },
-        { content: { contains: searchTerm, mode: 'insensitive' } }
-      ];
-    }
-    
-    if (status) {
-      where.status = status;
-    }
-    
-    if (memoryType) {
-      where.memoryType = memoryType;
-    }
+    if (searchTerm) where.OR = [
+      { label: { contains: searchTerm, mode: 'insensitive' } },
+      { description: { contains: searchTerm, mode: 'insensitive' } },
+      { content: { contains: searchTerm, mode: 'insensitive' } },
+    ];
+    if (status) where.status = status;
+    if (memoryType) where.memoryType = memoryType;
+    return await prisma.oracleMemory.findMany({ where, orderBy: { lastModified: 'desc' } }) as OracleMemory[];
+  }
 
-    const results = await prisma.oracleMemory.findMany({
-      where,
-      orderBy: { lastModified: 'desc' }
+  async listMemory(ownerUserId: string, galaxyId: string) {
+    return prisma.memoryRecord.findMany({
+      where: { ownerUserId, galaxyId },
+      orderBy: { updatedAt: 'desc' },
     });
-    return results as OracleMemory[];
+  }
+
+  async createMemory(data: {
+    ownerUserId: string;
+    galaxyId: string;
+    memoryType: string;
+    canonicalName: string;
+    content: string;
+    lifecycleState?: string;
+  }) {
+    return prisma.memoryRecord.create({
+      data: { ...data, lifecycleState: data.lifecycleState || 'confirmed' },
+    });
+  }
+
+  async listKnowledge(ownerUserId: string, galaxyId: string) {
+    return prisma.knowledgeRecord.findMany({
+      where: { ownerUserId, galaxyId },
+      orderBy: { updatedAt: 'desc' },
+    });
+  }
+
+  async createKnowledge(data: {
+    ownerUserId: string;
+    galaxyId: string;
+    objectType: string;
+    canonicalName: string;
+    summary?: string;
+    originClass: string;
+    lifecycleState?: string;
+  }) {
+    return prisma.knowledgeRecord.create({
+      data: { ...data, lifecycleState: data.lifecycleState || 'candidate' },
+    });
+  }
+
+  async recordAudit(data: {
+    ownerUserId?: string;
+    galaxyId?: string;
+    eventType: string;
+    targetType?: string;
+    targetId?: string;
+    details?: any;
+  }) {
+    return prisma.auditEvent.create({ data });
   }
 }
 
-// Export singleton instance
 export const storage = new PrismaStorage();
 export default storage;
