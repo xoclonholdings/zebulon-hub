@@ -147,3 +147,32 @@ model SourceRecord {
   @@index([sourceType, sourceId])
   @@map("zcos_source_records")
 }
+
+model PartitionGrant {
+  id             String    @id @default(cuid())
+  ownerUserId    String    @map("owner_user_id")
+  sourceGalaxyId String    @map("source_galaxy_id")
+  targetGalaxyId String    @map("target_galaxy_id")
+  authorityKind  String    @map("authority_kind")
+  permissions    String[]  @default([])
+  createdAt      DateTime  @default(now()) @map("created_at")
+  expiresAt      DateTime? @map("expires_at")
+  revokedAt      DateTime? @map("revoked_at")
+
+  @@index([ownerUserId, sourceGalaxyId, targetGalaxyId])
+  @@map("zcos_partition_grants")
+}
+
+model AuditEvent {
+  id          String   @id @default(cuid())
+  ownerUserId String?  @map("owner_user_id")
+  galaxyId    String?  @map("galaxy_id")
+  eventType   String   @map("event_type")
+  targetType  String?  @map("target_type")
+  targetId    String?  @map("target_id")
+  details     Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([ownerUserId, createdAt])
+  @@map("zcos_audit_events")
+}
