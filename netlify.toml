@@ -4,8 +4,13 @@
 
 [build.environment]
   NODE_VERSION = "20"
-  VITE_API_BASE_URL = "https://api.zcos.online"
   VITE_ZAR_APP_URL = "https://zar-ai.online"
+
+[[redirects]]
+  from = "/api/*"
+  to = "https://api.zcos.online/api/:splat"
+  status = 200
+  force = true
 
 [[redirects]]
   from = "/*"
