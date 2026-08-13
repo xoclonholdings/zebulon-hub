@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: zcos
+    runtime: node
+    plan: starter
+    buildCommand: npm ci && npx prisma generate && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: NODE_ENV
+        value: "production"
+      - key: FRONTEND_URL
+        value: "https://zcos.online"
+      - key: ALLOWED_FRONTEND_ORIGINS
+        value: "https://zcos.online,https://zar-ai.online"
+      - key: VITE_API_BASE_URL
+        value: "https://api.zcos.online"
+      - key: VITE_ZAR_APP_URL
+        value: "https://zar-ai.online"
