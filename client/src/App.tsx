@@ -18,7 +18,7 @@ function Router() {
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-white text-center">
           <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p>Loading Zebulon AI System...</p>
+          <p>Loading ZCOS...</p>
         </div>
       </div>
     );
@@ -32,9 +32,29 @@ function Router() {
     <div className="mobile-viewport mobile-container bg-black overflow-hidden">
       <Switch>
         <Route path="/" component={ZebulonConstellationPage} />
-        <Route path="/galaxy/zillion" component={ZillionGateway} />
-        <Route path="/galaxy/:galaxy" component={GalaxyGateway} />
+
+        <Route path="/zar" component={ZarGateway} />
         <Route path="/nexys" component={ZarGateway} />
+
+        <Route path="/zillion" component={ZillionGateway} />
+        <Route path="/zillion/:domain" component={GalaxyGateway} />
+        <Route path="/zeta" component={GalaxyGateway} />
+        <Route path="/zeta/:domain" component={GalaxyGateway} />
+        <Route path="/zync" component={GalaxyGateway} />
+        <Route path="/zync/:domain" component={GalaxyGateway} />
+        <Route path="/zylo" component={GalaxyGateway} />
+        <Route path="/zylo/:domain" component={GalaxyGateway} />
+        <Route path="/zeno" component={GalaxyGateway} />
+        <Route path="/zeno/:domain" component={GalaxyGateway} />
+        <Route path="/zwap" component={GalaxyGateway} />
+        <Route path="/zwap/:domain" component={GalaxyGateway} />
+        <Route path="/zenith" component={GalaxyGateway} />
+        <Route path="/zenith/:domain" component={GalaxyGateway} />
+
+        <Route path="/galaxy/zillion" component={ZillionGateway} />
+        <Route path="/galaxy/:galaxy/:domain" component={GalaxyGateway} />
+        <Route path="/galaxy/:galaxy" component={GalaxyGateway} />
+
         <Route path="/admin" component={ZcosPathGateway} />
         <Route path="/learning/studio" component={ZcosPathGateway} />
         <Route path="/knowledge" component={ZcosPathGateway} />
