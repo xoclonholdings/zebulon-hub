@@ -1,5 +1,5 @@
 {
-  "name": "zebulon-ai-system",
+  "name": "zcos",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
@@ -8,14 +8,15 @@
     "dev:client": "vite --config vite.config.clean.ts",
     "build": "npm run build:server && npm run build:client",
     "build:client": "vite build --config vite.config.clean.ts",
-    "build:server": "tsc --project tsconfig.server.json",
-    "typecheck": "tsc --noEmit",
+    "build:server": "prisma generate && tsc --project tsconfig.server.json",
+    "typecheck": "prisma generate && tsc --noEmit",
     "test": "vitest run",
-    "start": "NODE_ENV=production node dist/server/index.js",
-    "db:generate": "npx prisma generate",
-    "db:push": "npx prisma db push",
-    "db:studio": "npx prisma studio",
-    "db:migrate": "npx prisma migrate dev"
+    "start": "prisma migrate deploy && NODE_ENV=production node dist/server/index.js",
+    "verify": "npm run typecheck && npm test && npm run build",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio",
+    "db:migrate": "prisma migrate dev"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.37.0",
