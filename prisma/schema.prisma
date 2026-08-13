@@ -113,3 +113,21 @@ model MemoryRecord {
   @@index([ownerUserId, galaxyId, lifecycleState])
   @@map("zcos_memory_records")
 }
+
+model KnowledgeRecord {
+  id             String   @id @default(cuid())
+  ownerUserId    String   @map("owner_user_id")
+  galaxyId       String   @map("galaxy_id")
+  objectType     String   @map("object_type")
+  canonicalName  String   @map("canonical_name")
+  summary        String?
+  lifecycleState String   @default("candidate") @map("lifecycle_state")
+  originClass    String   @map("origin_class")
+  currency       String   @default("unknown")
+  version        Int      @default(1)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@index([ownerUserId, galaxyId, lifecycleState])
+  @@map("zcos_knowledge_records")
+}
