@@ -71,3 +71,29 @@ model FamilyTree {
 
   @@map("family_trees")
 }
+
+model ZcosGalaxy {
+  id        String   @id
+  console   String
+  desk      String
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("zcos_galaxies")
+}
+
+model MigrationBatch {
+  id            String    @id @default(cuid())
+  sourceRepo    String    @map("source_repo")
+  sourceCommit  String    @map("source_commit")
+  schemaVersion String    @map("schema_version")
+  status        String
+  counts        Json?
+  checksum      String?
+  outcome       Json?
+  startedAt     DateTime  @default(now()) @map("started_at")
+  completedAt   DateTime? @map("completed_at")
+
+  @@map("zcos_migration_batches")
+}
