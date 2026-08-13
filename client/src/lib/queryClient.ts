@@ -1,5 +1,13 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
+const API_BASE = String(import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
+
+export function apiUrl(path: string): string {
+  if (/^https?:\/\//i.test(path)) return path;
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  return API_BASE ? `${API_BASE}${normalized}` : normalized;
+}
+
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
@@ -10,12 +18,17 @@ async function throwIfResNotOk(res: Response) {
 export async function apiRequest(
   url: string,
   method: string = 'GET',
-  data?: unknown | undefined,
+  data?: unknown,
+  galaxyId?: string,
 ): Promise<any> {
-  const res = await fetch(url, {
+  const headers: Record<string, string> = {};
+  if (data !== undefined) headers["Content-Type"] = "application/json";
+  if (galaxyId) headers["x-zcos-galaxy"] = galaxyId;
+
+  const res = await fetch(apiUrl(url), {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
-    body: data ? JSON.stringify(data) : undefined,
+    headers,
+    body: data !== undefined ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
 
@@ -29,13 +42,10 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey.join("/") as string, {
-      credentials: "include",
-    });
+    const path = queryKey.join("/") as string;
+    const res = await fetch(apiUrl(path), { credentials: "include" });
 
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null;
-    }
+    if (unauthorizedBehavior === "returnNull" && res.status === 401) return null;
 
     await throwIfResNotOk(res);
     return await res.json();
@@ -50,8 +60,6 @@ export const queryClient = new QueryClient({
       staleTime: Infinity,
       retry: false,
     },
-    mutations: {
-      retry: false,
-    },
+    mutations: { retry: false },
   },
 });
