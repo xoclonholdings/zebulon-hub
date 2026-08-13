@@ -1,4 +1,5 @@
 import type { Request } from "express";
+import { normalizeGalaxyId, type GalaxyId } from "./GalaxyRegistry.js";
 
 /**
  * Canonical authenticated owner context for ZCOS-protected operations.
@@ -8,7 +9,7 @@ import type { Request } from "express";
  */
 export interface OwnerContext {
   ownerUserId: string;
-  originGalaxyId?: string;
+  originGalaxyId?: GalaxyId;
   authMethod: "session" | "privy" | "channel" | "system";
 }
 
@@ -31,11 +32,15 @@ export function ownerContextFromRequest(req: Request): OwnerContext {
     throw new OwnerContextError();
   }
 
-  const originGalaxyHeader = req.header("x-zcos-galaxy")?.trim();
+  const rawGalaxy = req.header("x-zcos-galaxy")?.trim();
+  const originGalaxyId = rawGalaxy ? normalizeGalaxyId(rawGalaxy) : null;
+  if (rawGalaxy && !originGalaxyId) {
+    throw new OwnerContextError("Unknown ZCOS galaxy context");
+  }
 
   return {
     ownerUserId: String(rawOwner),
-    originGalaxyId: originGalaxyHeader || undefined,
+    originGalaxyId: originGalaxyId || undefined,
     authMethod: "session",
   };
 }
