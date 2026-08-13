@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { GALAXY_CONSTELLATION, galaxyById } from "./galaxyConstellation";
-import { ZILLION_OPERATOR_PATH, zcosOperatorUrl, zillionOperatorUrl } from "./ZillionGateway";
+import { GALAXY_SURFACES, ZCOS_SHARED_DOMAINS, isGalaxyId, isZcosDomain } from "./ZillionGateway";
 
 describe("ZCOS constellation routing", () => {
   it("contains the eight canonical application galaxies", () => {
@@ -10,15 +10,22 @@ describe("ZCOS constellation routing", () => {
     ]);
   });
 
-  it("routes the ZILLION celestial object through the authenticated ZAR Capital gateway", () => {
-    expect(galaxyById("zillion")).toMatchObject({ console: "PROSPER", route: "/galaxy/zillion" });
-    expect(ZILLION_OPERATOR_PATH).toBe("/workspaces/finance");
-    expect(zillionOperatorUrl("https://zar.example")).toBe("https://zar.example/workspaces/finance");
+  it("defines all seven shared domains for native galaxy partition pages", () => {
+    expect(ZCOS_SHARED_DOMAINS).toEqual(["identity", "memory", "knowledge", "apps", "desk", "settings", "portal"]);
+    expect(isZcosDomain("memory")).toBe(true);
+    expect(isZcosDomain("unknown")).toBe(false);
   });
 
-  it("keeps ZAR and sibling galaxies in the shared runtime", () => {
-    expect(galaxyById("zar")?.route).toBe("/nexys");
-    expect(zcosOperatorUrl("https://zar.example", "/nexys")).toBe("https://zar.example/nexys");
-    expect(zcosOperatorUrl("https://zar.example", "/galaxy/zeta")).toBe("https://zar.example/galaxy/zeta");
+  it("defines every non-ZAR galaxy as a native ZCOS surface", () => {
+    expect(Object.keys(GALAXY_SURFACES).sort()).toEqual(["zenith", "zeno", "zeta", "zillion", "zync", "zylo", "zwap"].sort());
+    expect(isGalaxyId("zillion")).toBe(true);
+    expect(GALAXY_SURFACES.zillion.desk).toBe("CAPITAL");
+    expect(GALAXY_SURFACES.zeta.console).toBe("CONTROL");
+  });
+
+  it("keeps the constellation objects mapped to the expected galaxies", () => {
+    expect(galaxyById("zillion")?.name).toBe("ZILLION");
+    expect(galaxyById("zeta")?.name).toBe("ZETA");
+    expect(galaxyById("zar")?.name).toBe("ZAR");
   });
 });
