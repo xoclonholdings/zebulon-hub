@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { ArrowLeft, Database, BookOpen, FolderOpen, ShieldCheck, Trash2 } from "lucide-react";
-import { useLocation } from "wouter";
+import { useLocation, useParams } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 
 const GALAXIES = ["ZAR", "ZYNC", "ZETA", "ZENO", "ZYLO", "ZWAP!", "ZENITH", "ZILLION"] as const;
 type CommandSurface = "memory" | "knowledge" | "projects" | "access";
+const COMMAND_SURFACES = new Set<CommandSurface>(["memory", "knowledge", "projects", "access"]);
 
 function RecordList({ records, kind }: { records: any[]; kind: "memory" | "knowledge" }) {
   if (!records.length) return <p className="text-sm text-white/40">No canonical {kind} records are available yet.</p>;
@@ -108,20 +109,21 @@ function AdminAccess() {
 
 export default function ZcosCommandDesk() {
   const [, navigate] = useLocation();
-  const [surface, setSurface] = useState<CommandSurface | null>(null);
+  const params = useParams<{ surface?: string }>();
+  const routeSurface = params.surface && COMMAND_SURFACES.has(params.surface as CommandSurface) ? params.surface as CommandSurface : null;
   const [records, setRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (surface !== "memory" && surface !== "knowledge") { setRecords([]); return; }
+    if (routeSurface !== "memory" && routeSurface !== "knowledge") { setRecords([]); return; }
     setLoading(true);
     setError("");
-    void apiRequest(`/api/zcos/admin/all-${surface}`)
+    void apiRequest(`/api/zcos/admin/all-${routeSurface}`)
       .then((result) => setRecords(Array.isArray(result.records) ? result.records : []))
-      .catch((e) => setError(e instanceof Error ? e.message : `Unable to load All ${surface}`))
+      .catch((e) => setError(e instanceof Error ? e.message : `Unable to load All ${routeSurface}`))
       .finally(() => setLoading(false));
-  }, [surface]);
+  }, [routeSurface]);
 
   const cards: Array<{ id: CommandSurface; title: string; detail: string; Icon: typeof Database }> = [
     { id: "memory", title: "All Memory", detail: "Unified administrative view across all eight Memory partitions.", Icon: Database },
@@ -133,20 +135,20 @@ export default function ZcosCommandDesk() {
   return (
     <main className="min-h-[100dvh] overflow-y-auto bg-[radial-gradient(circle_at_50%_15%,#121225_0%,#05050b_46%,#010103_100%)] px-4 pb-16 pt-5 text-white">
       <div className="mx-auto w-full max-w-3xl">
-        <button type="button" onClick={() => surface ? setSurface(null) : navigate("/")} className="mb-5 inline-flex min-h-[44px] items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 text-sm text-white/70"><ArrowLeft size={16} /> {surface ? "Command Desk" : "Constellation"}</button>
+        <button type="button" onClick={() => navigate(routeSurface ? "/admin" : "/")} className="mb-5 inline-flex min-h-[44px] items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 text-sm text-white/70"><ArrowLeft size={16} /> {routeSurface ? "Command Desk" : "Constellation"}</button>
         <header className="rounded-[2rem] border border-white/10 bg-black/35 p-6 backdrop-blur-xl">
           <p className="text-xs uppercase tracking-[0.28em] text-white/40">ZCOS</p>
           <h1 className="mt-2 text-3xl font-semibold">Command Desk</h1>
           <p className="mt-3 text-sm leading-6 text-white/50">System-wide visibility and authorization without collapsing galaxy ownership.</p>
         </header>
 
-        {!surface ? (
-          <section className="mt-5 grid gap-3 sm:grid-cols-2">{cards.map(({ id, title, detail, Icon }) => <button key={id} type="button" onClick={() => setSurface(id)} className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 text-left"><Icon size={19} className="text-white/55" /><h2 className="mt-3 text-sm font-medium text-white/80">{title}</h2><p className="mt-2 text-xs leading-5 text-white/40">{detail}</p></button>)}</section>
+        {!routeSurface ? (
+          <section className="mt-5 grid gap-3 sm:grid-cols-2">{cards.map(({ id, title, detail, Icon }) => <button key={id} type="button" onClick={() => navigate(`/admin/${id}`)} className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 text-left"><Icon size={19} className="text-white/55" /><h2 className="mt-3 text-sm font-medium text-white/80">{title}</h2><p className="mt-2 text-xs leading-5 text-white/40">{detail}</p></button>)}</section>
         ) : (
           <section className="mt-5 rounded-[2rem] border border-white/10 bg-black/35 p-5 backdrop-blur-xl">
-            <h2 className="text-2xl font-semibold">{cards.find((card) => card.id === surface)?.title}</h2>
+            <h2 className="text-2xl font-semibold">{cards.find((card) => card.id === routeSurface)?.title}</h2>
             <div className="mt-5">
-              {surface === "access" ? <AdminAccess /> : surface === "projects" ? <p className="text-sm leading-6 text-white/45">The canonical Project service is not connected to ZCOS Command yet. Existing project/workspace records remain migration sources until Phase 6 ownership migration is completed.</p> : loading ? <p className="text-sm text-white/40">Loading…</p> : error ? <p className="rounded-xl border border-red-400/20 bg-red-500/10 p-3 text-sm text-red-200">{error}</p> : <RecordList records={records} kind={surface} />}
+              {routeSurface === "access" ? <AdminAccess /> : routeSurface === "projects" ? <p className="text-sm leading-6 text-white/45">The canonical Project service is not connected to ZCOS Command yet. Existing project/workspace records remain migration sources until Phase 6 ownership migration is completed.</p> : loading ? <p className="text-sm text-white/40">Loading…</p> : error ? <p className="rounded-xl border border-red-400/20 bg-red-500/10 p-3 text-sm text-red-200">{error}</p> : <RecordList records={records} kind={routeSurface} />}
             </div>
           </section>
         )}
