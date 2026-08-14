@@ -24,9 +24,7 @@ function Router() {
     );
   }
 
-  if (!user) {
-    return <LoginScreen onLoginSuccess={login} />;
-  }
+  if (!user) return <LoginScreen onLoginSuccess={login} />;
 
   return (
     <div className="mobile-viewport mobile-container bg-black overflow-hidden">
@@ -37,20 +35,28 @@ function Router() {
         <Route path="/nexys" component={ZarGateway} />
 
         <Route path="/zillion" component={ZillionGateway} />
+        <Route path="/zillion/:domain/:surface" component={GalaxyGateway} />
         <Route path="/zillion/:domain" component={GalaxyGateway} />
         <Route path="/zeta" component={GalaxyGateway} />
+        <Route path="/zeta/:domain/:surface" component={GalaxyGateway} />
         <Route path="/zeta/:domain" component={GalaxyGateway} />
         <Route path="/zync" component={GalaxyGateway} />
+        <Route path="/zync/:domain/:surface" component={GalaxyGateway} />
         <Route path="/zync/:domain" component={GalaxyGateway} />
         <Route path="/zylo" component={GalaxyGateway} />
+        <Route path="/zylo/:domain/:surface" component={GalaxyGateway} />
         <Route path="/zylo/:domain" component={GalaxyGateway} />
         <Route path="/zeno" component={GalaxyGateway} />
+        <Route path="/zeno/:domain/:surface" component={GalaxyGateway} />
         <Route path="/zeno/:domain" component={GalaxyGateway} />
         <Route path="/zwap" component={GalaxyGateway} />
+        <Route path="/zwap/:domain/:surface" component={GalaxyGateway} />
         <Route path="/zwap/:domain" component={GalaxyGateway} />
         <Route path="/zenith" component={GalaxyGateway} />
+        <Route path="/zenith/:domain/:surface" component={GalaxyGateway} />
         <Route path="/zenith/:domain" component={GalaxyGateway} />
 
+        <Route path="/galaxy/:galaxy/:domain/:surface" component={GalaxyGateway} />
         <Route path="/galaxy/zillion" component={ZillionGateway} />
         <Route path="/galaxy/:galaxy/:domain" component={GalaxyGateway} />
         <Route path="/galaxy/:galaxy" component={GalaxyGateway} />
