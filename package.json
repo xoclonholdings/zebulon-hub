@@ -9,6 +9,7 @@
     "build": "npm run build:server && npm run build:client",
     "build:client": "vite build --config vite.config.clean.ts",
     "build:server": "prisma generate && tsc --project tsconfig.server.json",
+    "render-build": "npm install --include=dev && npm run build",
     "typecheck": "prisma generate && tsc --noEmit",
     "test": "vitest run",
     "start": "prisma migrate deploy && NODE_ENV=production node dist/server/index.js",
