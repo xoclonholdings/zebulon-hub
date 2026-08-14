@@ -5,8 +5,8 @@ import { requireOwner } from "../zcos-core/requireOwner.js";
 import { normalizeGalaxyId, ZCOS_GALAXIES } from "../zcos-core/GalaxyRegistry.js";
 
 const router = express.Router();
-const authorityKinds = new Set(["memory", "knowledge"]);
-const allowedPermissions = new Set(["read", "write", "contribute", "admin"]);
+const authorityKinds = new Set<string>(["memory", "knowledge"]);
+const allowedPermissions = new Set<string>(["read", "write", "contribute", "admin"]);
 
 function parseExpiry(value: unknown): Date | undefined {
   if (value === undefined || value === null || value === "") return undefined;
@@ -53,12 +53,13 @@ router.post("/grants", requireOwner, async (req, res, next) => {
     const sourceGalaxyId = normalizeGalaxyId(req.body?.sourceGalaxyId);
     const targetGalaxyId = normalizeGalaxyId(req.body?.targetGalaxyId);
     const authorityKind = String(req.body?.authorityKind || "");
-    const permissions = Array.isArray(req.body?.permissions) ? Array.from(new Set(req.body.permissions.map(String))) : [];
+    const rawPermissions: unknown[] = Array.isArray(req.body?.permissions) ? req.body.permissions : [];
+    const permissions: string[] = Array.from(new Set<string>(rawPermissions.map((permission) => String(permission))));
 
     if (!sourceGalaxyId || !targetGalaxyId) return res.status(400).json({ error: "Valid sourceGalaxyId and targetGalaxyId are required" });
     if (sourceGalaxyId === targetGalaxyId) return res.status(400).json({ error: "Cross-galaxy grant requires two different galaxies" });
     if (!authorityKinds.has(authorityKind)) return res.status(400).json({ error: "authorityKind must be memory or knowledge" });
-    if (permissions.length === 0 || permissions.some((permission) => !allowedPermissions.has(permission))) {
+    if (permissions.length === 0 || permissions.some((permission: string) => !allowedPermissions.has(permission))) {
       return res.status(400).json({ error: "permissions must contain read, write, contribute, or admin" });
     }
 
