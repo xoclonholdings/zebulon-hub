@@ -150,7 +150,7 @@ app.post('/api/auth/privy/session', async (req: Request, res: Response) => {
 });
 
 app.post('/api/login', async (req: Request, res: Response) => {
-  const configuredPhrase = String(process.env.ZAR_ADMIN_SECURE_PHRASE || '').trim();
+  const configuredPhrase = String(process.env.ZCOS_ADMIN_SECURE_PHRASE || '').trim();
   const suppliedPhrase = String(req.body?.passphrase || '').trim();
   if (!configuredPhrase) return res.status(503).json({ error: 'Admin secure phrase is not configured' });
   if (!suppliedPhrase || !secureEquals(configuredPhrase, suppliedPhrase)) return res.status(401).json({ error: 'Invalid secure phrase' });
