@@ -12,7 +12,7 @@
     "build:server": "prisma generate && tsc --project tsconfig.server.json",
     "typecheck": "prisma generate && tsc --noEmit",
     "test": "vitest run",
-    "start": "node scripts/prepare-database.mjs && NODE_ENV=production node dist/server/index.js",
+    "start": "node scripts/prepare-database.mjs && NODE_ENV=production node dist/server/server/index.js",
     "verify": "npm run typecheck && npm test && npm run build",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
