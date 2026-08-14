@@ -107,10 +107,18 @@ function AdminAccess() {
   );
 }
 
+function legacySurface(pathname: string): CommandSurface | null {
+  if (pathname === "/learning/studio") return "memory";
+  if (pathname === "/knowledge") return "knowledge";
+  if (pathname === "/projects") return "projects";
+  return null;
+}
+
 export default function ZcosCommandDesk() {
   const [, navigate] = useLocation();
   const params = useParams<{ surface?: string }>();
-  const routeSurface = params.surface && COMMAND_SURFACES.has(params.surface as CommandSurface) ? params.surface as CommandSurface : null;
+  const parameterSurface = params.surface && COMMAND_SURFACES.has(params.surface as CommandSurface) ? params.surface as CommandSurface : null;
+  const routeSurface = parameterSurface || legacySurface(window.location.pathname);
   const [records, setRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -132,10 +140,12 @@ export default function ZcosCommandDesk() {
     { id: "access", title: "Admin Access", detail: "Cross-galaxy authorization, revocation, permissions, and audit governance.", Icon: ShieldCheck },
   ];
 
+  const backToCommand = routeSurface && window.location.pathname.startsWith("/admin");
+
   return (
     <main className="min-h-[100dvh] overflow-y-auto bg-[radial-gradient(circle_at_50%_15%,#121225_0%,#05050b_46%,#010103_100%)] px-4 pb-16 pt-5 text-white">
       <div className="mx-auto w-full max-w-3xl">
-        <button type="button" onClick={() => navigate(routeSurface ? "/admin" : "/")} className="mb-5 inline-flex min-h-[44px] items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 text-sm text-white/70"><ArrowLeft size={16} /> {routeSurface ? "Command Desk" : "Constellation"}</button>
+        <button type="button" onClick={() => navigate(backToCommand ? "/admin" : "/")} className="mb-5 inline-flex min-h-[44px] items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 text-sm text-white/70"><ArrowLeft size={16} /> {backToCommand ? "Command Desk" : "Constellation"}</button>
         <header className="rounded-[2rem] border border-white/10 bg-black/35 p-6 backdrop-blur-xl">
           <p className="text-xs uppercase tracking-[0.28em] text-white/40">ZCOS</p>
           <h1 className="mt-2 text-3xl font-semibold">Command Desk</h1>
