@@ -98,50 +98,176 @@ model MigrationBatch {
   @@map("zcos_migration_batches")
 }
 
+model MemorySetting {
+  ownerUserId   String   @id @map("owner_user_id")
+  memoryEnabled Boolean  @default(true) @map("memory_enabled")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@map("zcos_memory_settings")
+}
+
 model MemoryRecord {
-  id             String   @id @default(cuid())
-  ownerUserId    String   @map("owner_user_id")
-  galaxyId       String   @map("galaxy_id")
-  memoryType     String   @map("memory_type")
-  canonicalName  String   @map("canonical_name")
-  content        String
-  lifecycleState String   @default("proposed") @map("lifecycle_state")
-  version        Int      @default(1)
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  id                 String    @id @default(cuid())
+  ownerUserId        String    @map("owner_user_id")
+  galaxyId           String    @map("galaxy_id")
+  memoryType         String    @map("memory_type")
+  canonicalName      String    @map("canonical_name")
+  content            String
+  properties         Json?
+  topics             String[]  @default([])
+  entityIds          String[]  @default([]) @map("entity_ids")
+  sourceRefs         String[]  @default([]) @map("source_refs")
+  confidence         Float?
+  occurredAt         DateTime? @map("occurred_at")
+  lifecycleState     String    @default("proposed") @map("lifecycle_state")
+  confirmationMethod String?   @map("confirmation_method")
+  supersedesId       String?   @map("supersedes_id")
+  derivedFromIds     String[]  @default([]) @map("derived_from_ids")
+  retentionPolicy    Json?     @map("retention_policy")
+  deletedAt          DateTime? @map("deleted_at")
+  deletionCascadeId  String?   @map("deletion_cascade_id")
+  version            Int       @default(1)
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
 
   @@index([ownerUserId, galaxyId, lifecycleState])
+  @@index([ownerUserId, canonicalName])
   @@map("zcos_memory_records")
 }
 
-model KnowledgeRecord {
+model MemoryRelationship {
   id             String   @id @default(cuid())
   ownerUserId    String   @map("owner_user_id")
   galaxyId       String   @map("galaxy_id")
-  objectType     String   @map("object_type")
-  canonicalName  String   @map("canonical_name")
+  subjectId      String   @map("subject_id")
+  objectId       String   @map("object_id")
+  predicate      String
+  sourceRefs     String[] @default([]) @map("source_refs")
+  confidence     Float?
+  lifecycleState String   @default("active") @map("lifecycle_state")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@index([ownerUserId, galaxyId, subjectId])
+  @@index([ownerUserId, galaxyId, objectId])
+  @@map("zcos_memory_relationships")
+}
+
+model KnowledgeRecord {
+  id             String    @id @default(cuid())
+  ownerUserId    String    @map("owner_user_id")
+  galaxyId       String    @map("galaxy_id")
+  objectType     String    @map("object_type")
+  canonicalName  String    @map("canonical_name")
   summary        String?
-  lifecycleState String   @default("candidate") @map("lifecycle_state")
-  originClass    String   @map("origin_class")
-  currency       String   @default("unknown")
-  version        Int      @default(1)
+  properties     Json?
+  topicIds       String[]  @default([]) @map("topic_ids")
+  entityIds      String[]  @default([]) @map("entity_ids")
+  sourceBindings String[]  @default([]) @map("source_bindings")
+  originClass    String    @map("origin_class")
+  scope          Json?
+  lifecycleState String    @default("candidate") @map("lifecycle_state")
+  confidence     Float?
+  currency       String    @default("unknown")
+  reviewedAt     DateTime? @map("reviewed_at")
+  supersedesId   String?   @map("supersedes_id")
+  version        Int       @default(1)
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  @@index([ownerUserId, galaxyId, lifecycleState])
+  @@index([ownerUserId, canonicalName])
+  @@map("zcos_knowledge_records")
+}
+
+model KnowledgeRelationship {
+  id             String    @id @default(cuid())
+  ownerUserId    String    @map("owner_user_id")
+  galaxyId       String    @map("galaxy_id")
+  subjectId      String    @map("subject_id")
+  objectId       String    @map("object_id")
+  predicate      String
+  scope          Json?
+  sourceBindings String[]  @default([]) @map("source_bindings")
+  confidence     Float?
+  lifecycleState String    @default("candidate") @map("lifecycle_state")
+  validFrom      DateTime? @map("valid_from")
+  validTo        DateTime? @map("valid_to")
+  version        Int       @default(1)
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  @@index([ownerUserId, galaxyId, subjectId])
+  @@index([ownerUserId, galaxyId, objectId])
+  @@map("zcos_knowledge_relationships")
+}
+
+model TopicRecord {
+  id             String   @id @default(cuid())
+  ownerUserId    String   @map("owner_user_id")
+  galaxyId       String   @map("galaxy_id")
+  canonicalLabel String   @map("canonical_label")
+  aliases        String[] @default([])
+  description    String?
+  parentIds      String[] @default([]) @map("parent_ids")
+  relatedIds     String[] @default([]) @map("related_ids")
+  lifecycleState String   @default("active") @map("lifecycle_state")
+  redirectToId   String?  @map("redirect_to_id")
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 
   @@index([ownerUserId, galaxyId, lifecycleState])
-  @@map("zcos_knowledge_records")
+  @@map("zcos_topics")
 }
 
-model SourceRecord {
+model LexiconSense {
   id             String   @id @default(cuid())
   ownerUserId    String   @map("owner_user_id")
   galaxyId       String   @map("galaxy_id")
-  sourceType     String   @map("source_type")
-  sourceId       String   @map("source_id")
-  originClass    String?  @map("origin_class")
-  locator        String?
-  metadata       Json?
+  canonicalForm  String   @map("canonical_form")
+  variants       String[] @default([])
+  definition     String
+  contexts       String[] @default([])
+  domains        String[] @default([])
+  communities    String[] @default([])
+  examples       String[] @default([])
+  sourceBindings String[] @default([]) @map("source_bindings")
+  confidence     Float?
+  lifecycleState String   @default("candidate") @map("lifecycle_state")
+  version        Int      @default(1)
   createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@index([ownerUserId, galaxyId, canonicalForm])
+  @@map("zcos_lexicon_senses")
+}
+
+model SourceRecord {
+  id                String    @id @default(cuid())
+  ownerUserId       String    @map("owner_user_id")
+  galaxyId          String    @map("galaxy_id")
+  sourceType        String    @map("source_type")
+  sourceId          String    @map("source_id")
+  sourceOwnerUserId String?   @map("source_owner_user_id")
+  sourceGalaxyId    String?   @map("source_galaxy_id")
+  originClass       String?   @map("origin_class")
+  artifactRef       String?   @map("artifact_ref")
+  title             String?
+  author            String?
+  publisher         String?
+  locator           String?
+  evidenceExcerpt   String?   @map("evidence_excerpt")
+  extractionMethod  String?   @map("extraction_method")
+  contentHash       String?   @map("content_hash")
+  rights            Json?
+  retention         Json?
+  lineage           Json?
+  metadata          Json?
+  occurredAt        DateTime? @map("occurred_at")
+  publishedAt       DateTime? @map("published_at")
+  accessedAt        DateTime? @map("accessed_at")
+  capturedAt        DateTime  @default(now()) @map("captured_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
 
   @@index([ownerUserId, galaxyId])
   @@index([sourceType, sourceId])
