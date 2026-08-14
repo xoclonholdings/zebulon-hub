@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/AuthContext";
+import { apiUrl } from "@/lib/apiBase";
 
 const privyConfigured = Boolean(import.meta.env.VITE_PRIVY_APP_ID?.trim());
 
@@ -85,7 +86,7 @@ export default function LoginScreen() {
     if (!phrase.trim()) return setError("Enter the admin secure phrase.");
     setIsLoading(true); setError("");
     try {
-      const response = await fetch("/api/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ passphrase: phrase.trim() }), credentials: "include" });
+      const response = await fetch(apiUrl("/api/login"), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ passphrase: phrase.trim() }), credentials: "include" });
       const data = await response.json();
       if (!response.ok || !data.success) throw new Error(data.error || "Invalid secure phrase.");
       await refresh();
