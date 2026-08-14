@@ -7,6 +7,8 @@ import React, {
   type ReactNode,
 } from "react";
 
+import { apiUrl } from "@/lib/apiBase";
+
 export type AuthUser = {
   id?: string | number;
   username: string;
@@ -52,7 +54,7 @@ async function establishPrivySession(getAccessToken: () => Promise<string | null
   const accessToken = (await getAccessToken())?.trim();
   if (!accessToken) throw new Error("Privy did not return an access token. Sign in again.");
 
-  const response = await fetch("/api/auth/privy/session", {
+  const response = await fetch(apiUrl("/api/auth/privy/session"), {
     method: "POST",
     credentials: "include",
     headers: { Authorization: `Bearer ${accessToken}` },
@@ -78,7 +80,7 @@ export function AuthProvider({
 
   async function readSession(): Promise<AuthUser | null> {
     try {
-      const response = await fetch("/api/me", { credentials: "include" });
+      const response = await fetch(apiUrl("/api/me"), { credentials: "include" });
       if (!response.ok) return null;
       const data = await readJson(response);
       return data?.user ?? null;
@@ -128,7 +130,7 @@ export function AuthProvider({
 
   async function logout() {
     try {
-      await fetch("/api/logout", { method: "POST", credentials: "include" });
+      await fetch(apiUrl("/api/logout"), { method: "POST", credentials: "include" });
     } catch {
       // Keep the client signed out even if the remote session is already unavailable.
     }
