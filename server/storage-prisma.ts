@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
 import { Prisma, PrismaClient } from '@prisma/client';
-import { User, SystemStatus, OracleMemory, InsertOracleMemory, ModuleIntegration, InsertModuleIntegration } from '../shared/schema.js';
+import type { User } from '../shared/schema.js';
 
 const prisma = new PrismaClient({ log: ['error', 'warn'] });
 const MEMORY_CURRENT_STATES = ['active', 'confirmed', 'corrected'];
@@ -13,31 +13,6 @@ export class PrismaStorage {
   async updateUser(id: number, updates: Partial<User>): Promise<User> { return await prisma.user.update({ where: { id }, data: { ...updates, updatedAt: new Date() } }) as User; }
   async updateUserLogin(id: number): Promise<User> { return await prisma.user.update({ where: { id }, data: { updatedAt: new Date() } }) as User; }
   async updateUserPassword(id: number, passwordHash: string): Promise<User> { return await prisma.user.update({ where: { id }, data: { passwordHash, updatedAt: new Date() } }) as User; }
-
-  async getSystemStatus(): Promise<any[]> { return await prisma.systemStatus.findMany({ orderBy: { lastChecked: 'desc' } }); }
-  async updateSystemStatus(component: string, status: any): Promise<any> {
-    return prisma.systemStatus.upsert({ where: { component }, update: { ...status, lastChecked: new Date() }, create: { component, status: status.status || 'unknown', lastChecked: new Date(), ...status } });
-  }
-
-  async getModuleIntegrations(): Promise<ModuleIntegration[]> { return await prisma.moduleIntegration.findMany({ orderBy: { createdAt: 'desc' } }) as ModuleIntegration[]; }
-  async getModuleIntegration(moduleName: string): Promise<ModuleIntegration | null> { return await prisma.moduleIntegration.findUnique({ where: { moduleName } }) as ModuleIntegration | null; }
-  async createModuleIntegration(data: InsertModuleIntegration): Promise<ModuleIntegration> { return await prisma.moduleIntegration.create({ data }) as ModuleIntegration; }
-  async updateModuleIntegration(moduleName: string, data: Partial<InsertModuleIntegration>): Promise<ModuleIntegration> { return await prisma.moduleIntegration.update({ where: { moduleName }, data: { ...data, updatedAt: new Date() } }) as ModuleIntegration; }
-  async deleteModuleIntegration(moduleName: string): Promise<void> { await prisma.moduleIntegration.delete({ where: { moduleName } }); }
-
-  // Legacy Oracle Memory remains migration evidence only. HTTP mutations are blocked by server/index.ts.
-  async getOracleMemories(): Promise<OracleMemory[]> { return await prisma.oracleMemory.findMany({ orderBy: { lastModified: 'desc' } }) as OracleMemory[]; }
-  async getOracleMemoryByLabel(label: string): Promise<OracleMemory | null> { return await prisma.oracleMemory.findUnique({ where: { label } }) as OracleMemory | null; }
-  async createOracleMemory(memory: InsertOracleMemory): Promise<OracleMemory> { return await prisma.oracleMemory.create({ data: { ...memory, status: memory.status || 'active', createdAt: new Date(), lastModified: new Date() } }) as OracleMemory; }
-  async updateOracleMemory(label: string, updates: Partial<OracleMemory>): Promise<OracleMemory> { return await prisma.oracleMemory.update({ where: { label }, data: { ...updates, lastModified: new Date() } }) as OracleMemory; }
-  async deleteOracleMemory(label: string): Promise<void> { await prisma.oracleMemory.delete({ where: { label } }); }
-  async searchOracleMemories(searchTerm?: string, status?: string, memoryType?: string): Promise<OracleMemory[]> {
-    const where: any = {};
-    if (searchTerm) where.OR = [{ label: { contains: searchTerm, mode: 'insensitive' } }, { description: { contains: searchTerm, mode: 'insensitive' } }, { content: { contains: searchTerm, mode: 'insensitive' } }];
-    if (status) where.status = status;
-    if (memoryType) where.memoryType = memoryType;
-    return await prisma.oracleMemory.findMany({ where, orderBy: { lastModified: 'desc' } }) as OracleMemory[];
-  }
 
   async getMemoryEnabled(ownerUserId: string): Promise<boolean> {
     const setting = await prisma.memorySetting.findUnique({ where: { ownerUserId } });
@@ -53,10 +28,6 @@ export class PrismaStorage {
       where: { ownerUserId, galaxyId, lifecycleState: includeReview ? { notIn: ['rejected', 'superseded', 'forgotten'] } : { in: MEMORY_CURRENT_STATES } },
       orderBy: { updatedAt: 'desc' },
     });
-  }
-
-  async getMemory(ownerUserId: string, galaxyId: string, id: string) {
-    return prisma.memoryRecord.findFirst({ where: { id, ownerUserId, galaxyId } });
   }
 
   async createDirectMemory(data: {
@@ -83,6 +54,18 @@ export class PrismaStorage {
       await tx.auditEvent.create({ data: { ownerUserId: data.ownerUserId, galaxyId: data.galaxyId, eventType: 'memory.created', targetType: 'memory', targetId: record.id, details: { sourceRef: source.id, lifecycleState: 'confirmed' } } });
       return { record, source };
     });
+  }
+
+  async confirmMemory(ownerUserId: string, galaxyId: string, id: string) {
+    const record = await prisma.memoryRecord.findFirst({ where: { id, ownerUserId, galaxyId } });
+    if (!record || record.lifecycleState !== 'proposed') return null;
+    return prisma.memoryRecord.update({ where: { id }, data: { lifecycleState: 'confirmed', confirmationMethod: 'user review' } });
+  }
+
+  async rejectMemory(ownerUserId: string, galaxyId: string, id: string) {
+    const record = await prisma.memoryRecord.findFirst({ where: { id, ownerUserId, galaxyId } });
+    if (!record || record.lifecycleState === 'forgotten') return null;
+    return prisma.memoryRecord.update({ where: { id }, data: { lifecycleState: 'rejected' } });
   }
 
   async correctMemory(input: { ownerUserId: string; galaxyId: string; id: string; content: string; canonicalName?: string }) {
@@ -112,18 +95,6 @@ export class PrismaStorage {
       await tx.auditEvent.create({ data: { ownerUserId: prior.ownerUserId, galaxyId: prior.galaxyId, eventType: 'memory.corrected', targetType: 'memory', targetId: corrected.id, details: { supersedesId: prior.id } } });
       return { priorId: prior.id, record: corrected };
     });
-  }
-
-  async rejectMemory(ownerUserId: string, galaxyId: string, id: string) {
-    const record = await prisma.memoryRecord.findFirst({ where: { id, ownerUserId, galaxyId } });
-    if (!record || record.lifecycleState === 'forgotten') return null;
-    return prisma.memoryRecord.update({ where: { id }, data: { lifecycleState: 'rejected' } });
-  }
-
-  async confirmMemory(ownerUserId: string, galaxyId: string, id: string) {
-    const record = await prisma.memoryRecord.findFirst({ where: { id, ownerUserId, galaxyId } });
-    if (!record || record.lifecycleState !== 'proposed') return null;
-    return prisma.memoryRecord.update({ where: { id }, data: { lifecycleState: 'confirmed', confirmationMethod: 'user review' } });
   }
 
   async forgetMemory(ownerUserId: string, galaxyId: string, id: string) {
@@ -178,18 +149,10 @@ export class PrismaStorage {
     });
   }
 
-  async listTopics(ownerUserId: string, galaxyId: string) {
-    return prisma.topicRecord.findMany({ where: { ownerUserId, galaxyId, lifecycleState: { notIn: ['rejected'] } }, orderBy: { canonicalLabel: 'asc' } });
-  }
-  async listLexicon(ownerUserId: string, galaxyId: string) {
-    return prisma.lexiconSense.findMany({ where: { ownerUserId, galaxyId, lifecycleState: { notIn: ['rejected', 'superseded'] } }, orderBy: { canonicalForm: 'asc' } });
-  }
-  async listSources(ownerUserId: string, galaxyId: string) {
-    return prisma.sourceRecord.findMany({ where: { ownerUserId, galaxyId }, orderBy: { capturedAt: 'desc' } });
-  }
-  async listKnowledgeRelationships(ownerUserId: string, galaxyId: string) {
-    return prisma.knowledgeRelationship.findMany({ where: { ownerUserId, galaxyId, lifecycleState: { notIn: ['rejected', 'superseded', 'deprecated'] } }, orderBy: { updatedAt: 'desc' } });
-  }
+  async listTopics(ownerUserId: string, galaxyId: string) { return prisma.topicRecord.findMany({ where: { ownerUserId, galaxyId, lifecycleState: { notIn: ['rejected'] } }, orderBy: { canonicalLabel: 'asc' } }); }
+  async listLexicon(ownerUserId: string, galaxyId: string) { return prisma.lexiconSense.findMany({ where: { ownerUserId, galaxyId, lifecycleState: { notIn: ['rejected', 'superseded'] } }, orderBy: { canonicalForm: 'asc' } }); }
+  async listSources(ownerUserId: string, galaxyId: string) { return prisma.sourceRecord.findMany({ where: { ownerUserId, galaxyId }, orderBy: { capturedAt: 'desc' } }); }
+  async listKnowledgeRelationships(ownerUserId: string, galaxyId: string) { return prisma.knowledgeRelationship.findMany({ where: { ownerUserId, galaxyId, lifecycleState: { notIn: ['rejected', 'superseded', 'deprecated'] } }, orderBy: { updatedAt: 'desc' } }); }
 
   async hasPartitionGrant(input: { ownerUserId: string; sourceGalaxyId: string; targetGalaxyId: string; authorityKind: 'memory' | 'knowledge'; permission: 'read' | 'write' | 'contribute' | 'admin' }) {
     const now = new Date();
@@ -198,27 +161,19 @@ export class PrismaStorage {
         ownerUserId: input.ownerUserId, sourceGalaxyId: input.sourceGalaxyId, targetGalaxyId: input.targetGalaxyId,
         authorityKind: input.authorityKind, permissions: { has: input.permission }, revokedAt: null,
         OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
-      },
-      select: { id: true },
+      }, select: { id: true },
     });
     return grant?.id || null;
   }
 
-  async listPartitionGrants(ownerUserId: string) {
-    return prisma.partitionGrant.findMany({ where: { ownerUserId }, orderBy: { createdAt: 'desc' } });
-  }
+  async listPartitionGrants(ownerUserId: string) { return prisma.partitionGrant.findMany({ where: { ownerUserId }, orderBy: { createdAt: 'desc' } }); }
 
-  async createPartitionGrant(data: {
-    ownerUserId: string; sourceGalaxyId: string; targetGalaxyId: string; authorityKind: string;
-    permissions: string[]; expiresAt?: Date;
-  }) {
+  async createPartitionGrant(data: { ownerUserId: string; sourceGalaxyId: string; targetGalaxyId: string; authorityKind: string; permissions: string[]; expiresAt?: Date }) {
     const existing = await prisma.partitionGrant.findFirst({
       where: { ownerUserId: data.ownerUserId, sourceGalaxyId: data.sourceGalaxyId, targetGalaxyId: data.targetGalaxyId, authorityKind: data.authorityKind, revokedAt: null },
       orderBy: { createdAt: 'desc' },
     });
-    if (existing) {
-      return prisma.partitionGrant.update({ where: { id: existing.id }, data: { permissions: data.permissions, expiresAt: data.expiresAt ?? null, revokedAt: null } });
-    }
+    if (existing) return prisma.partitionGrant.update({ where: { id: existing.id }, data: { permissions: data.permissions, expiresAt: data.expiresAt ?? null, revokedAt: null } });
     return prisma.partitionGrant.create({ data: { ...data, expiresAt: data.expiresAt } });
   }
 
@@ -229,13 +184,8 @@ export class PrismaStorage {
     return prisma.partitionGrant.update({ where: { id: grantId }, data: { revokedAt: new Date() } });
   }
 
-  async listAudit(ownerUserId: string, limit = 100) {
-    return prisma.auditEvent.findMany({ where: { ownerUserId }, orderBy: { createdAt: 'desc' }, take: Math.min(Math.max(limit, 1), 500) });
-  }
-
-  async recordAudit(data: { ownerUserId?: string; galaxyId?: string; eventType: string; targetType?: string; targetId?: string; details?: any }) {
-    return prisma.auditEvent.create({ data });
-  }
+  async listAudit(ownerUserId: string, limit = 100) { return prisma.auditEvent.findMany({ where: { ownerUserId }, orderBy: { createdAt: 'desc' }, take: Math.min(Math.max(limit, 1), 500) }); }
+  async recordAudit(data: { ownerUserId?: string; galaxyId?: string; eventType: string; targetType?: string; targetId?: string; details?: any }) { return prisma.auditEvent.create({ data }); }
 }
 
 export const storage = new PrismaStorage();
