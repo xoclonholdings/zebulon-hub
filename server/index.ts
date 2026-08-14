@@ -4,11 +4,8 @@ import bcrypt from 'bcrypt';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { storage } from './storage-prisma.js';
-import gedcomRoutes from './routes/gedcom.js';
-import knowledgeRoutes from './routes/knowledge.js';
 import zcosCanonicalRoutes from './routes/zcos-canonical.js';
 import zcosAdminRoutes from './routes/zcos-admin.js';
-import { getActiveConnection } from './db-dual.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -141,67 +138,17 @@ app.post('/api/auth/change-password', requireAuth, async (req, res) => {
 app.get('/api/system/status', (_req, res) => {
   res.json({
     system: 'ZCOS',
-    status: 'migration',
+    status: 'operational',
     canonicalAuthorities: ['identity', 'memory', 'knowledge', 'apps', 'desk', 'settings', 'portal'],
-    legacyAuthorities: { oracleMemory: 'read-only', knowledgePool: 'diagnostic-only' },
     timestamp: new Date().toISOString(),
   });
 });
 
-app.get('/api/modules', requireAuth, async (_req, res) => {
-  try { res.json(await storage.getModuleIntegrations()); }
-  catch { res.status(500).json({ error: 'Failed to fetch modules' }); }
-});
-app.get('/api/modules/:moduleName', requireAuth, async (req, res) => {
-  try {
-    const module = await storage.getModuleIntegration(req.params.moduleName);
-    if (!module) return res.status(404).json({ error: 'Module not found' });
-    res.json(module);
-  } catch { res.status(500).json({ error: 'Failed to fetch module' }); }
-});
-app.post('/api/modules', requireAuth, async (req, res) => {
-  try { res.status(201).json(await storage.createModuleIntegration(req.body)); }
-  catch { res.status(500).json({ error: 'Failed to create module integration' }); }
-});
-app.put('/api/modules/:moduleName', requireAuth, async (req, res) => {
-  try { res.json(await storage.updateModuleIntegration(req.params.moduleName, req.body)); }
-  catch { res.status(500).json({ error: 'Failed to update module integration' }); }
-});
-app.delete('/api/modules/:moduleName', requireAuth, async (req, res) => {
-  try { await storage.deleteModuleIntegration(req.params.moduleName); res.json({ success: true }); }
-  catch { res.status(500).json({ error: 'Failed to delete module integration' }); }
-});
-
-// OracleMemory is historical migration evidence. It cannot receive new canonical writes.
-app.get('/api/oracle/memories', requireAuth, async (req, res) => {
-  try {
-    const { search, status, type } = req.query;
-    res.json({ legacy: true, readOnly: true, memories: await storage.searchOracleMemories(search as string, status as string, type as string) });
-  } catch { res.status(500).json({ error: 'Failed to fetch legacy memories' }); }
-});
-app.get('/api/oracle/recall/:label', requireAuth, async (req, res) => {
-  try {
-    const memory = await storage.getOracleMemoryByLabel(req.params.label);
-    if (!memory) return res.status(404).json({ error: 'Memory not found' });
-    res.json({ legacy: true, readOnly: true, memory });
-  } catch { res.status(500).json({ error: 'Failed to fetch legacy memory' }); }
-});
-for (const method of ['post', 'patch', 'delete'] as const) {
-  const route = method === 'post' ? '/api/oracle/store' : '/api/oracle/memories/:label';
-  app[method](route, requireAuth, (_req, res) => res.status(410).json({ error: 'Legacy OracleMemory is read-only. Use /api/zcos/:galaxy/memory.' }));
-}
-
-// The old knowledge-pool service remains diagnostic migration evidence only and no longer owns /api/knowledge.
-app.use('/api/legacy/knowledge-pool', requireAuth, knowledgeRoutes);
-app.all('/api/knowledge', requireAuth, (_req, res) => res.status(410).json({ error: 'Legacy /api/knowledge is retired. Use /api/zcos/:galaxy/knowledge.' }));
-app.all('/api/knowledge/*', requireAuth, (_req, res) => res.status(410).json({ error: 'Legacy /api/knowledge is retired. Use /api/zcos/:galaxy/knowledge.' }));
-
-app.use('/api/gedcom', gedcomRoutes);
 app.use('/api/zcos/admin', zcosAdminRoutes);
 app.use('/api/zcos', zcosCanonicalRoutes);
 
 app.get(['/health', '/api/health'], (_req, res) => {
-  res.json({ ok: true, service: 'zcos', database: getActiveConnection(), timestamp: new Date().toISOString() });
+  res.json({ ok: true, service: 'zcos', database: 'Canonical PostgreSQL', timestamp: new Date().toISOString() });
 });
 
 const publicPath = path.join(__dirname, '../dist/public');
