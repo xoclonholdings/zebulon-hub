@@ -1,19 +1,11 @@
 import { randomUUID } from 'crypto';
 import { Prisma, PrismaClient } from '@prisma/client';
-import type { User } from '../shared/schema.js';
 
 const prisma = new PrismaClient({ log: ['error', 'warn'] });
 const MEMORY_CURRENT_STATES = ['active', 'confirmed', 'corrected'];
 const KNOWLEDGE_CURRENT_STATES = ['supported', 'confirmed', 'disputed', 'historical'];
 
 export class PrismaStorage {
-  async getUser(id: number): Promise<User | null> { return await prisma.user.findUnique({ where: { id } }) as User | null; }
-  async getUserByUsername(username: string): Promise<User | null> { return await prisma.user.findUnique({ where: { username } }) as User | null; }
-  async createUser(userData: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User> { return await prisma.user.create({ data: { ...userData, createdAt: new Date(), updatedAt: new Date() } }) as User; }
-  async updateUser(id: number, updates: Partial<User>): Promise<User> { return await prisma.user.update({ where: { id }, data: { ...updates, updatedAt: new Date() } }) as User; }
-  async updateUserLogin(id: number): Promise<User> { return await prisma.user.update({ where: { id }, data: { updatedAt: new Date() } }) as User; }
-  async updateUserPassword(id: number, passwordHash: string): Promise<User> { return await prisma.user.update({ where: { id }, data: { passwordHash, updatedAt: new Date() } }) as User; }
-
   async getMemoryEnabled(ownerUserId: string): Promise<boolean> {
     const setting = await prisma.memorySetting.findUnique({ where: { ownerUserId } });
     return setting?.memoryEnabled ?? true;
