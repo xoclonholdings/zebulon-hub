@@ -24,8 +24,7 @@
   "include": [
     "server/index.ts",
     "server/storage-prisma.ts",
-    "server/db.ts",
-    "shared/schema.ts"
+    "server/db.ts"
   ],
   "exclude": [
     "node_modules",
