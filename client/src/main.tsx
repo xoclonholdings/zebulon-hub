@@ -1,56 +1,26 @@
 import { createRoot } from "react-dom/client";
+import React from "react";
 import "./index.css";
 
-// Import React for JSX
-import React from "react";
-
-// Lazy load the main App to catch import errors
 const App = React.lazy(() => import("./App"));
 
-// Error boundary component
 function ErrorBoundary({ children }: { children: React.ReactNode }) {
-  const [hasError, setHasError] = React.useState(false);
   const [error, setError] = React.useState<Error | null>(null);
 
   React.useEffect(() => {
-    const handleError = (event: ErrorEvent) => {
-      setHasError(true);
-      setError(new Error(event.message));
-    };
-
-    window.addEventListener('error', handleError);
-    return () => window.removeEventListener('error', handleError);
+    const handleError = (event: ErrorEvent) => setError(new Error(event.message));
+    window.addEventListener("error", handleError);
+    return () => window.removeEventListener("error", handleError);
   }, []);
 
-  if (hasError) {
+  if (error) {
     return (
-      <div style={{ 
-        color: 'white', 
-        backgroundColor: 'black', 
-        padding: '20px', 
-        fontFamily: 'monospace',
-        minHeight: '100vh'
-      }}>
-        <h1>🚀 Zebulon AI System</h1>
-        <p>Loading issue detected. Troubleshooting...</p>
-        <div style={{ marginTop: '20px', padding: '10px', border: '1px solid #333' }}>
-          <p>Node.js: v24.4.0</p>
-          <p>Vite: v6.3.5</p>
-          <p>Error: {error?.message || 'Unknown error'}</p>
+      <div className="flex min-h-screen items-center justify-center bg-black p-6 text-white">
+        <div className="max-w-sm text-center">
+          <h1 className="text-xl font-semibold">ZCOS could not start</h1>
+          <p className="mt-2 text-sm text-white/55">{error.message || "Unknown application error"}</p>
+          <button onClick={() => window.location.reload()} className="mt-5 rounded-lg border border-white/15 px-4 py-2 text-sm hover:bg-white/10">Reload</button>
         </div>
-        <button 
-          onClick={() => window.location.reload()} 
-          style={{ 
-            marginTop: '20px', 
-            padding: '10px 20px', 
-            backgroundColor: '#333', 
-            color: 'white', 
-            border: 'none', 
-            cursor: 'pointer' 
-          }}
-        >
-          Reload Application
-        </button>
       </div>
     );
   }
@@ -58,50 +28,24 @@ function ErrorBoundary({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-// Loading component
 function Loading() {
   return (
-    <div style={{ 
-      color: 'white', 
-      backgroundColor: 'black', 
-      padding: '20px', 
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center'
-    }}>
-      <div>
-        <h1>🚀 Zebulon AI System</h1>
-        <p>Initializing...</p>
+    <div className="flex min-h-screen items-center justify-center bg-black text-white">
+      <div className="text-center">
+        <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+        <p className="text-sm text-white/60">Loading ZCOS...</p>
       </div>
     </div>
   );
 }
 
 const rootElement = document.getElementById("root");
-if (!rootElement) {
-  throw new Error("Root element not found");
-}
+if (!rootElement) throw new Error("Root element not found");
 
-try {
-  const root = createRoot(rootElement);
-  root.render(
-    <ErrorBoundary>
-      <React.Suspense fallback={<Loading />}>
-        <App />
-      </React.Suspense>
-    </ErrorBoundary>
-  );
-  // Zebulon UI mounted successfully
-} catch (error) {
-  console.error("❌ Failed to mount Zebulon UI:", error);
-  if (rootElement) {
-    rootElement.innerHTML = `
-      <div style="color: white; background: red; padding: 20px; font-family: monospace;">
-        <h1>❌ Critical Error</h1>
-        <p>React failed to initialize: ${error}</p>
-        <p>Check browser console for details</p>
-      </div>
-    `;
-  }
-}
+createRoot(rootElement).render(
+  <ErrorBoundary>
+    <React.Suspense fallback={<Loading />}>
+      <App />
+    </React.Suspense>
+  </ErrorBoundary>,
+);
