@@ -2,7 +2,7 @@ import express from "express";
 import { storage } from "../storage-prisma.js";
 import { ownerContextFromRequest } from "../zcos-core/OwnerContext.js";
 import { requireOwner } from "../zcos-core/requireOwner.js";
-import { normalizeGalaxyId } from "../zcos-core/GalaxyRegistry.js";
+import { normalizeGalaxyId, ZCOS_GALAXIES } from "../zcos-core/GalaxyRegistry.js";
 
 const router = express.Router();
 const authorityKinds = new Set(["memory", "knowledge"]);
@@ -16,6 +16,28 @@ function parseExpiry(value: unknown): Date | undefined {
   if (expiresAt.getTime() <= Date.now()) throw Object.assign(new Error("expiresAt must be in the future"), { status: 400 });
   return expiresAt;
 }
+
+router.get("/all-memory", requireOwner, async (req, res, next) => {
+  try {
+    const owner = ownerContextFromRequest(req);
+    const partitions = await Promise.all(ZCOS_GALAXIES.map(async (galaxyId) => ({
+      galaxyId,
+      records: await storage.listMemory(owner.ownerUserId, galaxyId, true),
+    })));
+    res.json({ partitions, records: partitions.flatMap((partition) => partition.records) });
+  } catch (error) { next(error); }
+});
+
+router.get("/all-knowledge", requireOwner, async (req, res, next) => {
+  try {
+    const owner = ownerContextFromRequest(req);
+    const partitions = await Promise.all(ZCOS_GALAXIES.map(async (galaxyId) => ({
+      galaxyId,
+      records: await storage.listKnowledge(owner.ownerUserId, galaxyId, true),
+    })));
+    res.json({ partitions, records: partitions.flatMap((partition) => partition.records) });
+  } catch (error) { next(error); }
+});
 
 router.get("/grants", requireOwner, async (req, res, next) => {
   try {
