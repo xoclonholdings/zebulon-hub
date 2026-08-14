@@ -9,7 +9,7 @@ import NotFound from "@/pages/not-found";
 import LoginScreen from "@/components/LoginScreen";
 import ZebulonConstellationPage from "@/zcos/ZebulonConstellationPage";
 import ZcosCommandDesk from "@/zcos/ZcosCommandDesk";
-import ZillionGateway, { GalaxyGateway, ZarGateway, ZcosPathGateway } from "@/zcos/ZillionGateway";
+import ZillionGateway, { GalaxyGateway, ZarGateway } from "@/zcos/ZillionGateway";
 
 function Router() {
   const { user, isLoading, login } = useAuth();
@@ -66,9 +66,9 @@ function Router() {
         <Route path="/admin" component={ZcosCommandDesk} />
         <Route path="/command/:surface" component={ZcosCommandDesk} />
         <Route path="/command" component={ZcosCommandDesk} />
-        <Route path="/learning/studio" component={ZcosPathGateway} />
-        <Route path="/knowledge" component={ZcosPathGateway} />
-        <Route path="/projects" component={ZcosPathGateway} />
+        <Route path="/learning/studio" component={ZcosCommandDesk} />
+        <Route path="/knowledge" component={ZcosCommandDesk} />
+        <Route path="/projects" component={ZcosCommandDesk} />
         <Route path="/legacy" component={Dashboard} />
         <Route component={NotFound} />
       </Switch>
