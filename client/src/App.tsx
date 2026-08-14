@@ -62,7 +62,9 @@ function Router() {
         <Route path="/galaxy/:galaxy/:domain" component={GalaxyGateway} />
         <Route path="/galaxy/:galaxy" component={GalaxyGateway} />
 
+        <Route path="/admin/:surface" component={ZcosCommandDesk} />
         <Route path="/admin" component={ZcosCommandDesk} />
+        <Route path="/command/:surface" component={ZcosCommandDesk} />
         <Route path="/command" component={ZcosCommandDesk} />
         <Route path="/learning/studio" component={ZcosPathGateway} />
         <Route path="/knowledge" component={ZcosPathGateway} />
