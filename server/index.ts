@@ -7,6 +7,7 @@ import { storage } from './storage-prisma.js';
 import gedcomRoutes from './routes/gedcom.js';
 import knowledgeRoutes from './routes/knowledge.js';
 import zcosCanonicalRoutes from './routes/zcos-canonical.js';
+import zcosAdminRoutes from './routes/zcos-admin.js';
 import { getActiveConnection } from './db-dual.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -196,6 +197,7 @@ app.all('/api/knowledge', requireAuth, (_req, res) => res.status(410).json({ err
 app.all('/api/knowledge/*', requireAuth, (_req, res) => res.status(410).json({ error: 'Legacy /api/knowledge is retired. Use /api/zcos/:galaxy/knowledge.' }));
 
 app.use('/api/gedcom', gedcomRoutes);
+app.use('/api/zcos/admin', zcosAdminRoutes);
 app.use('/api/zcos', zcosCanonicalRoutes);
 
 app.get(['/health', '/api/health'], (_req, res) => {
