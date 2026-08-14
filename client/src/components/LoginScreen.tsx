@@ -7,16 +7,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/AuthContext";
 
-export default function LoginScreen() {
-  const { refresh, authError } = useAuth();
+const privyConfigured = Boolean(import.meta.env.VITE_PRIVY_APP_ID?.trim());
+
+function PrivyEmailLoginPanel() {
+  const { refresh } = useAuth();
   const { ready, authenticated, logout } = usePrivy();
   const { sendCode, loginWithCode } = useLoginWithEmail();
   const [phase, setPhase] = useState<"email" | "code">("email");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
-  const [showPhrase, setShowPhrase] = useState(false);
-  const [phrase, setPhrase] = useState("");
-  const [phraseVisible, setPhraseVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -50,6 +49,50 @@ export default function LoginScreen() {
       setIsLoading(false);
     }
   }
+
+  if (authenticated) {
+    return (
+      <div className="space-y-3">
+        <Button type="button" onClick={() => void refresh()} className="w-full bg-white text-black hover:bg-white/90" disabled={isLoading}>
+          {isLoading ? "Connecting..." : "Continue"}
+        </Button>
+        <button type="button" onClick={() => void logout()} className="w-full text-xs text-white/55 hover:text-white">Use another email</button>
+      </div>
+    );
+  }
+
+  return phase === "code" ? (
+    <form onSubmit={handleVerifyCode} className="space-y-4">
+      <div className="relative">
+        <KeyRound size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/45" />
+        <Input value={code} onChange={(event) => setCode(event.target.value)} placeholder="Email code" inputMode="numeric" autoComplete="one-time-code" className="border-white/10 bg-black/30 pl-10 text-white" disabled={isLoading} autoFocus />
+      </div>
+      <p className="text-xs text-white/45">Sent to {email.trim()}</p>
+      <Button type="submit" className="w-full bg-white text-black hover:bg-white/90" disabled={isLoading}>{isLoading ? "Verifying..." : "Verify + Continue"}</Button>
+      <button type="button" onClick={() => { setCode(""); setError(""); setPhase("email"); }} className="w-full text-xs text-white/55 hover:text-white">Change email</button>
+      {error && <p className="text-sm text-red-400">{error}</p>}
+    </form>
+  ) : (
+    <form onSubmit={handleSendCode} className="space-y-4">
+      <div className="relative">
+        <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/45" />
+        <Input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Email address" autoComplete="email" className="border-white/10 bg-black/30 pl-10 text-white" disabled={isLoading || !ready} autoFocus />
+      </div>
+      <Button type="submit" className="w-full bg-white text-black hover:bg-white/90" disabled={isLoading || !ready}>
+        <Sparkles size={16} /> {isLoading || !ready ? (ready ? "Sending..." : "Preparing...") : "Send Code"}
+      </Button>
+      {error && <p className="text-sm text-red-400">{error}</p>}
+    </form>
+  );
+}
+
+export default function LoginScreen() {
+  const { refresh, authError } = useAuth();
+  const [showPhrase, setShowPhrase] = useState(!privyConfigured);
+  const [phrase, setPhrase] = useState("");
+  const [phraseVisible, setPhraseVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
   async function handlePhrase(event: React.FormEvent) {
     event.preventDefault();
@@ -85,33 +128,12 @@ export default function LoginScreen() {
 
         <Card className="border-white/10 bg-white/[0.035] text-white backdrop-blur-xl">
           <CardContent className="space-y-4 pt-6">
-            {authenticated ? (
-              <div className="space-y-3">
-                <Button type="button" onClick={() => void refresh()} className="w-full bg-white text-black hover:bg-white/90" disabled={isLoading}>
-                  {isLoading ? "Connecting..." : "Continue"}
-                </Button>
-                <button type="button" onClick={() => void logout()} className="w-full text-xs text-white/55 hover:text-white">Use another email</button>
-              </div>
-            ) : phase === "code" ? (
-              <form onSubmit={handleVerifyCode} className="space-y-4">
-                <div className="relative">
-                  <KeyRound size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/45" />
-                  <Input value={code} onChange={(event) => setCode(event.target.value)} placeholder="Email code" inputMode="numeric" autoComplete="one-time-code" className="border-white/10 bg-black/30 pl-10 text-white" disabled={isLoading} autoFocus />
-                </div>
-                <p className="text-xs text-white/45">Sent to {email.trim()}</p>
-                <Button type="submit" className="w-full bg-white text-black hover:bg-white/90" disabled={isLoading}>{isLoading ? "Verifying..." : "Verify + Continue"}</Button>
-                <button type="button" onClick={() => { setCode(""); setError(""); setPhase("email"); }} className="w-full text-xs text-white/55 hover:text-white">Change email</button>
-              </form>
+            {privyConfigured ? (
+              <PrivyEmailLoginPanel />
             ) : (
-              <form onSubmit={handleSendCode} className="space-y-4">
-                <div className="relative">
-                  <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/45" />
-                  <Input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Email address" autoComplete="email" className="border-white/10 bg-black/30 pl-10 text-white" disabled={isLoading || !ready} autoFocus />
-                </div>
-                <Button type="submit" className="w-full bg-white text-black hover:bg-white/90" disabled={isLoading || !ready}>
-                  <Sparkles size={16} /> {isLoading || !ready ? (ready ? "Sending..." : "Preparing...") : "Send Code"}
-                </Button>
-              </form>
+              <div className="rounded-lg border border-white/10 bg-white/[0.025] p-3 text-sm text-white/55">
+                Privy email sign-in is awaiting configuration. Administrator access remains available below.
+              </div>
             )}
 
             {(error || authError) && <p className="text-sm text-red-400">{error || authError}</p>}
@@ -128,7 +150,7 @@ export default function LoginScreen() {
                   </div>
                   <div className="flex gap-2">
                     <Button type="submit" className="flex-1 bg-white text-black hover:bg-white/90" disabled={isLoading}>{isLoading ? "Verifying..." : "Sign in with phrase"}</Button>
-                    <Button type="button" variant="ghost" onClick={() => { setShowPhrase(false); setPhrase(""); setError(""); }}>Cancel</Button>
+                    {privyConfigured && <Button type="button" variant="ghost" onClick={() => { setShowPhrase(false); setPhrase(""); setError(""); }}>Cancel</Button>}
                   </div>
                 </form>
               )}
