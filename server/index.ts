@@ -1,9 +1,9 @@
+import { createHash, timingSafeEqual } from 'crypto';
 import express, { Request, Response, NextFunction } from 'express';
 import session from 'express-session';
-import bcrypt from 'bcrypt';
+import { PrivyClient } from '@privy-io/node';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { storage } from './storage-prisma.js';
 import zcosCanonicalRoutes from './routes/zcos-canonical.js';
 import zcosAdminRoutes from './routes/zcos-admin.js';
 
@@ -62,83 +62,138 @@ app.use((req, res, next) => {
   next();
 });
 
+type SessionUser = {
+  id: string;
+  username: string;
+  email?: string;
+  isAdmin?: boolean;
+  authMethod: 'privy' | 'secure_phrase';
+};
+
 interface AuthenticatedRequest extends Request {
-  session: session.Session & { userId?: number; user?: any };
+  session: session.Session & { userId?: string; user?: SessionUser };
 }
 
 const requireAuth = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  if (!req.session.userId) return res.status(401).json({ error: 'Authentication required' });
+  if (!req.session.userId || !req.session.user) return res.status(401).json({ error: 'Authentication required' });
   next();
 };
 
-app.post('/api/auth/login', async (req, res) => {
+function saveSession(req: AuthenticatedRequest): Promise<void> {
+  return new Promise((resolve, reject) => req.session.save((error) => error ? reject(error) : resolve()));
+}
+
+function regenerateSession(req: AuthenticatedRequest): Promise<void> {
+  return new Promise((resolve, reject) => req.session.regenerate((error) => error ? reject(error) : resolve()));
+}
+
+function readBearerToken(value: unknown): string {
+  if (typeof value !== 'string') return '';
+  return value.match(/^Bearer\s+(.+)$/i)?.[1]?.trim() || '';
+}
+
+function usernameFromEmail(email: string): string {
+  return email.split('@')[0]?.trim() || 'ZAR User';
+}
+
+function canonicalPrivyOwnerId(appId: string, subject: string): string {
+  const digest = createHash('sha256').update(`privy\0${appId}\0${subject}`).digest('hex');
+  return `user_privy_${digest.slice(0, 32)}`;
+}
+
+function secureEquals(left: string, right: string): boolean {
+  const a = Buffer.from(left);
+  const b = Buffer.from(right);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+
+app.post('/api/auth/privy/session', async (req: Request, res: Response) => {
+  const appId = String(process.env.VITE_PRIVY_APP_ID || process.env.PRIVY_APP_ID || '').trim();
+  const appSecret = String(process.env.PRIVY_APP_SECRET || '').trim();
+  if (!appId || !appSecret) return res.status(503).json({ error: 'Privy sign-in is not configured' });
+
+  const accessToken = readBearerToken(req.headers.authorization);
+  if (!accessToken) return res.status(401).json({ error: 'Privy access token is required' });
+
   try {
-    const { username, password } = req.body || {};
-    if (!username || !password) return res.status(400).json({ error: 'Username and password are required' });
-    const user = await storage.getUserByUsername(String(username));
-    if (!user || !(await bcrypt.compare(String(password), user.passwordHash))) return res.status(401).json({ error: 'Invalid username or password' });
-    await storage.updateUserLogin(user.id);
-    (req as AuthenticatedRequest).session.userId = user.id;
-    (req as AuthenticatedRequest).session.user = { id: user.id, username: user.username, role: user.role };
-    res.json({ id: user.id, username: user.username, role: user.role });
+    const client = new PrivyClient({ appId, appSecret });
+    const claims = await client.utils().auth().verifyAccessToken(accessToken);
+    const subject = claims.user_id;
+    if (!subject) return res.status(401).json({ error: 'Privy access token is invalid' });
+
+    const privyUser: any = await client.users()._get(subject);
+    if (!privyUser?.id || privyUser.id !== subject) return res.status(401).json({ error: 'Privy Identity does not match the session' });
+
+    const emailAccount = (privyUser.linked_accounts || []).find((account: any) =>
+      account?.type === 'email' && typeof account.address === 'string' && Number(account.verified_at) > 0
+    );
+    const email = String(emailAccount?.address || '').trim().toLowerCase();
+    if (!email) return res.status(401).json({ error: 'A verified email is required for ZCOS sign-in' });
+
+    const authReq = req as AuthenticatedRequest;
+    await regenerateSession(authReq);
+    const user: SessionUser = {
+      id: canonicalPrivyOwnerId(appId, subject),
+      username: usernameFromEmail(email),
+      email,
+      isAdmin: false,
+      authMethod: 'privy',
+    };
+    authReq.session.userId = user.id;
+    authReq.session.user = user;
+    await saveSession(authReq);
+    res.json({ success: true });
   } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Privy authentication failed:', error);
+    res.status(401).json({ error: 'Privy sign-in could not be verified' });
   }
 });
 
-app.post('/api/auth/signup', async (req, res) => {
+app.post('/api/login', async (req: Request, res: Response) => {
+  const configuredPhrase = String(process.env.ZAR_ADMIN_SECURE_PHRASE || '').trim();
+  const suppliedPhrase = String(req.body?.passphrase || '').trim();
+  if (!configuredPhrase) return res.status(503).json({ error: 'Admin secure phrase is not configured' });
+  if (!suppliedPhrase || !secureEquals(configuredPhrase, suppliedPhrase)) return res.status(401).json({ error: 'Invalid secure phrase' });
+
   try {
-    const { username, password } = req.body || {};
-    if (!username || !password) return res.status(400).json({ error: 'Username and password are required' });
-    if (String(password).length < 8) return res.status(400).json({ error: 'Password must be at least 8 characters long' });
-    if (await storage.getUserByUsername(String(username))) return res.status(409).json({ error: 'Username already exists' });
-    const user = await storage.createUser({ username: String(username), passwordHash: await bcrypt.hash(String(password), 12), role: 'user' });
-    (req as AuthenticatedRequest).session.userId = user.id;
-    (req as AuthenticatedRequest).session.user = { id: user.id, username: user.username, role: user.role };
-    res.status(201).json({ id: user.id, username: user.username, role: user.role });
+    const authReq = req as AuthenticatedRequest;
+    await regenerateSession(authReq);
+    const user: SessionUser = {
+      id: 'user_admin',
+      username: 'Admin',
+      isAdmin: true,
+      authMethod: 'secure_phrase',
+    };
+    authReq.session.userId = user.id;
+    authReq.session.user = user;
+    await saveSession(authReq);
+    res.json({ success: true, user });
   } catch (error) {
-    console.error('Signup error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Admin secure phrase login failed:', error);
+    res.status(500).json({ error: 'Login failed' });
   }
 });
 
-app.get('/api/auth/me', requireAuth, async (req, res) => {
-  try {
-    const user = await storage.getUser((req as AuthenticatedRequest).session.userId!);
-    if (!user) return res.status(404).json({ error: 'User not found' });
-    res.json({ id: user.id, username: user.username, role: user.role });
-  } catch {
-    res.status(500).json({ error: 'Internal server error' });
-  }
+app.get('/api/me', (req: Request, res: Response) => {
+  const authReq = req as AuthenticatedRequest;
+  if (!authReq.session.userId || !authReq.session.user) return res.status(401).json({ error: 'Authentication required' });
+  res.json({ user: authReq.session.user });
 });
 
-app.post('/api/auth/logout', (req, res) => {
-  (req as AuthenticatedRequest).session.destroy((error) => {
+app.post('/api/logout', (req: Request, res: Response) => {
+  const authReq = req as AuthenticatedRequest;
+  authReq.session.destroy((error) => {
     if (error) return res.status(500).json({ error: 'Failed to logout' });
     res.clearCookie('zcos.sid');
     res.json({ success: true });
   });
 });
 
-app.post('/api/auth/change-password', requireAuth, async (req, res) => {
-  try {
-    const { currentPassword, newPassword } = req.body || {};
-    const user = await storage.getUser((req as AuthenticatedRequest).session.userId!);
-    if (!user) return res.status(404).json({ error: 'User not found' });
-    if (!currentPassword || !newPassword || String(newPassword).length < 8) return res.status(400).json({ error: 'Valid current and new passwords are required' });
-    if (!(await bcrypt.compare(String(currentPassword), user.passwordHash))) return res.status(401).json({ error: 'Current password is incorrect' });
-    await storage.updateUserPassword(user.id, await bcrypt.hash(String(newPassword), 12));
-    res.json({ success: true });
-  } catch {
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
 app.get('/api/system/status', (_req, res) => {
   res.json({
     system: 'ZCOS',
     status: 'operational',
+    identityAuthority: 'Privy + admin secure phrase',
     canonicalAuthorities: ['identity', 'memory', 'knowledge', 'apps', 'desk', 'settings', 'portal'],
     timestamp: new Date().toISOString(),
   });
