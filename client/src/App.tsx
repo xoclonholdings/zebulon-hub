@@ -8,6 +8,7 @@ import Dashboard from "@/pages/dashboard";
 import NotFound from "@/pages/not-found";
 import LoginScreen from "@/components/LoginScreen";
 import ZebulonConstellationPage from "@/zcos/ZebulonConstellationPage";
+import ZcosCommandDesk from "@/zcos/ZcosCommandDesk";
 import ZillionGateway, { GalaxyGateway, ZarGateway, ZcosPathGateway } from "@/zcos/ZillionGateway";
 
 function Router() {
@@ -61,7 +62,8 @@ function Router() {
         <Route path="/galaxy/:galaxy/:domain" component={GalaxyGateway} />
         <Route path="/galaxy/:galaxy" component={GalaxyGateway} />
 
-        <Route path="/admin" component={ZcosPathGateway} />
+        <Route path="/admin" component={ZcosCommandDesk} />
+        <Route path="/command" component={ZcosCommandDesk} />
         <Route path="/learning/studio" component={ZcosPathGateway} />
         <Route path="/knowledge" component={ZcosPathGateway} />
         <Route path="/projects" component={ZcosPathGateway} />
