@@ -12,7 +12,7 @@ export interface GalaxyStar {
   readonly level: "application-galaxy";
   readonly id: string;
   readonly name: "ZAR" | "ZETA" | "ZYNC" | "ZYLO" | "ZENO" | "ZWAP!" | "ZENITH" | "ZILLION";
-  readonly console: "NΞXYS" | "SENTRY" | "CANVAS" | "COMPASS" | "UNITE" | "DISCOVERY" | "LOGOS" | "PROSPER";
+  readonly console: "NΞXYS" | "CONTROL" | "CANVAS" | "COMPASS" | "UNITE" | "DISCOVERY" | "LOGOS" | "PROSPER";
   readonly description: string;
   readonly accent: string;
   readonly accentSoft: string;
@@ -46,7 +46,7 @@ export const ZEBULON_VESSEL_ROUTE = "/zar";
 
 export const GALAXY_CONSTELLATION: readonly GalaxyStar[] = Object.freeze([
   { level: "application-galaxy", id: "zar", name: "ZAR", console: "NΞXYS", description: "Command nexus — every galaxy, memory, and mission converges here.", accent: "#a78bfa", accentSoft: "#ddd6fe", position: [0.35, -0.25, 0.9], radius: 1.18, haloRadius: 2.25, brightness: 1, stellarDensity: 430, nebula: "intelligence", dustStretch: [1.05, 0.9], labelOffset: [0.4, -1.55], hitRadius: 1.25, route: ZEBULON_VESSEL_ROUTE },
-  { level: "application-galaxy", id: "zeta", name: "ZETA", console: "SENTRY", description: "Vigilant watch — monitoring, alerts, and system defense.", accent: "#60a5fa", accentSoft: "#bfdbfe", position: [1.05, 5.15, -1.65], radius: 0.7, haloRadius: 1.25, brightness: 0.94, stellarDensity: 150, nebula: "structured", dustStretch: [0.78, 1.18], labelOffset: [1.05, -0.65], hitRadius: 0.92, route: "/zeta" },
+  { level: "application-galaxy", id: "zeta", name: "ZETA", console: "CONTROL", description: "System integrity — logs, diagnostics, monitoring, and operational control.", accent: "#60a5fa", accentSoft: "#bfdbfe", position: [1.05, 5.15, -1.65], radius: 0.7, haloRadius: 1.25, brightness: 0.94, stellarDensity: 150, nebula: "structured", dustStretch: [0.78, 1.18], labelOffset: [1.05, -0.65], hitRadius: 0.92, route: "/zeta" },
   { level: "application-galaxy", id: "zync", name: "ZYNC", console: "CANVAS", description: "Creative studio — design, imagery, and visual synthesis.", accent: "#f472b6", accentSoft: "#fbcfe8", position: [5.15, 1.75, -0.55], radius: 0.94, haloRadius: 1.8, brightness: 0.86, stellarDensity: 310, nebula: "creative", dustStretch: [1.35, 0.9], labelOffset: [1.15, -0.7], hitRadius: 1.05, route: "/zync" },
   { level: "application-galaxy", id: "zylo", name: "ZYLO", console: "COMPASS", description: "Wayfinding — planning, direction, and decision routing.", accent: "#f6c85f", accentSoft: "#fde68a", position: [-3.75, -4.05, 1.55], radius: 0.82, haloRadius: 1.38, brightness: 0.82, stellarDensity: 190, nebula: "beacon", dustStretch: [1.05, 0.74], labelOffset: [0.7, -0.75], hitRadius: 0.96, route: "/zylo" },
   { level: "application-galaxy", id: "zeno", name: "ZENO", console: "UNITE", description: "Connection hub — people, teams, and shared presence.", accent: "#86efac", accentSoft: "#dcfce7", position: [-5.55, 2.25, 0.45], radius: 0.74, haloRadius: 1.3, brightness: 0.78, stellarDensity: 175, nebula: "binary", dustStretch: [1.15, 0.84], labelOffset: [0.7, -0.78], hitRadius: 1.02, companion: { position: [0.94, -0.34, -0.12], radius: 0.26, intensity: 0.48 }, route: "/zeno" },
