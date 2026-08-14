@@ -3,7 +3,8 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider, useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/AuthContext";
+import PrivyAuthRoot from "@/components/PrivyAuthRoot";
 import NotFound from "@/pages/not-found";
 import LoginScreen from "@/components/LoginScreen";
 import ZebulonConstellationPage from "@/zcos/ZebulonConstellationPage";
@@ -11,7 +12,7 @@ import ZcosCommandDesk from "@/zcos/ZcosCommandDesk";
 import ZillionGateway, { GalaxyGateway, ZarGateway } from "@/zcos/ZillionGateway";
 
 function Router() {
-  const { user, isLoading, login } = useAuth();
+  const { user, isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -24,16 +25,14 @@ function Router() {
     );
   }
 
-  if (!user) return <LoginScreen onLoginSuccess={login} />;
+  if (!user) return <LoginScreen />;
 
   return (
     <div className="mobile-viewport mobile-container bg-black overflow-hidden">
       <Switch>
         <Route path="/" component={ZebulonConstellationPage} />
-
         <Route path="/zar" component={ZarGateway} />
         <Route path="/nexys" component={ZarGateway} />
-
         <Route path="/zillion" component={ZillionGateway} />
         <Route path="/zillion/:domain/:surface" component={GalaxyGateway} />
         <Route path="/zillion/:domain" component={GalaxyGateway} />
@@ -55,12 +54,10 @@ function Router() {
         <Route path="/zenith" component={GalaxyGateway} />
         <Route path="/zenith/:domain/:surface" component={GalaxyGateway} />
         <Route path="/zenith/:domain" component={GalaxyGateway} />
-
         <Route path="/galaxy/:galaxy/:domain/:surface" component={GalaxyGateway} />
         <Route path="/galaxy/zillion" component={ZillionGateway} />
         <Route path="/galaxy/:galaxy/:domain" component={GalaxyGateway} />
         <Route path="/galaxy/:galaxy" component={GalaxyGateway} />
-
         <Route path="/command/:surface" component={ZcosCommandDesk} />
         <Route path="/command" component={ZcosCommandDesk} />
         <Route component={NotFound} />
@@ -72,12 +69,12 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
+      <PrivyAuthRoot>
         <TooltipProvider>
           <Toaster />
           <Router />
         </TooltipProvider>
-      </AuthProvider>
+      </PrivyAuthRoot>
     </QueryClientProvider>
   );
 }
