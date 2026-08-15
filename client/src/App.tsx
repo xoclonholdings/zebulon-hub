@@ -9,7 +9,8 @@ import NotFound from "@/pages/not-found";
 import LoginScreen from "@/components/LoginScreen";
 import ZebulonConstellationPage from "@/zcos/ZebulonConstellationPage";
 import ZcosCommandDesk from "@/zcos/ZcosCommandDesk";
-import ZillionGateway, { GalaxyGateway, ZarGateway } from "@/zcos/ZillionGateway";
+import ZillionGateway, { GalaxyGateway } from "@/zcos/ZillionGateway";
+import ZarGateway from "@/zcos/ZarGateway";
 
 function Router() {
   const { user, isLoading } = useAuth();
