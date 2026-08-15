@@ -6,6 +6,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import zcosCanonicalRoutes from './routes/zcos-canonical.js';
 import zcosAdminRoutes from './routes/zcos-admin.js';
+import zcosSsoRoutes from './routes/sso.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -193,12 +194,13 @@ app.get('/api/system/status', (_req, res) => {
   res.json({
     system: 'ZCOS',
     status: 'operational',
-    identityAuthority: 'Privy + admin secure phrase',
+    identityAuthority: 'ZCOS Universal Auth',
     canonicalAuthorities: ['identity', 'memory', 'knowledge', 'apps', 'desk', 'settings', 'portal'],
     timestamp: new Date().toISOString(),
   });
 });
 
+app.use('/api/sso', zcosSsoRoutes);
 app.use('/api/zcos/admin', zcosAdminRoutes);
 app.use('/api/zcos', zcosCanonicalRoutes);
 
