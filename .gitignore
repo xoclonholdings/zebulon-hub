@@ -12,11 +12,26 @@ yarn-error.log*
 # Build outputs
 dist/
 build/
+server/public/
+*.tar
+*.tar.gz
 
 # Database
 *.db
 *.sqlite
 prisma/dev.db
+*.sql
+
+# User/runtime uploads and captures
+uploads/
+*cookie*.txt
+cookies.txt
+
+# Generated/temporary evidence
+oracle_feed.json
+oracle_feed.md
+test-sample.ged
+test-knowledge-pool.js
 
 # IDE
 .vscode/

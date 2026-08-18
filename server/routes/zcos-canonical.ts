@@ -1,8 +1,8 @@
 import express from "express";
 import { storage } from "../storage-prisma.js";
-import { ownerContextFromRequest } from "../zcos-core/OwnerContext.js";
-import { requireOwner } from "../zcos-core/requireOwner.js";
-import { normalizeGalaxyId, ZCOS_GALAXIES, type GalaxyId } from "../zcos-core/GalaxyRegistry.js";
+import { ownerContextFromRequest } from "../core/OwnerContext.js";
+import { requireOwner } from "../core/requireOwner.js";
+import { normalizeGalaxyId, ZCOS_GALAXIES, type GalaxyId } from "../core/GalaxyRegistry.js";
 
 const router = express.Router();
 
