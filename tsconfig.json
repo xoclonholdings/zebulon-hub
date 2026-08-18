@@ -17,6 +17,7 @@
     "baseUrl": ".",
     "types": ["node", "vite/client"],
     "paths": {
+      "@/nexys/*": ["./client/src/galaxies/zar/nexys/*"],
       "@/*": ["./client/src/*"],
       "@shared/*": ["./shared/*"]
     }
