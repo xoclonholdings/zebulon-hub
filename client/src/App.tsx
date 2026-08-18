@@ -7,10 +7,10 @@ import { useAuth } from "@/context/AuthContext";
 import PrivyAuthRoot from "@/components/PrivyAuthRoot";
 import NotFound from "@/pages/not-found";
 import LoginScreen from "@/components/LoginScreen";
-import ZebulonConstellationPage from "@/zcos/ZebulonConstellationPage";
-import ZcosCommandDesk from "@/zcos/ZcosCommandDesk";
-import ZillionGateway, { GalaxyGateway } from "@/zcos/ZillionGateway";
-import ZarGateway from "@/zcos/ZarGateway";
+import ZebulonConstellationPage from "@/system/ZebulonConstellationPage";
+import ZcosCommandDesk from "@/system/ZcosCommandDesk";
+import ZillionGateway, { GalaxyGateway } from "@/galaxies/GalaxyGateway";
+import ZarGateway from "@/galaxies/zar/ZarGateway";
 
 function Router() {
   const { user, isLoading } = useAuth();
