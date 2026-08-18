@@ -1,69 +1,17 @@
-# Zebulon Oracle System
+# Zebulon Commander Operating System (ZCOS)
 
-A comprehensive database query and analysis system focused purely on Oracle database operations. Built with modern technologies for real-time data insights and secure database interactions.
+This repository is the implementation home of **ZCOS**.
 
-## Core Technologies
-- React 19.1.0 with TypeScript
-- Express.js server with unified architecture
-- PostgreSQL database with Prisma ORM
-- Real-time Oracle query processing
-- Single-port deployment on port 5000
-- Advanced security and authentication system
+Start with [`SPEC.md`](./SPEC.md), then read [`docs/specifications/`](./docs/specifications/README.md) before changing architecture, ownership, routing, authentication, persistence, galaxy boundaries, or Dock behavior.
 
-## Features
-- Oracle database query interface
-- Real-time system monitoring
-- Secure authentication system
-- Admin panel with user management
-- Pure black-on-black interface design
-- Database status and health monitoring
+## Canonical source layout
 
-## Project Structure
-```
-zebulon-oracle-system/
-├── client/                     # React frontend application
-│   ├── src/
-│   │   ├── components/         # React components
-│   │   ├── context/           # Authentication context
-│   │   ├── hooks/             # Custom React hooks
-│   │   ├── lib/               # Utility libraries
-│   │   └── pages/             # Application pages
-│   └── index.html
-├── server/                     # Express.js backend
-│   ├── public/                # Built frontend assets
-│   ├── db.ts                  # Database configuration
-│   ├── index.ts               # Main server file
-│   └── storage-prisma.ts      # Database operations
-├── shared/                     # Shared TypeScript schemas
-│   └── schema.ts              # Database and type definitions
-├── prisma/                     # Database schema
-│   └── schema.prisma
-├── package.json               # Project dependencies
-├── tsconfig.json              # TypeScript configuration
-├── tailwind.config.ts         # Tailwind CSS configuration
-└── vite.config.clean.ts       # Vite build configuration
-```
+- `client/src/system/` — system-level ZCOS experience surfaces such as the constellation and Command Desk.
+- `client/src/galaxies/` — the eight galaxy partitions: ZAR, ZYNC, ZETA, ZENO, ZYLO, ZWAP!, ZENITH, ZILLION.
+- `server/` — ZCOS server runtime, routes, persistence, and authority enforcement.
+- `prisma/` — canonical database schema and migrations.
+- `docs/specifications/` — governing implementation documents.
 
-## Quick Start
-1. Install dependencies: `npm install`
-2. Start development server: `npm run dev`
-3. Access application at: http://localhost:5000
+ZCOS Auth is universal auth. Identity exists once at ZCOS level and is referenced across all galaxies.
 
-## Available Scripts
-- `npm run dev` - Start development server (unified frontend & backend)
-- `npm run build` - Build for production
-- `npm run start` - Start production server
-- `npm run db:push` - Push database schema changes
-- `npm run db:studio` - Open Prisma Studio for database management
-
-## Environment Requirements
-- Node.js 24+
-- PostgreSQL database
-- Environment variables: `DATABASE_URL`
-- Client build variable: `VITE_ZAR_APP_URL` (the authenticated ZAR/ZCOS application origin used by the ZILLION gateway)
-
-## Authentication
-The system includes built-in authentication with secure session management. Users can create accounts, log in, and manage their profiles through the admin panel.
-
-## Oracle Query Interface
-The main interface provides a chat-like experience for database queries with real-time processing and response handling. All queries are logged and can be reviewed through the system interface.
+`xoclonholdings/ZedAI` is a migration source. Its historical directory topology does not define this repository's architecture.
