@@ -22,5 +22,5 @@ services:
         sync: false
       - key: PRIVY_APP_SECRET
         sync: false
-      - key: ZAR_ADMIN_SECURE_PHRASE
+      - key: ZCOS_ADMIN_SECURE_PHRASE
         sync: false
