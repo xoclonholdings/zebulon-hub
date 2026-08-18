@@ -4,8 +4,5 @@ export interface ConsoleIdentity {
   readonly accent: string;
 }
 
-export const ZAR_NEXYS_CONSOLE: ConsoleIdentity = {
-  galaxy: "ZAR",
-  console: "NΞXYS",
-  accent: "#a78bfa",
-};
+// Compatibility export while system-level consumers are migrated to the ZAR partition.
+export { ZAR_NEXYS_CONSOLE } from "@/galaxies/zar/nexys/consoleIdentity";
