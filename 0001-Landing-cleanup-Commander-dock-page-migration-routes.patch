@@ -1,0 +1,870 @@
+From 75ffdf6d70ace6261d829e32f7c912348c05830f Mon Sep 17 00:00:00 2001
+From: Emergent E1 <agent@emergent.dev>
+Date: Wed, 19 Aug 2026 07:45:26 +0000
+Subject: [PATCH] Landing cleanup + Commander dock + page migration/routes
+
+- Landing (ZebulonConstellationPage): remove NEXYS Online pill, telemetry, Reset chart, Vessel panel, and GalaxyMapDock (crosshair/compass); keep WebGL star map
+- Add vesselIdentity.ts (ZCOS_COMMANDER, Model A); ConsoleShell accepts ConsoleIdentity | VesselIdentity; drop ZAR re-export shim
+- Add config-driven CommanderDock (5 tabs: Chat/Upload/Memory/Knowledge/Projects + History/Admin buttons) with 8-galaxy desk registry
+- Add /memory /knowledge /projects (+ /projects/:id) /history /admin routes and truthful pages wired to existing zcos-admin endpoints
+---
+ client/src/App.tsx                            |  12 ++
+ client/src/console/ConsoleShell.tsx           |   7 +-
+ client/src/console/consoleIdentity.ts         |   3 -
+ client/src/pages/CommanderPageShell.tsx       |  46 +++++++
+ client/src/pages/history.tsx                  |  66 ++++++++++
+ client/src/pages/knowledge.tsx                |  72 ++++++++++
+ client/src/pages/memory.tsx                   |  72 ++++++++++
+ client/src/pages/project-detail.tsx           |  27 ++++
+ client/src/pages/projects.tsx                 |  30 +++++
+ client/src/system/CommanderDock.tsx           | 109 +++++++++++++++
+ .../src/system/ZebulonConstellationPage.tsx   | 124 +-----------------
+ client/src/system/commanderDock.ts            |  93 +++++++++++++
+ client/src/system/vesselIdentity.ts           |   8 ++
+ 13 files changed, 545 insertions(+), 124 deletions(-)
+ create mode 100644 client/src/pages/CommanderPageShell.tsx
+ create mode 100644 client/src/pages/history.tsx
+ create mode 100644 client/src/pages/knowledge.tsx
+ create mode 100644 client/src/pages/memory.tsx
+ create mode 100644 client/src/pages/project-detail.tsx
+ create mode 100644 client/src/pages/projects.tsx
+ create mode 100644 client/src/system/CommanderDock.tsx
+ create mode 100644 client/src/system/commanderDock.ts
+ create mode 100644 client/src/system/vesselIdentity.ts
+
+diff --git a/client/src/App.tsx b/client/src/App.tsx
+index 3cea539..10ab6eb 100644
+--- a/client/src/App.tsx
++++ b/client/src/App.tsx
+@@ -11,6 +11,11 @@ import ZebulonConstellationPage from "@/system/ZebulonConstellationPage";
+ import ZcosCommandDesk from "@/system/ZcosCommandDesk";
+ import ZillionGateway, { GalaxyGateway } from "@/galaxies/GalaxyGateway";
+ import ZarGateway from "@/galaxies/zar/ZarGateway";
++import MemoryPage from "@/pages/memory";
++import KnowledgePage from "@/pages/knowledge";
++import ProjectsPage from "@/pages/projects";
++import ProjectDetailPage from "@/pages/project-detail";
++import HistoryPage from "@/pages/history";
+ 
+ function Router() {
+   const { user, isLoading } = useAuth();
+@@ -61,6 +66,13 @@ function Router() {
+         <Route path="/galaxy/:galaxy" component={GalaxyGateway} />
+         <Route path="/command/:surface" component={ZcosCommandDesk} />
+         <Route path="/command" component={ZcosCommandDesk} />
++        <Route path="/memory" component={MemoryPage} />
++        <Route path="/knowledge" component={KnowledgePage} />
++        <Route path="/projects/:id" component={ProjectDetailPage} />
++        <Route path="/projects" component={ProjectsPage} />
++        <Route path="/history" component={HistoryPage} />
++        <Route path="/admin/:surface" component={ZcosCommandDesk} />
++        <Route path="/admin" component={ZcosCommandDesk} />
+         <Route component={NotFound} />
+       </Switch>
+     </div>
+diff --git a/client/src/console/ConsoleShell.tsx b/client/src/console/ConsoleShell.tsx
+index d21fce0..b1dfd32 100644
+--- a/client/src/console/ConsoleShell.tsx
++++ b/client/src/console/ConsoleShell.tsx
+@@ -1,6 +1,7 @@
+ import type { ReactNode } from "react";
+ 
+ import type { ConsoleIdentity } from "./consoleIdentity";
++import type { VesselIdentity } from "@/system/vesselIdentity";
+ 
+ export function ConsoleShell({
+   headerLeft,
+@@ -8,11 +9,11 @@ export function ConsoleShell({
+   bottomBar,
+   children,
+ }: {
+-  readonly identity: ConsoleIdentity;
++  readonly identity: ConsoleIdentity | VesselIdentity;
+   readonly headerLeft: ReactNode;
+   readonly headerRightExtra?: ReactNode;
+-  readonly dockPowered: boolean;
+-  readonly onDockPowerChange: (next: boolean) => void;
++  readonly dockPowered?: boolean;
++  readonly onDockPowerChange?: (next: boolean) => void;
+   readonly bottomBar?: ReactNode;
+   readonly children: ReactNode;
+ }) {
+diff --git a/client/src/console/consoleIdentity.ts b/client/src/console/consoleIdentity.ts
+index c8266b5..4df3d26 100644
+--- a/client/src/console/consoleIdentity.ts
++++ b/client/src/console/consoleIdentity.ts
+@@ -3,6 +3,3 @@ export interface ConsoleIdentity {
+   readonly console: string;
+   readonly accent: string;
+ }
+-
+-// Compatibility export while system-level consumers are migrated to the ZAR partition.
+-export { ZAR_NEXYS_CONSOLE } from "@/galaxies/zar/nexys/consoleIdentity";
+diff --git a/client/src/pages/CommanderPageShell.tsx b/client/src/pages/CommanderPageShell.tsx
+new file mode 100644
+index 0000000..0c93ea8
+--- /dev/null
++++ b/client/src/pages/CommanderPageShell.tsx
+@@ -0,0 +1,46 @@
++import type { ReactNode } from "react";
++import { ArrowLeft } from "lucide-react";
++import { useLocation } from "wouter";
++
++export function CommanderPageShell({
++  eyebrow = "ZCOS Commander",
++  title,
++  subtitle,
++  backTo = "/",
++  backLabel = "Constellation",
++  testId,
++  children,
++}: {
++  readonly eyebrow?: string;
++  readonly title: string;
++  readonly subtitle: string;
++  readonly backTo?: string;
++  readonly backLabel?: string;
++  readonly testId?: string;
++  readonly children: ReactNode;
++}) {
++  const [, navigate] = useLocation();
++  return (
++    <main
++      data-testid={testId}
++      className="min-h-[100dvh] overflow-y-auto bg-[radial-gradient(circle_at_50%_15%,#121225_0%,#05050b_46%,#010103_100%)] px-4 pb-16 pt-5 text-white"
++    >
++      <div className="mx-auto w-full max-w-3xl">
++        <button
++          type="button"
++          data-testid="commander-page-back"
++          onClick={() => navigate(backTo)}
++          className="mb-5 inline-flex min-h-[44px] items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 text-sm text-white/70 transition-colors hover:text-white"
++        >
++          <ArrowLeft size={16} /> {backLabel}
++        </button>
++        <header className="rounded-[2rem] border border-white/10 bg-black/35 p-6 backdrop-blur-xl">
++          <p className="text-xs uppercase tracking-[0.28em] text-white/40">{eyebrow}</p>
++          <h1 className="mt-2 text-3xl font-semibold">{title}</h1>
++          <p className="mt-3 text-sm leading-6 text-white/50">{subtitle}</p>
++        </header>
++        <section className="mt-5">{children}</section>
++      </div>
++    </main>
++  );
++}
+diff --git a/client/src/pages/history.tsx b/client/src/pages/history.tsx
+new file mode 100644
+index 0000000..a2b6ec3
+--- /dev/null
++++ b/client/src/pages/history.tsx
+@@ -0,0 +1,66 @@
++import { useEffect, useState } from "react";
++
++import { apiRequest } from "@/lib/queryClient";
++import { CommanderPageShell } from "./CommanderPageShell";
++
++interface AuditEvent {
++  readonly id: string;
++  readonly eventType?: string;
++  readonly galaxyId?: string | null;
++  readonly createdAt?: string;
++}
++
++export default function HistoryPage() {
++  const [events, setEvents] = useState<AuditEvent[]>([]);
++  const [loading, setLoading] = useState(true);
++  const [error, setError] = useState("");
++
++  useEffect(() => {
++    let active = true;
++    setLoading(true);
++    setError("");
++    void apiRequest("/api/zcos/admin/audit?limit=50")
++      .then((result) => {
++        if (!active) return;
++        setEvents(Array.isArray(result.events) ? result.events : []);
++      })
++      .catch((cause) => {
++        if (!active) return;
++        setError(cause instanceof Error ? cause.message : "Unable to load History.");
++      })
++      .finally(() => active && setLoading(false));
++    return () => {
++      active = false;
++    };
++  }, []);
++
++  return (
++    <CommanderPageShell
++      testId="history-page"
++      title="History"
++      subtitle="Commander-scoped activity — recent authorized events across ZCOS."
++    >
++      {loading ? (
++        <p data-testid="history-loading" className="text-sm text-white/40">Loading history…</p>
++      ) : error ? (
++        <p data-testid="history-error" className="rounded-xl border border-red-400/20 bg-red-500/10 p-3 text-sm text-red-200">{error}</p>
++      ) : events.length === 0 ? (
++        <p data-testid="history-empty" className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-sm text-white/45">
++          No activity has been recorded yet.
++        </p>
++      ) : (
++        <div data-testid="history-list" className="space-y-2">
++          {events.map((event) => (
++            <article key={event.id} className="rounded-2xl border border-white/10 bg-white/[0.03] p-3">
++              <p className="text-sm text-white/65">{event.eventType || "event"}</p>
++              <p className="mt-1 text-xs text-white/30">
++                {event.galaxyId || "ZCOS"}
++                {event.createdAt ? ` · ${new Date(event.createdAt).toLocaleString()}` : ""}
++              </p>
++            </article>
++          ))}
++        </div>
++      )}
++    </CommanderPageShell>
++  );
++}
+diff --git a/client/src/pages/knowledge.tsx b/client/src/pages/knowledge.tsx
+new file mode 100644
+index 0000000..8f512b9
+--- /dev/null
++++ b/client/src/pages/knowledge.tsx
+@@ -0,0 +1,72 @@
++import { useEffect, useState } from "react";
++
++import { apiRequest } from "@/lib/queryClient";
++import { CommanderPageShell } from "./CommanderPageShell";
++
++interface KnowledgeRecord {
++  readonly id: string;
++  readonly canonicalName?: string;
++  readonly summary?: string;
++  readonly galaxyId?: string;
++  readonly lifecycleState?: string;
++}
++
++export default function KnowledgePage() {
++  const [records, setRecords] = useState<KnowledgeRecord[]>([]);
++  const [loading, setLoading] = useState(true);
++  const [error, setError] = useState("");
++
++  useEffect(() => {
++    let active = true;
++    setLoading(true);
++    setError("");
++    void apiRequest("/api/zcos/admin/all-knowledge")
++      .then((result) => {
++        if (!active) return;
++        setRecords(Array.isArray(result.records) ? result.records : []);
++      })
++      .catch((cause) => {
++        if (!active) return;
++        setError(cause instanceof Error ? cause.message : "Unable to load Knowledge.");
++      })
++      .finally(() => active && setLoading(false));
++    return () => {
++      active = false;
++    };
++  }, []);
++
++  return (
++    <CommanderPageShell
++      testId="knowledge-page"
++      title="Knowledge"
++      subtitle="Canonical knowledge across the constellation, preserving each galaxy's origin."
++    >
++      {loading ? (
++        <p data-testid="knowledge-loading" className="text-sm text-white/40">Loading knowledge…</p>
++      ) : error ? (
++        <p data-testid="knowledge-error" className="rounded-xl border border-red-400/20 bg-red-500/10 p-3 text-sm text-red-200">{error}</p>
++      ) : records.length === 0 ? (
++        <p data-testid="knowledge-empty" className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-sm text-white/45">
++          No canonical knowledge records are available yet.
++        </p>
++      ) : (
++        <div data-testid="knowledge-list" className="space-y-2">
++          {records.map((record) => (
++            <article key={record.id} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
++              <div className="flex items-start justify-between gap-3">
++                <h3 className="text-sm font-medium text-white/80">{record.canonicalName || "Untitled"}</h3>
++                {record.galaxyId ? (
++                  <span className="rounded-full border border-white/10 px-2 py-1 text-[10px] text-white/35">{record.galaxyId}</span>
++                ) : null}
++              </div>
++              {record.summary ? <p className="mt-2 text-sm leading-6 text-white/50">{record.summary}</p> : null}
++              {record.lifecycleState ? (
++                <p className="mt-2 text-[10px] uppercase tracking-[0.16em] text-white/30">{record.lifecycleState}</p>
++              ) : null}
++            </article>
++          ))}
++        </div>
++      )}
++    </CommanderPageShell>
++  );
++}
+diff --git a/client/src/pages/memory.tsx b/client/src/pages/memory.tsx
+new file mode 100644
+index 0000000..fd08a84
+--- /dev/null
++++ b/client/src/pages/memory.tsx
+@@ -0,0 +1,72 @@
++import { useEffect, useState } from "react";
++
++import { apiRequest } from "@/lib/queryClient";
++import { CommanderPageShell } from "./CommanderPageShell";
++
++interface MemoryRecord {
++  readonly id: string;
++  readonly canonicalName?: string;
++  readonly content?: string;
++  readonly galaxyId?: string;
++  readonly lifecycleState?: string;
++}
++
++export default function MemoryPage() {
++  const [records, setRecords] = useState<MemoryRecord[]>([]);
++  const [loading, setLoading] = useState(true);
++  const [error, setError] = useState("");
++
++  useEffect(() => {
++    let active = true;
++    setLoading(true);
++    setError("");
++    void apiRequest("/api/zcos/admin/all-memory")
++      .then((result) => {
++        if (!active) return;
++        setRecords(Array.isArray(result.records) ? result.records : []);
++      })
++      .catch((cause) => {
++        if (!active) return;
++        setError(cause instanceof Error ? cause.message : "Unable to load Memory.");
++      })
++      .finally(() => active && setLoading(false));
++    return () => {
++      active = false;
++    };
++  }, []);
++
++  return (
++    <CommanderPageShell
++      testId="memory-page"
++      title="Memory"
++      subtitle="Canonical memory across all eight galaxy partitions, with galaxy origin preserved."
++    >
++      {loading ? (
++        <p data-testid="memory-loading" className="text-sm text-white/40">Loading memory…</p>
++      ) : error ? (
++        <p data-testid="memory-error" className="rounded-xl border border-red-400/20 bg-red-500/10 p-3 text-sm text-red-200">{error}</p>
++      ) : records.length === 0 ? (
++        <p data-testid="memory-empty" className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-sm text-white/45">
++          No canonical memory records are available yet.
++        </p>
++      ) : (
++        <div data-testid="memory-list" className="space-y-2">
++          {records.map((record) => (
++            <article key={record.id} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
++              <div className="flex items-start justify-between gap-3">
++                <h3 className="text-sm font-medium text-white/80">{record.canonicalName || "Untitled"}</h3>
++                {record.galaxyId ? (
++                  <span className="rounded-full border border-white/10 px-2 py-1 text-[10px] text-white/35">{record.galaxyId}</span>
++                ) : null}
++              </div>
++              {record.content ? <p className="mt-2 text-sm leading-6 text-white/50">{record.content}</p> : null}
++              {record.lifecycleState ? (
++                <p className="mt-2 text-[10px] uppercase tracking-[0.16em] text-white/30">{record.lifecycleState}</p>
++              ) : null}
++            </article>
++          ))}
++        </div>
++      )}
++    </CommanderPageShell>
++  );
++}
+diff --git a/client/src/pages/project-detail.tsx b/client/src/pages/project-detail.tsx
+new file mode 100644
+index 0000000..153720a
+--- /dev/null
++++ b/client/src/pages/project-detail.tsx
+@@ -0,0 +1,27 @@
++import { useParams } from "wouter";
++
++import { CommanderPageShell } from "./CommanderPageShell";
++
++export default function ProjectDetailPage() {
++  const params = useParams<{ id?: string }>();
++  const id = params.id ?? "";
++  return (
++    <CommanderPageShell
++      testId="project-detail-page"
++      title="Project"
++      subtitle={`Detail view for project ${id || "(unspecified)"}.`}
++      backTo="/projects"
++      backLabel="Projects"
++    >
++      <div data-testid="project-detail-unavailable" className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
++        <p className="text-sm leading-6 text-white/50">
++          The canonical Project service is not connected to ZCOS Command yet, so this project's
++          detail cannot be loaded. This route is wired and ready for the Project engine.
++        </p>
++        {id ? (
++          <p className="mt-3 text-[10px] uppercase tracking-[0.16em] text-white/30">Requested id · {id}</p>
++        ) : null}
++      </div>
++    </CommanderPageShell>
++  );
++}
+diff --git a/client/src/pages/projects.tsx b/client/src/pages/projects.tsx
+new file mode 100644
+index 0000000..0e3397a
+--- /dev/null
++++ b/client/src/pages/projects.tsx
+@@ -0,0 +1,30 @@
++import { useLocation } from "wouter";
++
++import { CommanderPageShell } from "./CommanderPageShell";
++
++export default function ProjectsPage() {
++  const [, navigate] = useLocation();
++  return (
++    <CommanderPageShell
++      testId="projects-page"
++      title="Projects"
++      subtitle="A unified view of work created through galaxy Desks."
++    >
++      <div data-testid="projects-unavailable" className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
++        <p className="text-sm leading-6 text-white/50">
++          The canonical Project service is not connected to ZCOS Command yet. When a galaxy Desk
++          publishes work, its projects will appear here with their originating galaxy preserved. No
++          placeholder data is shown.
++        </p>
++        <button
++          type="button"
++          data-testid="projects-open-admin"
++          onClick={() => navigate("/admin/projects")}
++          className="mt-4 inline-flex min-h-[40px] items-center rounded-full border border-white/10 bg-white/5 px-4 text-xs uppercase tracking-[0.16em] text-white/60 transition-colors hover:text-white"
++        >
++          Open in Command Desk
++        </button>
++      </div>
++    </CommanderPageShell>
++  );
++}
+diff --git a/client/src/system/CommanderDock.tsx b/client/src/system/CommanderDock.tsx
+new file mode 100644
+index 0000000..8d22f74
+--- /dev/null
++++ b/client/src/system/CommanderDock.tsx
+@@ -0,0 +1,109 @@
++import { useEffect, useRef, useState } from "react";
++
++import { COMMANDER_DOCK, type DockDestination } from "./commanderDock";
++
++/**
++ * Commander dock — replaces the legacy GalaxyMapDock. Config-driven from
++ * COMMANDER_DOCK, mirroring the per-galaxy NEXYS dock pattern. Preserves the
++ * established dock aesthetic (glass gradient bar). Controls without a real
++ * route render a truthful, non-navigating "forming" state.
++ */
++export function CommanderDock({ navigate }: { readonly navigate: (to: string) => void }) {
++  const [openBranch, setOpenBranch] = useState<string | null>(null);
++  const rootRef = useRef<HTMLDivElement>(null);
++
++  useEffect(() => {
++    if (!openBranch) return;
++    const onDown = (event: PointerEvent) => {
++      if (rootRef.current && !rootRef.current.contains(event.target as Node)) setOpenBranch(null);
++    };
++    window.addEventListener("pointerdown", onDown);
++    return () => window.removeEventListener("pointerdown", onDown);
++  }, [openBranch]);
++
++  const go = (destination: DockDestination) => {
++    if (destination.branch && destination.branch.length > 0) {
++      setOpenBranch((current) => (current === destination.id ? null : destination.id));
++      return;
++    }
++    if (destination.route) {
++      setOpenBranch(null);
++      navigate(destination.route);
++    }
++  };
++
++  return (
++    <div
++      ref={rootRef}
++      data-testid="commander-dock"
++      className="relative flex w-full items-center justify-between gap-2 rounded-2xl border border-violet-300/12 bg-[linear-gradient(105deg,rgba(4,8,20,0.86),rgba(8,6,24,0.88),rgba(3,8,18,0.86))] px-3 py-2.5 shadow-[0_12px_55px_rgba(0,0,0,0.45),0_0_32px_rgba(124,58,237,0.08)] backdrop-blur-2xl sm:px-4"
++    >
++      {/* Universal Console options: History (Commander-scoped) + Admin. */}
++      <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
++        {COMMANDER_DOCK.buttons.map(({ id, label, Icon, route }) => (
++          <button
++            key={id}
++            type="button"
++            data-testid={`commander-button-${id}`}
++            onClick={() => route && navigate(route)}
++            className="flex shrink-0 items-center gap-1.5 rounded-lg px-1.5 py-1 text-white/55 transition-colors hover:text-cyan-100 focus:outline-none focus:ring-2 focus:ring-cyan-200/40"
++          >
++            <Icon size={15} />
++            <span className="hidden text-[9px] font-medium uppercase tracking-[0.16em] sm:inline">{label}</span>
++          </button>
++        ))}
++      </div>
++
++      {/* Five-button Commander dock. */}
++      <div className="flex shrink-0 items-center gap-2 sm:gap-3">
++        <div className="hidden items-center gap-1.5 sm:flex">
++          <span className="h-1.5 w-1.5 rounded-full bg-violet-400 shadow-[0_0_8px_2px_rgba(139,92,246,0.7)]" />
++          <span className="text-[9px] font-medium uppercase tracking-[0.16em] text-violet-200/70">Commander</span>
++        </div>
++        {COMMANDER_DOCK.tabs.map((tab) => {
++          const { id, label, Icon, route, branch } = tab;
++          const disabled = !route && !(branch && branch.length > 0);
++          return (
++            <div key={id} className="relative">
++              <button
++                type="button"
++                data-testid={`commander-tab-${id}`}
++                onClick={() => go(tab)}
++                disabled={disabled}
++                aria-expanded={branch ? openBranch === id : undefined}
++                className={`flex min-w-0 flex-col items-center gap-0.5 rounded-lg px-1 py-0.5 transition-colors focus:outline-none focus:ring-2 focus:ring-cyan-200/40 ${
++                  disabled ? "cursor-not-allowed text-white/25" : "text-white/60 hover:text-cyan-100"
++                } ${openBranch === id ? "text-cyan-100" : ""}`}
++              >
++                <Icon size={16} />
++                <span className="text-[8px] font-medium uppercase tracking-[0.12em]">{label}</span>
++              </button>
++
++              {branch && openBranch === id ? (
++                <div
++                  data-testid={`commander-branch-${id}`}
++                  className="absolute bottom-[calc(100%+10px)] left-1/2 z-50 flex -translate-x-1/2 flex-col gap-1 rounded-xl border border-violet-300/15 bg-[rgba(6,8,20,0.96)] p-1.5 shadow-[0_12px_40px_rgba(0,0,0,0.55)] backdrop-blur-2xl"
++                >
++                  {branch.map((sub) => (
++                    <button
++                      key={sub.id}
++                      type="button"
++                      data-testid={`commander-branch-item-${sub.id}`}
++                      onClick={() => go(sub)}
++                      disabled={!sub.route}
++                      className={`flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-1.5 text-[9px] font-medium uppercase tracking-[0.14em] transition-colors focus:outline-none focus:ring-2 focus:ring-cyan-200/40 ${
++                        sub.route ? "text-white/70 hover:bg-white/5 hover:text-cyan-100" : "cursor-not-allowed text-white/30"
++                      }`}
++                    >
++                      <sub.Icon size={13} /> {sub.label}
++                    </button>
++                  ))}
++                </div>
++              ) : null}
++            </div>
++          );
++        })}
++      </div>
++    </div>
++  );
++}
+diff --git a/client/src/system/ZebulonConstellationPage.tsx b/client/src/system/ZebulonConstellationPage.tsx
+index 5d244e0..1c7f7cd 100644
+--- a/client/src/system/ZebulonConstellationPage.tsx
++++ b/client/src/system/ZebulonConstellationPage.tsx
+@@ -5,21 +5,21 @@ import {
+   useRef,
+   useState,
+ } from "react";
+-import { ArrowRight, BookOpen, Crosshair, Database, FolderOpen, Navigation, Orbit, RotateCcw, Rocket } from "lucide-react";
++import { ArrowRight, Crosshair, Orbit } from "lucide-react";
+ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+ import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
+ import { useLocation } from "wouter";
+ import * as THREE from "three";
+ 
+ import { ConsoleShell } from "@/console/ConsoleShell";
+-import { ZAR_NEXYS_CONSOLE } from "@/console/consoleIdentity";
+-import { NexysConsoleHeaderBrand, NexysConsoleHeaderTelemetry } from "@/nexys/components/NexysConsoleHeader";
++import { ZCOS_COMMANDER } from "./vesselIdentity";
++import { CommanderDock } from "./CommanderDock";
++import { NexysConsoleHeaderBrand } from "@/nexys/components/NexysConsoleHeader";
+ import { canUseNexysWebgl } from "@/nexys/scene/nexysSceneContract";
+ import {
+   GALAXY_CONSTELLATION,
+   ZEBULON_HOME_CAMERA,
+   ZEBULON_REFERENCE_VIEWPORT,
+-  ZEBULON_VESSEL_ROUTE,
+   galaxyById,
+   galaxyStarPosition,
+   type GalaxyStar,
+@@ -867,57 +867,6 @@ function ConstellationScene({
+   );
+ }
+ 
+-const GALAXY_DOCK_TOOLS = [
+-  { id: "memory", label: "Memory", Icon: Database, route: "/learning/studio" },
+-  { id: "knowledge", label: "Knowledge", Icon: BookOpen, route: "/knowledge" },
+-  { id: "projects", label: "Projects", Icon: FolderOpen, route: "/projects" },
+-] as const;
+-
+-/** The Image-2 galaxy-map bottom bar: Galaxy Map (admin) · compass dial · NΞXYS Dock tools. */
+-function GalaxyMapDock({ navigate }: { readonly navigate: (to: string) => void }) {
+-  return (
+-    <div
+-      data-testid="galaxy-map-dock"
+-      className="flex w-full items-center justify-between gap-2 rounded-2xl border border-violet-300/12 bg-[linear-gradient(105deg,rgba(4,8,20,0.86),rgba(8,6,24,0.88),rgba(3,8,18,0.86))] px-3 py-2.5 shadow-[0_12px_55px_rgba(0,0,0,0.45),0_0_32px_rgba(124,58,237,0.08)] backdrop-blur-2xl sm:px-4"
+-    >
+-      <button
+-        type="button"
+-        data-testid="galaxy-map-admin-button"
+-        onClick={() => navigate("/admin")}
+-        className="flex shrink-0 items-center gap-1.5 rounded-lg px-1.5 py-1 text-white/55 transition hover:text-cyan-100 focus:outline-none focus:ring-2 focus:ring-cyan-200/40"
+-      >
+-        <Crosshair size={15} />
+-        <span className="hidden text-[9px] font-medium uppercase tracking-[0.16em] xs:inline sm:inline">Galaxy Map</span>
+-      </button>
+-
+-      <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-violet-300/25 bg-violet-400/5 shadow-[0_0_22px_rgba(139,92,246,0.22)]" aria-hidden="true">
+-        <span className="absolute inset-[3px] rounded-full border border-white/10" />
+-        <span className="absolute inset-[7px] rounded-full border border-violet-200/10" />
+-        <Navigation size={16} className="-rotate-45 text-violet-100" strokeWidth={1.5} />
+-      </div>
+-
+-      <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+-        <div className="hidden items-center gap-1.5 sm:flex">
+-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_2px_rgba(52,211,153,0.7)]" />
+-          <span className="text-[9px] font-medium uppercase tracking-[0.16em] text-emerald-200/70">NΞXYS Dock</span>
+-        </div>
+-        {GALAXY_DOCK_TOOLS.map(({ id, label, Icon, route }) => (
+-          <button
+-            key={id}
+-            type="button"
+-            data-testid={`galaxy-dock-${id}`}
+-            onClick={() => navigate(route)}
+-            className="flex min-w-0 flex-col items-center gap-0.5 rounded-lg px-1 py-0.5 text-white/60 transition hover:text-cyan-100 focus:outline-none focus:ring-2 focus:ring-cyan-200/40"
+-          >
+-            <Icon size={16} />
+-            <span className="text-[8px] font-medium uppercase tracking-[0.12em]">{label}</span>
+-          </button>
+-        ))}
+-      </div>
+-    </div>
+-  );
+-}
+-
+ /** Focused-star info card: name, console, and a one-line galaxy summary. */
+ function StarDetailCard({
+   star,
+@@ -985,7 +934,6 @@ export default function ZebulonConstellationPage() {
+   const [focusedId, setFocusedId] = useState<string | null>(null);
+   const [hoveredId, setHoveredId] = useState<string | null>(null);
+   const [warpingId, setWarpingId] = useState<string | null>(null);
+-  const [dockPowered, setDockPowered] = useState(false);
+   const [exploring, setExploring] = useState(false);
+   const [resetSerial, setResetSerial] = useState(0);
+   const [showHint, setShowHint] = useState(false);
+@@ -1060,10 +1008,8 @@ export default function ZebulonConstellationPage() {
+ 
+   return (
+     <ConsoleShell
+-      identity={ZAR_NEXYS_CONSOLE}
+-      dockPowered={dockPowered}
+-      onDockPowerChange={setDockPowered}
+-      bottomBar={<GalaxyMapDock navigate={navigate} />}
++      identity={ZCOS_COMMANDER}
++      bottomBar={<CommanderDock navigate={navigate} />}
+       headerLeft={
+         <NexysConsoleHeaderBrand
+           onWordmarkClick={resetOverview}
+@@ -1071,18 +1017,6 @@ export default function ZebulonConstellationPage() {
+           context={{ label: headerGalaxy.name, color: headerGalaxy.accent }}
+         />
+       }
+-      headerRightExtra={
+-        <>
+-          <div
+-            data-testid="nexys-online-pill"
+-            className="flex items-center gap-2 rounded-full border border-emerald-300/25 bg-black/40 px-3 py-1 backdrop-blur"
+-          >
+-            <span className="block h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_2px_rgba(52,211,153,0.7)]" aria-hidden="true" />
+-            <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-emerald-200/80">NΞXYS Online</span>
+-          </div>
+-          <NexysConsoleHeaderTelemetry visible={!warpingId} />
+-        </>
+-      }
+     >
+       <div
+         className="absolute inset-0 overflow-hidden bg-[radial-gradient(ellipse_82%_60%_at_50%_40%,#100b34_0%,#0a0722_42%,#050313_76%,#01000a_100%)]"
+@@ -1139,21 +1073,6 @@ export default function ZebulonConstellationPage() {
+         <div>DIST&nbsp;&nbsp;3.21 kpc</div>
+       </div>
+ 
+-      <AnimatePresence>
+-        {(focusedId || exploring) && !warpingId ? (
+-          <motion.button
+-            type="button"
+-            onClick={resetOverview}
+-            className="absolute right-4 top-40 z-20 flex items-center gap-2 rounded-full border border-white/10 bg-black/45 px-3 py-2 text-[9px] uppercase tracking-[0.16em] text-white/60 backdrop-blur-xl transition hover:border-cyan-200/25 hover:text-cyan-100 focus:outline-none focus:ring-2 focus:ring-cyan-200/40 sm:right-6"
+-            initial={reducedMotion ? false : { opacity: 0, y: -4 }}
+-            animate={{ opacity: 1, y: 0 }}
+-            exit={{ opacity: 0, y: -4 }}
+-          >
+-            <RotateCcw size={12} /> Reset chart
+-          </motion.button>
+-        ) : null}
+-      </AnimatePresence>
+-
+       <div className="zebulon-chart-legend pointer-events-none absolute left-5 z-10 rounded-lg border border-white/10 bg-black/28 px-3 py-2.5 text-[8px] uppercase tracking-[0.16em] text-white/42 backdrop-blur-sm sm:left-7">
+         <div className="flex items-center gap-2.5"><span className="h-1.5 w-1.5 rounded-full bg-blue-100 shadow-[0_0_8px_2px_rgba(191,219,254,0.7)]" /> Star / Galaxy gateway</div>
+         <div className="mt-1.5 flex items-center gap-2.5"><Orbit size={10} /> Nebula</div>
+@@ -1188,37 +1107,6 @@ export default function ZebulonConstellationPage() {
+             warping={Boolean(warpingId)}
+             onEnter={() => focusedStar.route && beginWarp(focusedStar.id, focusedStar.route)}
+           />
+-        ) : !dockPowered ? (
+-          <motion.section
+-            key="zebulon-vessel"
+-            className="zebulon-vessel-panel absolute inset-x-3 z-20 mx-auto flex max-w-[760px] items-center justify-between gap-4 rounded-2xl border border-violet-300/15 bg-[linear-gradient(105deg,rgba(4,8,20,0.86),rgba(8,6,24,0.88),rgba(3,8,18,0.86))] px-4 py-3 shadow-[0_12px_55px_rgba(0,0,0,0.45),0_0_32px_rgba(124,58,237,0.08)] backdrop-blur-2xl sm:px-5"
+-            aria-label="Zebulon Vessel"
+-            initial={reducedMotion ? false : { opacity: 0, y: 12 }}
+-            animate={{ opacity: 1, y: 0 }}
+-            exit={{ opacity: 0, y: 12 }}
+-          >
+-            <div className="flex min-w-0 items-center gap-3">
+-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-violet-300/20 bg-violet-400/5 text-violet-200 shadow-[0_0_24px_rgba(139,92,246,0.16)]">
+-                <Rocket size={19} strokeWidth={1.2} />
+-              </div>
+-              <div className="min-w-0">
+-                <h2 className="truncate text-[11px] font-semibold uppercase tracking-[0.17em] text-violet-200 sm:text-[12px]">
+-                  Zebulon Vessel
+-                </h2>
+-                <p className="mt-1 truncate text-[9px] tracking-[0.05em] text-white/44 sm:text-[10px]">
+-                  Your command center in the stars.
+-                </p>
+-              </div>
+-            </div>
+-            <button
+-              type="button"
+-              onClick={() => beginWarp("zar", ZEBULON_VESSEL_ROUTE)}
+-              disabled={Boolean(warpingId)}
+-              className="flex shrink-0 items-center gap-4 rounded-lg border border-violet-200/25 bg-black/30 px-4 py-2.5 text-[9px] font-medium uppercase tracking-[0.16em] text-white/70 transition hover:border-violet-200/45 hover:bg-violet-400/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-violet-200/45 disabled:opacity-40 sm:px-6"
+-            >
+-              Enter Vessel <ArrowRight size={14} />
+-            </button>
+-          </motion.section>
+         ) : null}
+       </AnimatePresence>
+ 
+diff --git a/client/src/system/commanderDock.ts b/client/src/system/commanderDock.ts
+new file mode 100644
+index 0000000..a37a221
+--- /dev/null
++++ b/client/src/system/commanderDock.ts
+@@ -0,0 +1,93 @@
++import {
++  BookOpen,
++  Database,
++  FolderOpen,
++  History,
++  MessageSquare,
++  ShieldCheck,
++  Upload,
++  type LucideIcon,
++} from "lucide-react";
++
++import { GALAXY_CONTRACTS, type GalaxyId } from "@/galaxies/registry";
++
++/**
++ * Config-driven Commander dock manifest — mirrors the per-galaxy NEXYS dock
++ * pattern. A destination is only presented as operational when it has a real
++ * `route`. `route: null` renders a truthful "forming" state (no fake data).
++ */
++export interface DockDestination {
++  readonly id: string;
++  readonly label: string;
++  readonly Icon: LucideIcon;
++  readonly route: string | null;
++  /** Sub-surfaces that branch out of a universal control (Image / Doc / Talk). */
++  readonly branch?: readonly DockDestination[];
++}
++
++export interface CommanderDockManifest {
++  /** Exactly five primary buttons: Chat · Upload universal, then three Desk controls. */
++  readonly tabs: readonly [DockDestination, DockDestination, DockDestination, DockDestination, DockDestination];
++  /** Universal Console options outside the five-button count. */
++  readonly buttons: readonly DockDestination[];
++}
++
++// ZAR is the Commander identity — Chat/Upload open the ZAR console context.
++const ZAR_CONSOLE_ROUTE = "/zar";
++
++export const COMMANDER_DOCK: CommanderDockManifest = {
++  tabs: [
++    {
++      id: "chat",
++      label: "Chat",
++      Icon: MessageSquare,
++      route: ZAR_CONSOLE_ROUTE,
++      branch: [{ id: "chat-talk", label: "Talk", Icon: MessageSquare, route: ZAR_CONSOLE_ROUTE }],
++    },
++    {
++      id: "upload",
++      label: "Upload",
++      Icon: Upload,
++      route: ZAR_CONSOLE_ROUTE,
++      branch: [
++        { id: "upload-image", label: "Image", Icon: Upload, route: ZAR_CONSOLE_ROUTE },
++        { id: "upload-doc", label: "Document", Icon: Upload, route: ZAR_CONSOLE_ROUTE },
++        { id: "upload-talk", label: "Talk", Icon: MessageSquare, route: ZAR_CONSOLE_ROUTE },
++      ],
++    },
++    { id: "memory", label: "Memory", Icon: Database, route: "/memory" },
++    { id: "knowledge", label: "Knowledge", Icon: BookOpen, route: "/knowledge" },
++    { id: "projects", label: "Projects", Icon: FolderOpen, route: "/projects" },
++  ],
++  buttons: [
++    { id: "history", label: "History", Icon: History, route: "/history" },
++    { id: "admin", label: "Admin", Icon: ShieldCheck, route: "/admin" },
++  ],
++};
++
++/**
++ * Per-console Desk-control registry for all eight galaxies. Buttons three
++ * through five of every galaxy Dock are that galaxy's specialized Desk
++ * controls, sourced from the locked galaxy contracts.
++ */
++export interface ConsoleDeskEntry {
++  readonly id: GalaxyId;
++  readonly name: string;
++  readonly console: string;
++  readonly desk: string;
++  readonly controls: readonly [string, string, string];
++}
++
++export const CONSOLE_DESK_REGISTRY: readonly ConsoleDeskEntry[] = (
++  Object.keys(GALAXY_CONTRACTS) as GalaxyId[]
++).map((id) => {
++  const contract = GALAXY_CONTRACTS[id];
++  const [, , first, second, third] = contract.dock;
++  return {
++    id,
++    name: contract.name,
++    console: contract.console,
++    desk: contract.desk,
++    controls: [first, second, third] as const,
++  };
++});
+diff --git a/client/src/system/vesselIdentity.ts b/client/src/system/vesselIdentity.ts
+new file mode 100644
+index 0000000..f1312f5
+--- /dev/null
++++ b/client/src/system/vesselIdentity.ts
+@@ -0,0 +1,8 @@
++export interface VesselIdentity {
++  readonly kind: "vessel";
++  readonly desk: string;
++  readonly accent: string;
++}
++
++// Model A — the ship's own identity (no galaxy label). ZCOS is the vessel, not a galaxy.
++export const ZCOS_COMMANDER: VesselIdentity = { kind: "vessel", desk: "Command", accent: "#8b5cf6" };
+-- 
+2.39.5
+
