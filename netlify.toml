@@ -1,9 +1,9 @@
 [build]
-  command = "npm install && npm run build:client"
+  command = "npm run build:client"
   publish = "dist/public"
 
 [build.environment]
-  NODE_VERSION = "20"
+  NODE_VERSION = "22"
   VITE_ZAR_APP_URL = "https://zar-ai.online"
 
 [[redirects]]
