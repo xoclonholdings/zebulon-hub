@@ -7,10 +7,11 @@ import { useAuth } from "@/context/AuthContext";
 import PrivyAuthRoot from "@/components/PrivyAuthRoot";
 import NotFound from "@/pages/not-found";
 import LoginScreen from "@/components/LoginScreen";
-import ZebulonConstellationPage from "@/system/ZebulonConstellationPage";
+import ZcosLandingPage from "@/system/ZcosLandingPage";
 import ZcosCommandDesk from "@/system/ZcosCommandDesk";
 import ZillionGateway, { GalaxyGateway } from "@/galaxies/GalaxyGateway";
 import ZarGateway from "@/galaxies/zar/ZarGateway";
+import HistoryPage from "@/pages/history";
 
 function Router() {
   const { user, isLoading } = useAuth();
@@ -31,7 +32,7 @@ function Router() {
   return (
     <div className="mobile-viewport mobile-container bg-black overflow-hidden">
       <Switch>
-        <Route path="/" component={ZebulonConstellationPage} />
+        <Route path="/" component={ZcosLandingPage} />
         <Route path="/zar" component={ZarGateway} />
         <Route path="/nexys" component={ZarGateway} />
         <Route path="/zillion" component={ZillionGateway} />
@@ -59,8 +60,11 @@ function Router() {
         <Route path="/galaxy/zillion" component={ZillionGateway} />
         <Route path="/galaxy/:galaxy/:domain" component={GalaxyGateway} />
         <Route path="/galaxy/:galaxy" component={GalaxyGateway} />
+        <Route path="/history" component={HistoryPage} />
         <Route path="/command/:surface" component={ZcosCommandDesk} />
         <Route path="/command" component={ZcosCommandDesk} />
+        <Route path="/admin/:surface" component={ZcosCommandDesk} />
+        <Route path="/admin" component={ZcosCommandDesk} />
         <Route component={NotFound} />
       </Switch>
     </div>
