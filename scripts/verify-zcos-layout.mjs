@@ -18,7 +18,11 @@ const domains = ["identity", "memory", "knowledge", "apps", "desk", "settings", 
 const requiredPaths = [
   ...requiredDocs,
   "client/src/system/ZebulonConstellationPage.tsx",
+  "client/src/system/ZcosLandingPage.tsx",
+  "client/src/system/CommanderDock.tsx",
+  "client/src/system/commanderDock.ts",
   "client/src/system/ZcosCommandDesk.tsx",
+  "client/src/pages/history.tsx",
   "client/src/galaxies/registry.ts",
   ...galaxies.flatMap((galaxy) => [
     `client/src/galaxies/${galaxy}/index.ts`,
@@ -60,4 +64,4 @@ if (missing.length || forbidden.length) {
   process.exit(1);
 }
 
-console.log(`ZCOS layout verified: ${galaxies.length} galaxies × ${domains.length} concrete shared-domain modules, canonical specs present, legacy boundaries absent.`);
+console.log(`ZCOS layout verified: ${galaxies.length} galaxies × ${domains.length} concrete shared-domain modules, Commander landing present, canonical specs present, legacy boundaries absent.`);
