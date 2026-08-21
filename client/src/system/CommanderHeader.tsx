@@ -1,15 +1,13 @@
 import { useEffect, useState } from "react";
-import { Command, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 
 import { useAuth } from "@/context/AuthContext";
 
 export function CommanderHeader({
   onWordmarkClick,
-  onCommand,
   context,
 }: {
   readonly onWordmarkClick: () => void;
-  readonly onCommand: () => void;
   readonly context: Readonly<{ label: string; color: string }> | null;
 }) {
   const { logout } = useAuth();
@@ -37,9 +35,6 @@ export function CommanderHeader({
           Zebulon Commander
         </div>
         <div className="mt-1 flex h-7 items-center gap-2">
-          <button type="button" onClick={onCommand} className="inline-flex min-h-[28px] items-center gap-2 rounded-full border border-white/10 bg-black/30 px-3 text-[8px] uppercase tracking-[0.17em] text-white/50 backdrop-blur transition hover:text-violet-100 focus:outline-none focus:ring-2 focus:ring-violet-200/35">
-            <Command size={11} /> Command
-          </button>
           {context ? (
             <div className="flex min-h-[28px] w-fit items-center gap-2 rounded-full border border-white/10 bg-black/30 px-3 backdrop-blur">
               <span

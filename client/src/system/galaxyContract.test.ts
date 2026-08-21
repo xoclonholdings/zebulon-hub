@@ -32,7 +32,7 @@ describe("ZCOS constellation routing", () => {
 
   it("keeps the Commander vessel controls aligned with ZCOS authority", () => {
     expect(COMMANDER_DOCK.tabs.map((control) => control.label)).toEqual([
-      "Chat", "Upload", "All Memory", "All Knowledge", "All Projects",
+      "Chat", "Upload", "Memory", "Knowledge", "Projects",
     ]);
     expect(COMMANDER_DOCK.buttons.map((control) => control.label)).toEqual(["History", "Admin Access"]);
     expect(COMMANDER_DOCK.tabs[1].branch?.map((control) => control.label)).toEqual([

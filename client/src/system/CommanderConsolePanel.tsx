@@ -12,7 +12,6 @@ export function CommanderConsolePanel({ navigate }: { readonly navigate: (to: st
           <span className="text-[9px] font-semibold uppercase tracking-[0.24em] text-violet-100/75">Commander</span>
           <span className="text-[8px] uppercase tracking-[0.18em] text-white/30">Online</span>
         </div>
-        <span className="text-[8px] uppercase tracking-[0.2em] text-white/25">ZCOS Command Vessel</span>
       </header>
 
       <CommanderDock navigate={navigate} />
@@ -26,7 +25,6 @@ export function CommanderConsolePanel({ navigate }: { readonly navigate: (to: st
         <span className="flex h-10 w-10 items-center justify-center rounded-full border border-violet-200/20 bg-violet-400/[0.06] shadow-[0_0_26px_rgba(139,92,246,0.12)]">
           <Mic size={17} strokeWidth={1.35} />
         </span>
-        <span className="text-[8px] uppercase tracking-[0.16em]">Tap to talk with ZAR</span>
       </button>
 
       <footer className="mt-2 flex items-center justify-between">

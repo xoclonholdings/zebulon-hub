@@ -44,9 +44,9 @@ export const COMMANDER_DOCK: CommanderDockManifest = {
         { id: "upload-other", label: "Other file", Icon: Paperclip, route: "/zar" },
       ],
     },
-    { id: "memory", label: "All Memory", Icon: Database, route: "/command/memory" },
-    { id: "knowledge", label: "All Knowledge", Icon: BookOpen, route: "/command/knowledge" },
-    { id: "projects", label: "All Projects", Icon: FolderOpen, route: "/command/projects" },
+    { id: "memory", label: "Memory", Icon: Database, route: "/command/memory" },
+    { id: "knowledge", label: "Knowledge", Icon: BookOpen, route: "/command/knowledge" },
+    { id: "projects", label: "Projects", Icon: FolderOpen, route: "/command/projects" },
   ],
   buttons: [
     { id: "history", label: "History", Icon: History, route: "/history" },

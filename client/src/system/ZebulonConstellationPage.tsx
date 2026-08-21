@@ -1011,7 +1011,6 @@ export default function ZebulonConstellationPage() {
       <header className="zcos-vessel-header">
         <CommanderHeader
           onWordmarkClick={resetOverview}
-          onCommand={() => navigate("/command")}
           context={headerGalaxy ? { label: headerGalaxy.name, color: headerGalaxy.accent } : null}
         />
       </header>
