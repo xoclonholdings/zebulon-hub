@@ -24,11 +24,13 @@ const requiredPaths = [
   "client/src/system/ZebulonConstellationPage.tsx",
   "client/src/system/ZcosLandingPage.tsx",
   "client/src/system/CommanderDock.tsx",
+  "client/src/system/CommanderConsolePanel.tsx",
   "client/src/system/commanderDock.ts",
   "client/src/system/CommanderHeader.tsx",
   "client/src/system/constellationSceneContract.ts",
   "client/src/system/vesselIdentity.ts",
   "client/src/system/ZcosCommandDesk.tsx",
+  "client/public/assets/zcos-command-nebula.webp",
   "client/src/pages/history.tsx",
   "client/src/galaxies/registry.ts",
   ...galaxies.flatMap((galaxy) => [
@@ -79,11 +81,18 @@ const forbiddenLandingTokens = [
 const legacyLandingTokens = forbiddenLandingTokens.filter(
   (token) => constellationSource.includes(token) || landingSource.includes(token),
 );
+const requiredLandingTokens = [
+  "zcos-command-vessel",
+  "CommanderConsolePanel",
+  "ZCOS constellation navigation",
+];
+const missingLandingTokens = requiredLandingTokens.filter((token) => !constellationSource.includes(token));
 
-if (missing.length || forbidden.length || legacyLandingTokens.length) {
+if (missing.length || forbidden.length || legacyLandingTokens.length || missingLandingTokens.length) {
   if (missing.length) console.error("Missing canonical ZCOS paths:\n" + missing.map((path) => `  - ${path}`).join("\n"));
   if (forbidden.length) console.error("Forbidden legacy/generated ZCOS paths:\n" + forbidden.map((path) => `  - ${path}`).join("\n"));
   if (legacyLandingTokens.length) console.error("Legacy ZAR/Nexys landing tokens remain:\n" + legacyLandingTokens.map((token) => `  - ${token}`).join("\n"));
+  if (missingLandingTokens.length) console.error("Emergent vessel composition markers are missing:\n" + missingLandingTokens.map((token) => `  - ${token}`).join("\n"));
   process.exit(1);
 }
 

@@ -13,9 +13,90 @@
   }
 }
 
+.zcos-command-vessel {
+  isolation: isolate;
+  position: relative;
+  display: grid;
+  grid-template-rows: clamp(6.75rem, 14dvh, 8.75rem) minmax(12rem, 1fr) auto;
+  height: 100dvh;
+  width: 100%;
+  overflow: hidden;
+  background: #020109;
+  color: white;
+}
+
+.zcos-command-nebula {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background-image:
+    linear-gradient(180deg, rgba(1, 1, 8, 0.08) 0%, rgba(2, 1, 13, 0.58) 35%, rgba(1, 1, 7, 0.9) 100%),
+    url("/assets/zcos-command-nebula.webp");
+  background-position: center 24%;
+  background-size: cover;
+  filter: saturate(0.82) contrast(1.05);
+}
+
+.zcos-command-vessel::after {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  content: "";
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 56% 48% at 50% 34%, transparent 0%, rgba(2, 1, 12, 0.24) 64%, rgba(1, 1, 7, 0.7) 100%),
+    linear-gradient(90deg, rgba(1, 1, 8, 0.42), transparent 20%, transparent 80%, rgba(1, 1, 8, 0.42));
+}
+
+.zcos-vessel-header {
+  position: relative;
+  z-index: 30;
+  padding: max(0.75rem, env(safe-area-inset-top)) clamp(1rem, 3vw, 3rem) 0.75rem;
+  border-bottom: 1px solid rgba(196, 181, 253, 0.08);
+  background: linear-gradient(180deg, rgba(0, 0, 6, 0.2), rgba(3, 2, 16, 0.3));
+  box-shadow: 0 12px 45px rgba(0, 0, 0, 0.22);
+}
+
+.zcos-navigation-field {
+  position: relative;
+  min-height: 0;
+  margin: clamp(0.35rem, 1vw, 0.75rem) clamp(0.75rem, 3vw, 3rem);
+  overflow: hidden;
+  border: 1px solid rgba(196, 181, 253, 0.055);
+  border-radius: 0.4rem;
+  background: rgba(3, 2, 16, 0.68);
+  box-shadow: inset 0 0 90px rgba(2, 1, 12, 0.7), 0 20px 70px rgba(0, 0, 0, 0.18);
+}
+
+.zcos-constellation-stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: radial-gradient(ellipse 72% 68% at 50% 48%, rgba(19, 12, 53, 0.34), rgba(3, 2, 16, 0.7) 72%, rgba(1, 1, 8, 0.9));
+}
+
+.zcos-command-console-wrap {
+  position: relative;
+  z-index: 35;
+  display: flex;
+  justify-content: center;
+  padding: 0.25rem 0.75rem max(0.65rem, env(safe-area-inset-bottom));
+}
+
+.commander-console-panel {
+  width: min(100%, 48rem);
+  border: 1px solid rgba(196, 181, 253, 0.13);
+  border-radius: 1rem;
+  padding: 0.65rem;
+  background: linear-gradient(145deg, rgba(5, 8, 20, 0.88), rgba(8, 5, 24, 0.92), rgba(3, 8, 18, 0.9));
+  box-shadow: 0 18px 70px rgba(0, 0, 0, 0.5), 0 0 40px rgba(124, 58, 237, 0.065), inset 0 1px rgba(255, 255, 255, 0.025);
+  backdrop-filter: blur(24px);
+  animation: nexys-settle 480ms ease-out both;
+}
+
 .zebulon-chart-vignette {
   background:
-    linear-gradient(180deg, rgba(0, 1, 6, 0.28) 0%, transparent 20%, transparent 72%, rgba(0, 1, 7, 0.72) 100%),
+    linear-gradient(180deg, rgba(0, 1, 6, 0.38) 0%, transparent 20%, transparent 72%, rgba(0, 1, 7, 0.72) 100%),
     radial-gradient(ellipse 72% 74% at 50% 43%, transparent 40%, rgba(0, 1, 6, 0.48) 100%);
 }
 
@@ -27,8 +108,8 @@
   letter-spacing: 0.18em;
 }
 
-.zebulon-chart-north { left: 50%; top: 1.9rem; transform: translateX(-50%); }
-.zebulon-chart-south { bottom: 13.9rem; left: 50%; transform: translateX(-50%); }
+.zebulon-chart-north { left: 50%; top: 0.75rem; transform: translateX(-50%); }
+.zebulon-chart-south { bottom: 0.75rem; left: 50%; transform: translateX(-50%); }
 .zebulon-chart-west { left: 0.55rem; top: 48%; transform: translateY(-50%); }
 .zebulon-chart-east { right: 0.55rem; top: 48%; transform: translateY(-50%); }
 
@@ -47,24 +128,40 @@
 }
 
 .zebulon-chart-orientation::after {
-  bottom: 13.5rem;
+  bottom: 0.75rem;
   left: 50%;
-  top: 1.75rem;
+  top: 0.75rem;
   width: 1px;
   background: linear-gradient(180deg, transparent, rgba(125, 211, 252, 0.07), transparent);
 }
 
 .zebulon-star-detail-card {
-  bottom: calc(env(safe-area-inset-bottom) + 5.3rem);
+  bottom: 0.85rem;
 }
 
 .zebulon-chart-legend {
-  bottom: calc(env(safe-area-inset-bottom) + 9.8rem);
+  bottom: 0.85rem;
 }
 
 @media (max-width: 639px) {
+  .zcos-command-vessel {
+    grid-template-rows: clamp(6.25rem, 14dvh, 7.3rem) minmax(11rem, 1fr) auto;
+  }
+
+  .zcos-vessel-header {
+    padding-inline: 1rem;
+  }
+
+  .zcos-navigation-field {
+    margin-inline: 0.55rem;
+  }
+
+  .commander-console-panel {
+    padding: 0.55rem;
+  }
+
   .zebulon-star-detail-card {
-    bottom: calc(env(safe-area-inset-bottom) + 5rem);
+    bottom: 0.6rem;
   }
   .zebulon-chart-legend,
   .zebulon-catalog-readout {
@@ -77,6 +174,10 @@
   .zebulon-chart-south,
   .zebulon-chart-orientation::after {
     display: none;
+  }
+
+  .commander-console-panel [data-testid="commander-voice"] {
+    min-height: 4.25rem;
   }
 }
 

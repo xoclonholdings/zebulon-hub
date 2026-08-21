@@ -11,8 +11,7 @@ import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber"
 import { useLocation } from "wouter";
 import * as THREE from "three";
 
-import { ConsoleShell } from "@/console/ConsoleShell";
-import { CommanderDock } from "./CommanderDock";
+import { CommanderConsolePanel } from "./CommanderConsolePanel";
 import { CommanderHeader } from "./CommanderHeader";
 import { canUseConstellationWebgl } from "./constellationSceneContract";
 import {
@@ -23,7 +22,6 @@ import {
   galaxyStarPosition,
   type GalaxyStar,
 } from "./galaxyConstellation";
-import { ZCOS_COMMANDER } from "./vesselIdentity";
 
 const WARP_DURATION_MS = 760;
 const FOCUS_SLEW_RATE = 3.8;
@@ -1003,121 +1001,129 @@ export default function ZebulonConstellationPage() {
     if (!warpingId) resetOverview();
   }, [resetOverview, warpingId]);
 
-  const headerGalaxy = galaxyById(warpingId ?? focusedId ?? hoveredId) ?? galaxyById("zar")!;
+  const headerGalaxy = galaxyById(warpingId ?? focusedId ?? hoveredId);
   const focusedStar = galaxyById(focusedId);
 
   return (
-    <ConsoleShell
-      identity={ZCOS_COMMANDER}
-      bottomBar={<CommanderDock navigate={navigate} />}
-      headerLeft={
+    <main className="zcos-command-vessel" data-testid="zcos-command-vessel">
+      <div className="zcos-command-nebula" aria-hidden="true" />
+
+      <header className="zcos-vessel-header">
         <CommanderHeader
           onWordmarkClick={resetOverview}
-          context={{ label: headerGalaxy.name, color: headerGalaxy.accent }}
+          onCommand={() => navigate("/command")}
+          context={headerGalaxy ? { label: headerGalaxy.name, color: headerGalaxy.accent } : null}
         />
-      }
-    >
-      <div
-        className="absolute inset-0 overflow-hidden bg-[radial-gradient(ellipse_82%_60%_at_50%_40%,#100b34_0%,#0a0722_42%,#050313_76%,#01000a_100%)]"
-        data-testid="zebulon-constellation-canvas"
-        data-reference-viewport={`${ZEBULON_REFERENCE_VIEWPORT.width}x${ZEBULON_REFERENCE_VIEWPORT.height}`}
-      >
-        {webgl ? (
-          <Canvas
-            dpr={[1, 1.8]}
-            gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
-            camera={{
-              position: [...ZEBULON_HOME_CAMERA.position],
-              fov: ZEBULON_HOME_CAMERA.fov,
-              near: ZEBULON_HOME_CAMERA.near,
-              far: ZEBULON_HOME_CAMERA.far,
-            }}
-            onCreated={({ gl }) => {
-              gl.outputColorSpace = THREE.SRGBColorSpace;
-              gl.toneMapping = THREE.ACESFilmicToneMapping;
-              gl.toneMappingExposure = 1.3;
-            }}
-            onPointerMissed={handleMissed}
-          >
-            <ConstellationScene
-              focusedId={focusedId}
-              hoveredId={hoveredId}
-              warpingId={warpingId}
-              resetSerial={resetSerial}
-              onSelect={handleSelect}
-              onHover={setHoveredId}
-              onMissed={handleMissed}
-              onExplorationChange={setExploring}
-              reducedMotion={reducedMotion}
-            />
-          </Canvas>
-        ) : (
-          <div className="flex h-full items-center justify-center px-6 text-center text-sm text-white/55">
-            A WebGL-capable browser is required to render the Zebulon constellation.
-          </div>
-        )}
-      </div>
+      </header>
 
-      <div className="zebulon-chart-vignette pointer-events-none absolute inset-0" aria-hidden="true" />
-      <div className="zebulon-chart-orientation pointer-events-none absolute inset-0" aria-hidden="true">
-        <span className="zebulon-chart-north">N</span>
-        <span className="zebulon-chart-west">W</span>
-        <span className="zebulon-chart-east">E</span>
-        <span className="zebulon-chart-south">S</span>
-      </div>
-
-      <div className="zebulon-catalog-readout pointer-events-none absolute right-5 top-28 hidden text-[8px] uppercase leading-[1.65] tracking-[0.12em] text-cyan-100/35 sm:block sm:right-7 sm:top-28">
-        <div>RA&nbsp;&nbsp;&nbsp;&nbsp;08h 47m 12s</div>
-        <div>DEC&nbsp;&nbsp;+19° 21′ 07″</div>
-        <div>DIST&nbsp;&nbsp;3.21 kpc</div>
-      </div>
-
-      <div className="zebulon-chart-legend pointer-events-none absolute left-5 z-10 rounded-lg border border-white/10 bg-black/28 px-3 py-2.5 text-[8px] uppercase tracking-[0.16em] text-white/42 backdrop-blur-sm sm:left-7">
-        <div className="flex items-center gap-2.5"><span className="h-1.5 w-1.5 rounded-full bg-blue-100 shadow-[0_0_8px_2px_rgba(191,219,254,0.7)]" /> Star / Galaxy gateway</div>
-        <div className="mt-1.5 flex items-center gap-2.5"><Orbit size={10} /> Nebula</div>
-        <div className="mt-1.5 flex items-center gap-2.5"><span className="h-px w-3 bg-cyan-100/30" /> Constellation line</div>
-        <div className="mt-1.5 flex items-center gap-2.5"><Crosshair size={10} /> Navigation beacon</div>
-      </div>
-
-      <AnimatePresence>
-        {showHint && !focusedId && !warpingId ? (
-          <motion.div
-            key="map-hint"
-            data-testid="map-onboarding-hint"
-            className="pointer-events-none absolute inset-x-0 z-30 flex justify-center"
-            style={{ top: "57%" }}
-            initial={reducedMotion ? false : { opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 6 }}
-          >
-            <div className="flex items-center gap-2 rounded-full border border-white/12 bg-black/45 px-4 py-2 backdrop-blur-md">
-              <span className="h-1.5 w-1.5 rounded-full bg-cyan-200 motion-safe:animate-ping" />
-              <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-white/70">Tap a star to explore</span>
+      <section className="zcos-navigation-field" aria-label="ZCOS constellation navigation">
+        <div
+          className="zcos-constellation-stage"
+          data-testid="zebulon-constellation-canvas"
+          data-reference-viewport={`${ZEBULON_REFERENCE_VIEWPORT.width}x${ZEBULON_REFERENCE_VIEWPORT.height}`}
+        >
+          {webgl ? (
+            <Canvas
+              dpr={[1, 1.8]}
+              gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
+              camera={{
+                position: [...ZEBULON_HOME_CAMERA.position],
+                fov: ZEBULON_HOME_CAMERA.fov,
+                near: ZEBULON_HOME_CAMERA.near,
+                far: ZEBULON_HOME_CAMERA.far,
+              }}
+              onCreated={({ gl }) => {
+                gl.outputColorSpace = THREE.SRGBColorSpace;
+                gl.toneMapping = THREE.ACESFilmicToneMapping;
+                gl.toneMappingExposure = 1.12;
+              }}
+              onPointerMissed={handleMissed}
+            >
+              <ConstellationScene
+                focusedId={focusedId}
+                hoveredId={hoveredId}
+                warpingId={warpingId}
+                resetSerial={resetSerial}
+                onSelect={handleSelect}
+                onHover={setHoveredId}
+                onMissed={handleMissed}
+                onExplorationChange={setExploring}
+                reducedMotion={reducedMotion}
+              />
+            </Canvas>
+          ) : (
+            <div className="flex h-full items-center justify-center px-6 text-center text-sm text-white/55">
+              A WebGL-capable browser is required to render the Zebulon constellation.
             </div>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
+          )}
+        </div>
 
-      <AnimatePresence mode="wait">
-        {focusedStar && !warpingId ? (
-          <StarDetailCard
-            star={focusedStar}
-            reducedMotion={reducedMotion}
-            warping={Boolean(warpingId)}
-            onEnter={() => focusedStar.route && beginWarp(focusedStar.id, focusedStar.route)}
-          />
-        ) : null}
-      </AnimatePresence>
+        <div className="zebulon-chart-vignette pointer-events-none absolute inset-0" aria-hidden="true" />
+        <div className="zebulon-chart-orientation pointer-events-none absolute inset-0" aria-hidden="true">
+          <span className="zebulon-chart-north">N</span>
+          <span className="zebulon-chart-west">W</span>
+          <span className="zebulon-chart-east">E</span>
+          <span className="zebulon-chart-south">S</span>
+        </div>
 
-      <div
-        className="pointer-events-none absolute inset-0 z-40 bg-white"
-        style={{
-          opacity: 0,
-          animation: warpingId && !reducedMotion
-            ? `zebulon-warp-flash ${WARP_DURATION_MS}ms ease-in-out forwards`
-            : undefined,
-        }}
-      />
+        <div className="zebulon-catalog-readout pointer-events-none absolute right-5 top-5 hidden text-[8px] uppercase leading-[1.65] tracking-[0.12em] text-cyan-100/30 sm:block sm:right-7">
+          <div>RA&nbsp;&nbsp;&nbsp;&nbsp;08h 47m 12s</div>
+          <div>DEC&nbsp;&nbsp;+19° 21′ 07″</div>
+          <div>DIST&nbsp;&nbsp;3.21 kpc</div>
+        </div>
+
+        <div className="zebulon-chart-legend pointer-events-none absolute left-5 z-10 rounded-lg border border-white/10 bg-black/30 px-3 py-2.5 text-[8px] uppercase tracking-[0.16em] text-white/40 backdrop-blur-sm sm:left-7">
+          <div className="flex items-center gap-2.5"><span className="h-1.5 w-1.5 rounded-full bg-blue-100 shadow-[0_0_8px_2px_rgba(191,219,254,0.7)]" /> Star / Galaxy gateway</div>
+          <div className="mt-1.5 flex items-center gap-2.5"><Orbit size={10} /> Nebula</div>
+          <div className="mt-1.5 flex items-center gap-2.5"><span className="h-px w-3 bg-cyan-100/30" /> Constellation line</div>
+          <div className="mt-1.5 flex items-center gap-2.5"><Crosshair size={10} /> Navigation beacon</div>
+        </div>
+
+        <AnimatePresence>
+          {showHint && !focusedId && !warpingId ? (
+            <motion.div
+              key="map-hint"
+              data-testid="map-onboarding-hint"
+              className="pointer-events-none absolute inset-x-0 z-30 flex justify-center"
+              style={{ top: "57%" }}
+              initial={reducedMotion ? false : { opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 6 }}
+            >
+              <div className="flex items-center gap-2 rounded-full border border-white/12 bg-black/45 px-4 py-2 backdrop-blur-md">
+                <span className="h-1.5 w-1.5 rounded-full bg-cyan-200 motion-safe:animate-ping" />
+                <span className="text-[9px] font-medium uppercase tracking-[0.2em] text-white/65">Tap a star to explore</span>
+              </div>
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
+
+        <AnimatePresence mode="wait">
+          {focusedStar && !warpingId ? (
+            <StarDetailCard
+              star={focusedStar}
+              reducedMotion={reducedMotion}
+              warping={Boolean(warpingId)}
+              onEnter={() => focusedStar.route && beginWarp(focusedStar.id, focusedStar.route)}
+            />
+          ) : null}
+        </AnimatePresence>
+
+        <div
+          className="pointer-events-none absolute inset-0 z-40 bg-white"
+          style={{
+            opacity: 0,
+            animation: warpingId && !reducedMotion
+              ? `zebulon-warp-flash ${WARP_DURATION_MS}ms ease-in-out forwards`
+              : undefined,
+          }}
+        />
+      </section>
+
+      <div className="zcos-command-console-wrap">
+        <CommanderConsolePanel navigate={navigate} />
+      </div>
+
       <style>{`
         @keyframes zebulon-warp-flash {
           0% { opacity: 0; }
@@ -1126,6 +1132,6 @@ export default function ZebulonConstellationPage() {
           100% { opacity: 0; }
         }
       `}</style>
-    </ConsoleShell>
+    </main>
   );
 }
