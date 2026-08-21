@@ -11,6 +11,17 @@ This directory contains the specifications that govern the `xoclonholdings/zebul
 5. [`ZCOS_UNIVERSAL_DOCK_SPECIFICATION.md`](./ZCOS_UNIVERSAL_DOCK_SPECIFICATION.md) — locked five-control Dock baseline.
 6. [`ZCOS_ZAR_REPOSITORY_MIGRATION_PLAN.md`](./ZCOS_ZAR_REPOSITORY_MIGRATION_PLAN.md) — migration sequence and evidence rules.
 
+## Locked source PDFs
+
+The original locked source documents are retained in [`source-pdfs/`](./source-pdfs/) alongside the repository-readable Markdown contracts:
+
+- [`ZCOS_ARCHITECTURE_FOUNDATION.pdf`](./source-pdfs/ZCOS_ARCHITECTURE_FOUNDATION.pdf)
+- [`ZCOS_MEMORY_ENGINE_SPECIFICATION.pdf`](./source-pdfs/ZCOS_MEMORY_ENGINE_SPECIFICATION.pdf)
+- [`ZCOS_KNOWLEDGE_ENGINE_REQUIREMENTS.pdf`](./source-pdfs/ZCOS_KNOWLEDGE_ENGINE_REQUIREMENTS.pdf)
+- [`ZCOS_ZAR_REPOSITORY_MIGRATION_PLAN.pdf`](./source-pdfs/ZCOS_ZAR_REPOSITORY_MIGRATION_PLAN.pdf)
+
+The PDFs remain source authority. The Markdown files make that authority searchable inside the repository and must not silently narrow or replace the locked source documents.
+
 ## Authority rule
 
 The specifications define the target. Existing code, old ZedAI topology, generated bundles, historical exports, screenshots, and prior repository organization are implementation evidence or migration sources only. They do not override a locked specification.

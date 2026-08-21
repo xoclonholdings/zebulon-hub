@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import type { VesselIdentity } from "@/system/vesselIdentity";
 import type { ConsoleIdentity } from "./consoleIdentity";
 
 export function ConsoleShell({
@@ -8,11 +9,9 @@ export function ConsoleShell({
   bottomBar,
   children,
 }: {
-  readonly identity: ConsoleIdentity;
+  readonly identity: ConsoleIdentity | VesselIdentity;
   readonly headerLeft: ReactNode;
   readonly headerRightExtra?: ReactNode;
-  readonly dockPowered: boolean;
-  readonly onDockPowerChange: (next: boolean) => void;
   readonly bottomBar?: ReactNode;
   readonly children: ReactNode;
 }) {

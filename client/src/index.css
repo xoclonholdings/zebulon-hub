@@ -54,7 +54,7 @@
   background: linear-gradient(180deg, transparent, rgba(125, 211, 252, 0.07), transparent);
 }
 
-.zebulon-vessel-panel {
+.zebulon-star-detail-card {
   bottom: calc(env(safe-area-inset-bottom) + 5.3rem);
 }
 
@@ -63,7 +63,7 @@
 }
 
 @media (max-width: 639px) {
-  .zebulon-vessel-panel {
+  .zebulon-star-detail-card {
     bottom: calc(env(safe-area-inset-bottom) + 5rem);
   }
   .zebulon-chart-legend,

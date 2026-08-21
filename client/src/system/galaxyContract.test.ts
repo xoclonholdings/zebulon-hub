@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { GALAXY_SURFACES, ZCOS_SHARED_DOMAINS, isGalaxyId, isZcosDomain } from "../galaxies/GalaxyGateway";
 import { GALAXY_CONSTELLATION, galaxyById } from "./galaxyConstellation";
-import { GALAXY_SURFACES, ZCOS_SHARED_DOMAINS, isGalaxyId, isZcosDomain } from "./ZillionGateway";
 
 describe("ZCOS constellation routing", () => {
   it("contains the eight canonical application galaxies", () => {
