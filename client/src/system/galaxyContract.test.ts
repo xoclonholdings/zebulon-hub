@@ -38,5 +38,6 @@ describe("ZCOS constellation routing", () => {
     expect(COMMANDER_DOCK.tabs[1].branch?.map((control) => control.label)).toEqual([
       "Image", "Document", "Other file",
     ]);
+    expect(COMMANDER_DOCK.tabs.some((control) => "route" in control)).toBe(false);
   });
 });

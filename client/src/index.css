@@ -90,6 +90,303 @@
   animation: nexys-settle 480ms ease-out both;
 }
 
+.zcos-console-deck {
+  position: absolute;
+  inset: 0;
+  z-index: 32;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  padding: 0.25rem clamp(0.7rem, 2.2vw, 1.5rem) 0;
+  perspective: 900px;
+}
+
+.zcos-console-window {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) 1.7rem;
+  width: min(94%, 68rem);
+  min-height: 0;
+  overflow: hidden;
+  color: rgba(224, 242, 254, 0.86);
+  background:
+    linear-gradient(180deg, rgba(2, 8, 25, 0.97), rgba(2, 5, 17, 0.96)),
+    radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.1), transparent 46%);
+  border: 1px solid rgba(103, 232, 249, 0.86);
+  clip-path: polygon(1.2rem 0, calc(100% - 1.2rem) 0, 100% 1.2rem, 100% calc(100% - 1rem), calc(100% - 1rem) 100%, 1rem 100%, 0 calc(100% - 1rem), 0 1.2rem);
+  box-shadow:
+    0 0 5px rgba(34, 211, 238, 0.92),
+    0 0 20px rgba(59, 130, 246, 0.42),
+    0 20px 58px rgba(0, 0, 0, 0.64),
+    inset 0 0 20px rgba(14, 165, 233, 0.07);
+  touch-action: pan-y;
+}
+
+.zcos-console-window::before,
+.zcos-console-window::after {
+  position: absolute;
+  z-index: 4;
+  content: "";
+  pointer-events: none;
+}
+
+.zcos-console-window::before {
+  inset: 0.45rem;
+  border: 1px solid rgba(125, 211, 252, 0.22);
+  clip-path: polygon(0.75rem 0, calc(100% - 0.75rem) 0, 100% 0.75rem, 100% calc(100% - 0.65rem), calc(100% - 0.65rem) 100%, 0.65rem 100%, 0 calc(100% - 0.65rem), 0 0.75rem);
+}
+
+.zcos-console-window::after {
+  left: 16%;
+  right: 16%;
+  top: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #a78bfa 28%, #67e8f9 70%, transparent);
+  box-shadow: 0 0 12px rgba(103, 232, 249, 0.8);
+}
+
+.zcos-console-window-rail {
+  position: absolute;
+  inset: 3.3rem 0.35rem 2rem;
+  z-index: 4;
+  pointer-events: none;
+  border-left: 2px solid rgba(96, 165, 250, 0.46);
+  border-right: 2px solid rgba(167, 139, 250, 0.38);
+  opacity: 0.75;
+}
+
+.zcos-console-window-header {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  min-height: 3rem;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.65rem 1.35rem 0.45rem;
+  border-bottom: 1px solid rgba(125, 211, 252, 0.16);
+  background: linear-gradient(90deg, rgba(59, 130, 246, 0.08), transparent 34%, transparent 70%, rgba(168, 85, 247, 0.07));
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-shadow: 0 0 12px rgba(125, 211, 252, 0.75);
+}
+
+.zcos-console-window-body {
+  position: relative;
+  z-index: 3;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0.8rem 1.05rem 0.45rem;
+}
+
+.zcos-console-surface {
+  height: 100%;
+  min-height: 0;
+}
+
+.zcos-console-void {
+  height: 100%;
+}
+
+.zcos-console-chat {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  height: 100%;
+  min-height: 0;
+}
+
+.zcos-console-chat-log {
+  min-height: 0;
+}
+
+.zcos-console-composer {
+  position: relative;
+  z-index: 6;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 2.5rem;
+  gap: 0.5rem;
+  align-items: end;
+  padding: 0.5rem;
+  border: 1px solid rgba(125, 211, 252, 0.26);
+  background: rgba(3, 7, 20, 0.78);
+  box-shadow: 0 0 18px rgba(14, 165, 233, 0.08), inset 0 0 14px rgba(56, 189, 248, 0.04);
+  clip-path: polygon(0.6rem 0, calc(100% - 0.6rem) 0, 100% 0.6rem, 100% 100%, 0 100%, 0 0.6rem);
+}
+
+.zcos-console-composer textarea {
+  min-height: 2.5rem;
+  max-height: 7rem;
+  resize: none;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  padding: 0.58rem 0.65rem;
+  color: rgba(240, 249, 255, 0.9);
+  font-size: 1rem;
+}
+
+.zcos-console-composer button {
+  display: flex;
+  width: 2.5rem;
+  height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(103, 232, 249, 0.45);
+  background: rgba(14, 165, 233, 0.12);
+  color: rgba(207, 250, 254, 0.82);
+  box-shadow: 0 0 13px rgba(34, 211, 238, 0.1);
+}
+
+.zcos-console-menu {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.65rem;
+  margin: auto;
+  width: min(100%, 35rem);
+}
+
+.zcos-console-menu > button {
+  position: relative;
+  display: grid;
+  min-height: 3.5rem;
+  grid-template-columns: 3.3rem minmax(0, 1fr);
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(103, 232, 249, 0.42);
+  background: linear-gradient(90deg, rgba(8, 47, 73, 0.64), rgba(5, 15, 34, 0.74));
+  color: rgba(224, 242, 254, 0.82);
+  clip-path: polygon(0.7rem 0, calc(100% - 0.7rem) 0, 100% 0.7rem, 100% calc(100% - 0.7rem), calc(100% - 0.7rem) 100%, 0.7rem 100%, 0 calc(100% - 0.7rem), 0 0.7rem);
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-align: left;
+  text-transform: uppercase;
+  transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.zcos-console-menu > button:hover,
+.zcos-console-menu > button:focus-visible {
+  border-color: rgba(196, 181, 253, 0.82);
+  background: linear-gradient(90deg, rgba(49, 46, 129, 0.6), rgba(8, 47, 73, 0.72));
+  color: white;
+  outline: 0;
+}
+
+.zcos-console-menu-icon {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid rgba(103, 232, 249, 0.28);
+  color: rgba(165, 243, 252, 0.78);
+}
+
+.zcos-console-window-footer {
+  position: relative;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 2.7rem;
+  border-top: 1px solid rgba(125, 211, 252, 0.14);
+  background: rgba(1, 5, 16, 0.88);
+}
+
+.zcos-console-window-footer > button {
+  position: absolute;
+  right: 0.85rem;
+  display: flex;
+  width: 1.75rem;
+  height: 1.35rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(103, 232, 249, 0.26);
+  color: rgba(165, 243, 252, 0.64);
+}
+
+.zcos-console-wave {
+  display: flex;
+  height: 1.25rem;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding-inline: 0.65rem;
+  border-inline: 1px solid rgba(103, 232, 249, 0.22);
+}
+
+.zcos-console-wave span {
+  display: block;
+  width: 2px;
+  min-height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #c4b5fd, #67e8f9);
+  box-shadow: 0 0 5px rgba(34, 211, 238, 0.9);
+  animation: zcos-wave-pulse 1.8s ease-in-out infinite alternate;
+}
+
+.zcos-console-wave span:nth-child(3n) { animation-delay: -0.55s; }
+.zcos-console-wave span:nth-child(4n) { animation-delay: -1.1s; }
+
+@keyframes zcos-wave-pulse {
+  from { transform: scaleY(0.58); opacity: 0.52; }
+  to { transform: scaleY(1); opacity: 1; }
+}
+
+.zcos-console-peek {
+  position: absolute;
+  z-index: 1;
+  top: 12%;
+  display: flex;
+  width: clamp(2.25rem, 6vw, 4.5rem);
+  height: 74%;
+  align-items: center;
+  border: 1px solid rgba(103, 232, 249, 0.45);
+  background: linear-gradient(180deg, rgba(4, 17, 42, 0.94), rgba(6, 8, 27, 0.92));
+  color: rgba(165, 243, 252, 0.7);
+  box-shadow: 0 0 18px rgba(14, 165, 233, 0.2);
+}
+
+.zcos-console-peek-left {
+  left: 0.1rem;
+  justify-content: flex-start;
+  padding-left: 0.2rem;
+  transform: rotateY(28deg);
+  transform-origin: right center;
+}
+
+.zcos-console-peek-right {
+  right: 0.1rem;
+  justify-content: flex-end;
+  padding-right: 0.2rem;
+  transform: rotateY(-28deg);
+  transform-origin: left center;
+}
+
+.zcos-dock-restore-wrap {
+  position: relative;
+  z-index: 40;
+  display: flex;
+  justify-content: center;
+  padding-bottom: max(0.35rem, env(safe-area-inset-bottom));
+}
+
+.zcos-dock-restore {
+  display: flex;
+  width: 4.5rem;
+  height: 1.65rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(103, 232, 249, 0.28);
+  background: rgba(2, 7, 20, 0.92);
+  color: rgba(165, 243, 252, 0.65);
+  box-shadow: 0 0 15px rgba(14, 165, 233, 0.12);
+  clip-path: polygon(0.65rem 0, calc(100% - 0.65rem) 0, 100% 100%, 0 100%);
+}
+
 .zebulon-chart-vignette {
   background:
     linear-gradient(180deg, rgba(0, 1, 6, 0.38) 0%, transparent 20%, transparent 72%, rgba(0, 1, 7, 0.72) 100%),
@@ -154,6 +451,18 @@
 
   .commander-console-panel {
     padding: 0.55rem;
+  }
+
+  .zcos-console-deck {
+    padding-inline: 0.3rem;
+  }
+
+  .zcos-console-window {
+    width: 94%;
+  }
+
+  .zcos-console-window-body {
+    padding-inline: 0.8rem;
   }
 
   .zebulon-star-detail-card {

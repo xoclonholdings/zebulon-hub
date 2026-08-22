@@ -16,9 +16,17 @@ export interface DockDestination {
   readonly id: string;
   readonly label: string;
   readonly Icon: LucideIcon;
-  readonly route: string;
   readonly branch?: readonly DockDestination[];
 }
+
+export type CommanderSurfaceId =
+  | "chat"
+  | "upload"
+  | "memory"
+  | "knowledge"
+  | "projects"
+  | "history"
+  | "admin";
 
 export interface CommanderDockManifest {
   readonly tabs: readonly [DockDestination, DockDestination, DockDestination, DockDestination, DockDestination];
@@ -31,25 +39,23 @@ export const COMMANDER_DOCK: CommanderDockManifest = {
       id: "chat",
       label: "Chat",
       Icon: MessageSquare,
-      route: "/zar",
     },
     {
       id: "upload",
       label: "Upload",
       Icon: Upload,
-      route: "/zar",
       branch: [
-        { id: "upload-image", label: "Image", Icon: ImageIcon, route: "/zar" },
-        { id: "upload-document", label: "Document", Icon: FileText, route: "/zar" },
-        { id: "upload-other", label: "Other file", Icon: Paperclip, route: "/zar" },
+        { id: "upload-image", label: "Image", Icon: ImageIcon },
+        { id: "upload-document", label: "Document", Icon: FileText },
+        { id: "upload-other", label: "Other file", Icon: Paperclip },
       ],
     },
-    { id: "memory", label: "Memory", Icon: Database, route: "/command/memory" },
-    { id: "knowledge", label: "Knowledge", Icon: BookOpen, route: "/command/knowledge" },
-    { id: "projects", label: "Projects", Icon: FolderOpen, route: "/command/projects" },
+    { id: "memory", label: "Memory", Icon: Database },
+    { id: "knowledge", label: "Knowledge", Icon: BookOpen },
+    { id: "projects", label: "Projects", Icon: FolderOpen },
   ],
   buttons: [
-    { id: "history", label: "History", Icon: History, route: "/history" },
-    { id: "admin", label: "Admin Access", Icon: ShieldCheck, route: "/command/access" },
+    { id: "history", label: "History", Icon: History },
+    { id: "admin", label: "Admin Access", Icon: ShieldCheck },
   ],
 };

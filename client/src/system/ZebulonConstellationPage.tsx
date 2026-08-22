@@ -5,14 +5,16 @@ import {
   useRef,
   useState,
 } from "react";
-import { ArrowRight, Crosshair, Orbit } from "lucide-react";
+import { ArrowRight, ChevronUp, Crosshair, Orbit } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import { useLocation } from "wouter";
 import * as THREE from "three";
 
 import { CommanderConsolePanel } from "./CommanderConsolePanel";
+import { CommanderConsoleScreen } from "./CommanderConsoleScreen";
 import { CommanderHeader } from "./CommanderHeader";
+import type { CommanderSurfaceId } from "./commanderDock";
 import { canUseConstellationWebgl } from "./constellationSceneContract";
 import {
   GALAXY_CONSTELLATION,
@@ -935,6 +937,9 @@ export default function ZebulonConstellationPage() {
   const [, setExploring] = useState(false);
   const [resetSerial, setResetSerial] = useState(0);
   const [showHint, setShowHint] = useState(false);
+  const [consoleWindows, setConsoleWindows] = useState<CommanderSurfaceId[]>([]);
+  const [activeConsole, setActiveConsole] = useState<CommanderSurfaceId | null>(null);
+  const [dockHidden, setDockHidden] = useState(false);
   const warpTimerRef = useRef<number | null>(null);
 
   const markHintSeen = useCallback(() => {
@@ -995,7 +1000,23 @@ export default function ZebulonConstellationPage() {
     setHoveredId(null);
     setExploring(false);
     setResetSerial((value) => value + 1);
+    setConsoleWindows([]);
+    setActiveConsole(null);
+    setDockHidden(false);
   }, [warpingId]);
+
+  const openConsole = useCallback((id: CommanderSurfaceId) => {
+    setConsoleWindows((current) => current.includes(id) ? current : [...current, id]);
+    setActiveConsole(id);
+    setDockHidden(false);
+  }, []);
+
+  const shuffleConsole = useCallback((direction: -1 | 1) => {
+    if (!activeConsole || consoleWindows.length < 2) return;
+    const activeIndex = consoleWindows.indexOf(activeConsole);
+    const nextIndex = (activeIndex + direction + consoleWindows.length) % consoleWindows.length;
+    setActiveConsole(consoleWindows[nextIndex]);
+  }, [activeConsole, consoleWindows]);
 
   const handleMissed = useCallback(() => {
     if (!warpingId) resetOverview();
@@ -1108,6 +1129,21 @@ export default function ZebulonConstellationPage() {
           ) : null}
         </AnimatePresence>
 
+        <AnimatePresence>
+          {activeConsole ? (
+            <CommanderConsoleScreen
+              windows={consoleWindows}
+              activeId={activeConsole}
+              onActivate={setActiveConsole}
+              onPrevious={() => shuffleConsole(-1)}
+              onNext={() => shuffleConsole(1)}
+              canHideDock={activeConsole === "chat"}
+              onHideDock={() => setDockHidden(true)}
+              reducedMotion={reducedMotion}
+            />
+          ) : null}
+        </AnimatePresence>
+
         <div
           className="pointer-events-none absolute inset-0 z-40 bg-white"
           style={{
@@ -1119,9 +1155,17 @@ export default function ZebulonConstellationPage() {
         />
       </section>
 
-      <div className="zcos-command-console-wrap">
-        <CommanderConsolePanel navigate={navigate} />
-      </div>
+      {dockHidden ? (
+        <div className="zcos-dock-restore-wrap">
+          <button type="button" onClick={() => setDockHidden(false)} aria-label="Show dock" className="zcos-dock-restore">
+            <ChevronUp size={16} />
+          </button>
+        </div>
+      ) : (
+        <div className="zcos-command-console-wrap">
+          <CommanderConsolePanel activeId={activeConsole} onSelect={openConsole} />
+        </div>
+      )}
 
       <style>{`
         @keyframes zebulon-warp-flash {
