@@ -18,6 +18,8 @@ services:
         value: "https://api.zcos.online"
       - key: VITE_ZAR_APP_URL
         value: "https://zar-ai.online"
+      - key: ZAR_API_URL
+        value: "https://api.zar-ai.online"
       - key: VITE_PRIVY_APP_ID
         sync: false
       - key: PRIVY_APP_SECRET
