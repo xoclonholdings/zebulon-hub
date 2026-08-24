@@ -26,6 +26,12 @@ The migrated runtime follows the locked request flow. ZAR remains the user-facin
 | `server/services/KnowledgeCurationEngine.ts` | canonical Knowledge Curation + request evaluation | Split; Knowledge truth remains with the Knowledge Engine, request quality with intelligence evaluation |
 | `server/services/ZarReflectionEngine.ts` | `OutcomeLearningEngine.ts` | Adapted; direct Memory writes retired in favor of reviewable proposals |
 | legacy approval/external-action intent | typed risk/approval metadata + separate execution authorization | Planning may identify a side effect but never authorizes it |
+| `server/zcos/runtime/SourceConfluenceEngine.ts` | `server/intelligence/SourceConfluenceEngine.ts` | Migrated claim-level independence/conflict preservation |
+| `server/zcos/runtime/ZcosPolicyEngine.ts` | `server/intelligence/ZcosPolicyEngine.ts` | Migrated external-result validation and canonical-write prohibition; corrected ZENO to ZEON |
+| `server/zcos/runtime/ZcosRequestInterpreter.ts` | `server/intelligence/ZcosRequestInterpreter.ts` | Migrated typed request envelope with explicit action authorization |
+| `server/zcos/capabilities/*` | `server/intelligence/capabilities/*` | Migrated governed capability registry and ZYLO artifact resolution; corrected ownership and ZEON naming |
+| `server/zcos/orchestration/FlowRecommender.ts` + `server/zcos/flows/ZcosFlowEngine.ts` | ZYLO-owned workflow/capability boundary | Not copied into ZCOS because locked architecture assigns reusable flows/scheduling to ZYLO; ZCOS retains routing only |
+| `server/zcos/orchestration/ZarAutonomousOrchestrator.ts` | ZCOS runtime + ZAR assignment boundary | Split by authority; autonomous reasoning ownership in ZAR is retired |
 
 ## Canonical runtime contracts
 
@@ -40,6 +46,13 @@ The migrated runtime follows the locked request flow. ZAR remains the user-facin
 - `server/intelligence/OutcomeLearningEngine.ts`
 - `server/routes/intelligence.ts`
 - `server/intelligence/ZcosIntelligenceRuntime.test.ts`
+- `server/intelligence/GovernedRuntimeMigration.test.ts`
+- `server/intelligence/SourceConfluenceEngine.ts`
+- `server/intelligence/ZcosPolicyEngine.ts`
+- `server/intelligence/ZcosRequestInterpreter.ts`
+- `shared/zcos-intelligence.ts`
+- `server/intelligence/capabilities/ZcosCapabilityRegistry.ts`
+- `server/intelligence/capabilities/ZyloArtifactResolver.ts`
 - `scripts/verify-intelligence-migration.mjs`
 
 The runtime is mounted at `/api/zcos/intelligence`. Protected endpoints use canonical authenticated `OwnerContext`; no fallback owner is introduced.
