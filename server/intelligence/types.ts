@@ -10,10 +10,11 @@ export type ZcosTaskType =
 export type ZcosComplexity = "simple" | "moderate" | "complex";
 export type ZcosRisk = "low" | "moderate" | "high";
 export type ZcosResponseForm = "direct" | "brief" | "structured" | "plan";
+export type ZcosExecutionPhase = "authorize" | "context" | "reason" | "gather" | "execute" | "verify" | "present";
 
 export interface ZcosContextItem {
   id: string;
-  authority: "memory" | "knowledge" | "project" | "history" | "file" | "system";
+  authority: "memory" | "knowledge" | "project" | "history" | "file" | "system" | "external_evidence";
   content: string;
   source?: string;
   confidence?: number;
@@ -41,6 +42,7 @@ export interface ReasoningAssessment {
   confidence: number;
   materialUncertainty: boolean;
   needsExternalInformation: boolean;
+  externalEvidenceSatisfied: boolean;
   needsExecution: boolean;
   rationale: string[];
 }
@@ -57,6 +59,8 @@ export interface ExecutionStep {
   action: string;
   capability: string;
   owner: CapabilityDecision["owner"];
+  phase: ZcosExecutionPhase;
+  parallelGroup?: string;
   risk: ZcosRisk;
   approvalRequired: boolean;
   dependsOn: string[];
@@ -69,6 +73,7 @@ export interface ZcosExecutionPlan {
   capabilities: CapabilityDecision[];
   steps: ExecutionStep[];
   externalInformationRequired: boolean;
+  externalInformationSatisfied: boolean;
   /** Planning never grants side-effect authority. Execution must obtain it separately. */
   sideEffectsAuthorized: boolean;
 }
