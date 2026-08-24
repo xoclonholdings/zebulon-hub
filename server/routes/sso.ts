@@ -31,7 +31,7 @@ function cleanExpiredTickets(): void {
 
 function registeredClients(): Record<string, string> {
   const clients: Record<string, string> = {
-    zar: String(process.env.ZAR_API_URL || "https://api.zar-ai.online").replace(/\/$/, ""),
+    zar: String(process.env.ZAR_APP_URL || "https://zar-ai.online").replace(/\/$/, ""),
   };
 
   const raw = String(process.env.ZCOS_SSO_CLIENTS_JSON || "").trim();
