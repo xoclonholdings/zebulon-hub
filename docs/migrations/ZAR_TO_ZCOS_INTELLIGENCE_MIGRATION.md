@@ -33,7 +33,7 @@ The migrated runtime follows the locked request flow: ZAR remains the user-facin
 - `server/routes/intelligence.ts`
 - `server/intelligence/ZcosIntelligenceRuntime.test.ts`
 
-The runtime is mounted at `/api/zcos/intelligence` from the main ZCOS server. Protected endpoints use canonical authenticated `OwnerContext`; no fallback owner is introduced.
+The runtime is mounted at `/api/zcos/intelligence` from the main ZCOS server. Protected endpoints use canonical authenticated `OwnerContext`; no fallback owner is introduced. Intelligence plans and observed outcomes write audit evidence through canonical ZCOS storage.
 
 ## Preserved behavior
 
@@ -65,4 +65,4 @@ ZedAI remains read-only migration evidence. No target runtime import depends on 
 
 ## Verification state
 
-Repository writes were made directly to `main` through the GitHub contents API and verified by commit SHA. Automated GitHub Actions were not configured for the final commit at the time of migration, and the execution environment could not resolve `github.com` for a local clone, so no unperformed local build/test is claimed. The committed runtime includes a Vitest suite for the migration invariants and must be included in the repository's normal `npm test` / `npm run verify` certification path.
+Repository writes were made directly to `main` through the GitHub contents API and verified by commit SHA and direct reads from the target paths. The repository does contain `.github/workflows/verify.yml`, configured to run `npm run verify` on every push to `main`. The available GitHub connector does not expose push-triggered workflow runs through its commit-run lookup, so a completed CI verdict is not claimed here. A separate local clone attempt was also blocked because the execution sandbox could not resolve `github.com`. The committed Vitest migration suite remains part of the repository's normal `npm test` / `npm run verify` certification path.
