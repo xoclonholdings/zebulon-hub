@@ -43,9 +43,11 @@ function assessReasoning(request: ZcosIntelligenceRequest): ReasoningAssessment 
     : wordCount > 25 || ["research", "analysis", "planning", "execution"].includes(type) ? "moderate" : "simple";
   const canonicalContext = (request.context || []).filter((item) => item.trust === "canonical" || item.trust === "authorized_projection");
   const grounded = canonicalContext.filter((item) => item.content.trim()).length;
-  const externalEvidenceSatisfied = canonicalContext.some((item) => item.authority === "external_evidence" && item.content.trim());
+  const supportedExternalEvidence = canonicalContext.some((item) => item.authority === "external_evidence" && item.content.trim() && item.lifecycle?.toLowerCase() !== "disputed");
+  const conflictedExternalEvidence = canonicalContext.some((item) => item.authority === "external_evidence" && item.content.trim() && item.lifecycle?.toLowerCase() === "disputed");
+  const externalEvidenceSatisfied = supportedExternalEvidence;
   const needsExternalInformation = RESEARCH_WORDS.test(message) || /\b(latest|today|current|recent|web|internet|external)\b/i.test(message);
-  const materialUncertainty = UNCERTAINTY_WORDS.test(message) || (needsExternalInformation && !externalEvidenceSatisfied && grounded === 0);
+  const materialUncertainty = UNCERTAINTY_WORDS.test(message) || conflictedExternalEvidence || (needsExternalInformation && !externalEvidenceSatisfied && grounded === 0);
   const confidence = clamp(0.9 - (materialUncertainty ? 0.25 : 0) - (complexity === "complex" ? 0.08 : 0) + Math.min(0.08, grounded * 0.01));
   const rationale = [
     `classified:${type}`,
@@ -53,6 +55,7 @@ function assessReasoning(request: ZcosIntelligenceRequest): ReasoningAssessment 
     needsExternalInformation ? "external-information-required" : "canonical-context-sufficient-unless-execution-reveals-gap",
   ];
   if (externalEvidenceSatisfied) rationale.push("validated-external-evidence-present");
+  if (conflictedExternalEvidence) rationale.push("external-evidence-conflict-present");
   if (materialUncertainty) rationale.push("material-uncertainty-present");
   return { taskType: type, complexity, confidence, materialUncertainty, needsExternalInformation, externalEvidenceSatisfied, needsExecution: type === "execution" || EXECUTION_WORDS.test(message), rationale };
 }
@@ -165,16 +168,17 @@ function evaluate(request: ZcosIntelligenceRequest, reasoning: ReasoningAssessme
   const grounding = reasoning.needsExternalInformation ? (reasoning.externalEvidenceSatisfied ? 0.95 : context.length > 0 ? 0.6 : 0.35) : 0.9;
   const authoritySafety = plan.steps.some((step) => step.capability === "identity-and-authorization") && plan.steps.some((step) => step.capability === "verification-and-evaluation") && plan.sideEffectsAuthorized === false ? 1 : 0.4;
   const completeness = plan.capabilities.length >= 4 ? 0.95 : 0.65;
-  const uncertaintyDiscipline = reasoning.materialUncertainty && !reasoning.needsExternalInformation && context.length === 0 ? 0.55 : 0.95;
+  const uncertaintyDiscipline = reasoning.materialUncertainty && !reasoning.needsExternalInformation && context.length === 0 ? 0.55 : reasoning.materialUncertainty ? 0.7 : 0.95;
   const dimensions = { objectiveAlignment, grounding, authoritySafety, completeness, uncertaintyDiscipline };
   const score = Number((Object.values(dimensions).reduce((sum, value) => sum + value, 0) / 5).toFixed(3));
   const issues: string[] = [];
   if (reasoning.needsExternalInformation && !reasoning.externalEvidenceSatisfied) issues.push("Fresh external evidence must be gathered and validated before factual completion.");
+  if (reasoning.rationale.includes("external-evidence-conflict-present")) issues.push("External evidence contains unresolved conflict and cannot be treated as settled current truth.");
   if (authoritySafety < 0.8) issues.push("Authorization or verification gate is missing.");
-  if (uncertaintyDiscipline < 0.8) issues.push("Material uncertainty requires additional evidence or one outcome-changing clarification.");
+  if (uncertaintyDiscipline < 0.8) issues.push("Material uncertainty requires additional evidence, conflict review, or one outcome-changing clarification.");
   const blocked = authoritySafety < 0.8;
   const needsEvidence = reasoning.needsExternalInformation && !reasoning.externalEvidenceSatisfied;
-  return { score, passed: !blocked && !needsEvidence && score >= 0.75, dimensions, issues, recommendedAction: blocked ? "block" : needsEvidence ? "gather_evidence" : score >= 0.85 ? "accept" : "revise" };
+  return { score, passed: !blocked && !needsEvidence && !reasoning.rationale.includes("external-evidence-conflict-present") && score >= 0.75, dimensions, issues, recommendedAction: blocked ? "block" : needsEvidence ? "gather_evidence" : reasoning.rationale.includes("external-evidence-conflict-present") ? "revise" : score >= 0.85 ? "accept" : "revise" };
 }
 
 export class ZcosIntelligenceRuntime {
@@ -205,6 +209,7 @@ export class ZcosIntelligenceRuntime {
           "ZedAI/server/services/intelligence-core/ResponseOrchestrationEngine",
           "ZedAI/server/services/intelligence-core/SelfOrchestrationEngine",
           "ZedAI/server/services/ZarStrategicReasoningEngine",
+          "ZedAI/server/orchestrator/ManagerAgent",
           "ZedAI/server/orchestrator/subagents",
           "ZedAI/server/services/KnowledgeCurationEngine",
           "ZedAI/server/services/ZarReflectionEngine",
