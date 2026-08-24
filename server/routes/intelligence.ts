@@ -4,9 +4,10 @@ import { requireOwner } from "../core/requireOwner.js";
 import { normalizeGalaxyId } from "../core/GalaxyRegistry.js";
 import { storage } from "../storage-prisma.js";
 import ZcosIntelligenceRuntime from "../intelligence/ZcosIntelligenceRuntime.js";
+import ZcosContextAssembler from "../intelligence/ZcosContextAssembler.js";
 import OutcomeLearningEngine from "../intelligence/OutcomeLearningEngine.js";
 import { externalSourceGateway } from "../intelligence/ExternalSourceGateway.js";
-import type { EvaluationResult, ZcosContextItem, ZcosExecutionPlan } from "../intelligence/types.js";
+import type { EvaluationResult, ZcosExecutionPlan } from "../intelligence/types.js";
 
 const router = express.Router();
 
@@ -27,10 +28,9 @@ router.post("/analyze", requireOwner, async (req, res, next) => {
     const { owner, galaxyId } = resolveGalaxy(req, body.galaxyId);
     if (typeof body.message !== "string" || !body.message.trim()) return res.status(400).json({ error: "message is required" });
 
-    const context: ZcosContextItem[] = Array.isArray(body.context)
-      ? body.context.filter((item: unknown) => item && typeof item === "object")
-      : [];
-
+    // Memory and Knowledge are loaded server-side from canonical authorities.
+    // A caller cannot manufacture canonical reasoning context in the request body.
+    const context = await ZcosContextAssembler.assemble(owner.ownerUserId, galaxyId);
     const result = ZcosIntelligenceRuntime.analyze({
       ownerUserId: owner.ownerUserId,
       galaxyId,
@@ -52,8 +52,9 @@ router.post("/analyze", requireOwner, async (req, res, next) => {
       details: {
         taskType: result.reasoning.taskType,
         complexity: result.reasoning.complexity,
-        capabilities: result.plan.capabilities.map((item) => `${item.owner}:${item.capability}`),
-        evaluation: result.evaluation.recommendedAction,
+        contextIds: result.trace.contextIds,
+        plan: result.plan,
+        evaluation: result.evaluation,
       },
     });
 
@@ -68,21 +69,32 @@ router.post("/outcomes", requireOwner, async (req, res, next) => {
     const body = req.body || {};
     const { owner, galaxyId } = resolveGalaxy(req, body.galaxyId);
     if (typeof body.requestId !== "string" || !body.requestId.trim()) return res.status(400).json({ error: "requestId is required" });
-    if (typeof body.objective !== "string" || !body.objective.trim()) return res.status(400).json({ error: "objective is required" });
     if (!["completed", "partial", "failed", "blocked", "unknown"].includes(String(body.outcomeStatus))) {
       return res.status(400).json({ error: "Valid outcomeStatus is required" });
     }
-    if (!body.evaluation || !body.plan) return res.status(400).json({ error: "evaluation and plan are required" });
+
+    const audit = await storage.listAudit(owner.ownerUserId, 500);
+    const planEvent = audit.find((event) =>
+      event.eventType === "intelligence.plan_created"
+      && event.targetId === body.requestId
+      && event.galaxyId === galaxyId
+    );
+    if (!planEvent) return res.status(404).json({ error: "Canonical intelligence plan not found for this owner and galaxy" });
+
+    const details = (planEvent.details || {}) as Record<string, unknown>;
+    const plan = details.plan as ZcosExecutionPlan | undefined;
+    const evaluation = details.evaluation as EvaluationResult | undefined;
+    if (!plan || !evaluation) return res.status(409).json({ error: "Canonical intelligence plan is incomplete and cannot be learned from" });
 
     const proposals = OutcomeLearningEngine.observe({
       requestId: body.requestId,
       ownerUserId: owner.ownerUserId,
       galaxyId,
-      objective: body.objective,
+      objective: plan.objective,
       outcomeStatus: body.outcomeStatus,
-      evidence: Array.isArray(body.evidence) ? body.evidence.map(String) : [],
-      evaluation: body.evaluation as EvaluationResult,
-      plan: body.plan as ZcosExecutionPlan,
+      evidence: Array.isArray(body.evidence) ? body.evidence.map(String).filter(Boolean) : [],
+      evaluation,
+      plan,
     });
 
     await storage.recordAudit({
@@ -91,7 +103,7 @@ router.post("/outcomes", requireOwner, async (req, res, next) => {
       eventType: "intelligence.outcome_observed",
       targetType: "intelligence_request",
       targetId: body.requestId,
-      details: { outcomeStatus: body.outcomeStatus, proposalIds: proposals.map((proposal) => proposal.id) },
+      details: { outcomeStatus: body.outcomeStatus, proposalIds: proposals.map((proposal) => proposal.id), evidenceCount: Array.isArray(body.evidence) ? body.evidence.length : 0 },
     });
 
     res.json({ requestId: body.requestId, proposals, canonicalMutation: false });
@@ -101,11 +113,7 @@ router.post("/outcomes", requireOwner, async (req, res, next) => {
 });
 
 router.get("/external-sources", requireOwner, (_req, res) => {
-  res.json({
-    authority: "evidence-only",
-    reasoningAuthority: "ZCOS",
-    adapters: externalSourceGateway.list(),
-  });
+  res.json({ authority: "evidence-only", reasoningAuthority: "ZCOS", adapters: externalSourceGateway.list() });
 });
 
 router.get("/capabilities", requireOwner, (_req, res) => {
@@ -113,11 +121,12 @@ router.get("/capabilities", requireOwner, (_req, res) => {
     reasoningAuthority: "ZCOS",
     presentationAuthority: "ZAR",
     providerNeutral: true,
+    canonicalContextAuthority: true,
     migratedCapabilities: [
       "deep-thinking",
       "strategic-reasoning",
       "context-intelligence",
-      "document-grounding",
+      "document-grounding-contract",
       "response-planning",
       "self-orchestration",
       "capability-routing",
@@ -128,12 +137,13 @@ router.get("/capabilities", requireOwner, (_req, res) => {
     ],
     lockedFlow: [
       "authenticate",
-      "assemble-context",
+      "assemble-canonical-context",
       "reason",
       "plan",
       "gather-external-information-when-required",
       "validate-and-synthesize",
       "assign-capabilities",
+      "authorize-execution-separately",
       "verify-outcome",
       "learn-from-outcome-without-silent-canonical-mutation",
       "present-through-zar",
