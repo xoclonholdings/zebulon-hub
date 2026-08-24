@@ -22,9 +22,7 @@ const UNCERTAINTY_WORDS = /\b(maybe|possibly|probably|uncertain|unknown|not sure
 const HISTORICAL_INTENT = /\b(history|historical|previous|formerly|prior|old version|at the time|as of|in 20\d{2}|before|superseded)\b/i;
 const CONFLICT_INTENT = /\b(conflict|contradiction|dispute|disputed|compare claims|competing claims|why do sources differ)\b/i;
 
-function clamp(value: number): number {
-  return Math.max(0, Math.min(1, value));
-}
+function clamp(value: number): number { return Math.max(0, Math.min(1, value)); }
 
 function taskType(message: string): ZcosTaskType {
   if (RESEARCH_WORDS.test(message)) return "research";
@@ -42,34 +40,27 @@ function assessReasoning(request: ZcosIntelligenceRequest): ReasoningAssessment 
   const wordCount = message.split(/\s+/).filter(Boolean).length;
   const complexity = wordCount > 80 || /\b(system|architecture|migration|multi|cross-galaxy|runtime|production)\b/i.test(message)
     ? "complex"
-    : wordCount > 25 || ["research", "analysis", "planning", "execution"].includes(type)
-      ? "moderate"
-      : "simple";
+    : wordCount > 25 || ["research", "analysis", "planning", "execution"].includes(type) ? "moderate" : "simple";
   const canonicalContext = (request.context || []).filter((item) => item.trust === "canonical" || item.trust === "authorized_projection");
   const grounded = canonicalContext.filter((item) => item.content.trim()).length;
+  const externalEvidenceSatisfied = canonicalContext.some((item) => item.authority === "external_evidence" && item.content.trim());
   const needsExternalInformation = RESEARCH_WORDS.test(message) || /\b(latest|today|current|recent|web|internet|external)\b/i.test(message);
-  const materialUncertainty = UNCERTAINTY_WORDS.test(message) || (needsExternalInformation && grounded === 0);
+  const materialUncertainty = UNCERTAINTY_WORDS.test(message) || (needsExternalInformation && !externalEvidenceSatisfied && grounded === 0);
   const confidence = clamp(0.9 - (materialUncertainty ? 0.25 : 0) - (complexity === "complex" ? 0.08 : 0) + Math.min(0.08, grounded * 0.01));
-  const rationale: string[] = [
+  const rationale = [
     `classified:${type}`,
     `complexity:${complexity}`,
     needsExternalInformation ? "external-information-required" : "canonical-context-sufficient-unless-execution-reveals-gap",
   ];
+  if (externalEvidenceSatisfied) rationale.push("validated-external-evidence-present");
   if (materialUncertainty) rationale.push("material-uncertainty-present");
-  return {
-    taskType: type,
-    complexity,
-    confidence,
-    materialUncertainty,
-    needsExternalInformation,
-    needsExecution: type === "execution" || EXECUTION_WORDS.test(message),
-    rationale,
-  };
+  return { taskType: type, complexity, confidence, materialUncertainty, needsExternalInformation, externalEvidenceSatisfied, needsExecution: type === "execution" || EXECUTION_WORDS.test(message), rationale };
 }
 
 function contextEligible(item: ZcosContextItem, message: string): boolean {
   if (!item.content.trim()) return false;
   if (["memory", "knowledge", "system"].includes(item.authority) && !["canonical", "authorized_projection"].includes(item.trust || "")) return false;
+  if (item.authority === "external_evidence" && item.trust !== "authorized_projection") return false;
   const lifecycle = item.lifecycle?.toLowerCase();
   if (["rejected", "forgotten", "superseded", "deprecated", "candidate", "proposed"].includes(lifecycle || "")) return false;
   if (lifecycle === "disputed" && !CONFLICT_INTENT.test(message)) return false;
@@ -87,6 +78,7 @@ function lexicalScore(message: string, item: ZcosContextItem): number {
   let score = 0;
   for (const term of terms) if (haystack.includes(term)) score += 1;
   if (item.authority === "system") score += 0.5;
+  if (item.authority === "external_evidence") score += 0.45;
   if (item.trust === "canonical") score += 0.35;
   if ((item.confidence ?? 0.75) >= 0.9) score += 0.25;
   return score;
@@ -95,14 +87,11 @@ function lexicalScore(message: string, item: ZcosContextItem): number {
 function selectContext(request: ZcosIntelligenceRequest): ZcosContextItem[] {
   return (request.context || [])
     .filter((item) => contextEligible(item, request.message))
-    .filter((item) => {
-      if (!item.galaxyId || item.galaxyId === request.galaxyId || item.authority === "system") return true;
-      return item.trust === "authorized_projection";
-    })
+    .filter((item) => !item.galaxyId || item.galaxyId === request.galaxyId || item.authority === "system" || item.trust === "authorized_projection")
     .map((item) => ({ item, score: lexicalScore(request.message, item) }))
     .filter(({ score }) => score > 0 || (request.context?.length || 0) <= 5)
     .sort((a, b) => b.score - a.score)
-    .slice(0, 12)
+    .slice(0, 16)
     .map(({ item }) => item);
 }
 
@@ -112,11 +101,11 @@ function capabilityDecisions(request: ZcosIntelligenceRequest, reasoning: Reason
   const add = (capability: string, owner: CapabilityDecision["owner"], reason: string, required = true) => {
     if (!decisions.some((decision) => decision.capability === capability)) decisions.push({ capability, owner, reason, required });
   };
-
   add("identity-and-authorization", "zcos", "Every governed request begins with authenticated ZCOS ownership.");
-  add("context-assembly", "zcos", "ZCOS owns canonical context assembly across authorized Memory, Knowledge, Projects, History and Files.");
+  add("context-assembly", "zcos", "ZCOS owns canonical context assembly across authorized authorities.");
   add("reasoning-and-planning", "zcos", "ZCOS is the reasoning and planning authority.");
-  if (reasoning.needsExternalInformation) add("external-source-aggregation", "zcos", "External information may be gathered but must return to ZCOS for provenance and validation.");
+  if (reasoning.needsExternalInformation && !reasoning.externalEvidenceSatisfied) add("external-source-aggregation", "zcos", "Gather external evidence and return it to ZCOS for validation.");
+  if (reasoning.externalEvidenceSatisfied) add("external-evidence-validation", "zcos", "Validated external evidence is available for synthesis.");
   if (/\b(code|build|implement|design|publish|render|website|app)\b/i.test(message)) add("build", "zync", "ZYNC owns coding, design and publish execution.");
   if (/\b(schedule|remind|trigger|workflow|loop|automation|automate)\b/i.test(message)) add("automation", "zylo", "ZYLO owns flows, schedules, triggers, skills and templates.");
   if (/\b(email|message|thread|room|team|call|communication)\b/i.test(message)) add("communication", "zeon", "ZEON owns human communication and collaboration surfaces.");
@@ -124,9 +113,9 @@ function capabilityDecisions(request: ZcosIntelligenceRequest, reasoning: Reason
   if (/\b(trend|culture|discover|news|social|ugc)\b/i.test(message)) add("discovery", "zwap", "ZWAP supplies discovery, trend and culture signals.");
   if (/\b(file|library|study|learning|document|artifact)\b/i.test(message)) add("scholar", "zenith", "ZENITH owns intentional Scholar organization and file/library surfaces.");
   if (/\b(budget|trade|trading|invest|portfolio|capital|finance)\b/i.test(message)) add("capital", "zillion", "ZILLION owns Capital execution and analysis.");
-  if (reasoning.needsExecution) add("execution-governance", "zcos", "Side effects require typed execution, authorization and reconciliation.");
-  add("verification-and-evaluation", "zcos", "Results return through ZCOS verification before ZAR presents completion.");
-  add("presentation-and-assignment", "zar", "ZAR owns the user-facing relationship, communication and work assignment.");
+  if (reasoning.needsExecution) add("execution-governance", "zcos", "Side effects require separate authorization and reconciliation.");
+  add("verification-and-evaluation", "zcos", "Results return through ZCOS verification before completion.");
+  add("presentation-and-assignment", "zar", "ZAR owns user-facing communication and assignment.");
   return decisions;
 }
 
@@ -140,56 +129,52 @@ function responseForm(reasoning: ReasoningAssessment): ZcosResponseForm {
 function buildPlan(request: ZcosIntelligenceRequest, reasoning: ReasoningAssessment): ZcosExecutionPlan {
   const capabilities = capabilityDecisions(request, reasoning);
   const steps: ExecutionStep[] = [];
-  let previous: string[] = [];
-  for (const decision of capabilities.filter((decision) => decision.required)) {
+  const addStep = (capability: string, phase: ExecutionStep["phase"], dependsOn: string[], parallelGroup?: string) => {
+    const decision = capabilities.find((item) => item.capability === capability);
+    if (!decision || !decision.required) return "";
     const id = `step_${steps.length + 1}`;
-    const sideEffect = ["build", "automation", "communication", "capital", "execution-governance"].includes(decision.capability) && reasoning.needsExecution;
+    const sideEffect = ["build", "automation", "communication", "capital"].includes(capability) && reasoning.needsExecution;
     const highRisk = sideEffect && HIGH_RISK_WORDS.test(request.message);
-    steps.push({
-      id,
-      action: decision.reason,
-      capability: decision.capability,
-      owner: decision.owner,
-      risk: highRisk ? "high" : sideEffect ? "moderate" : "low",
-      approvalRequired: highRisk,
-      dependsOn: previous,
-      expectedOutput: decision.capability === "verification-and-evaluation" ? "Verified outcome with explicit status and evidence." : `Governed ${decision.capability} result.`,
-    });
-    previous = [id];
-  }
-  return {
-    objective: request.message.trim(),
-    responseForm: responseForm(reasoning),
-    capabilities,
-    steps,
-    externalInformationRequired: reasoning.needsExternalInformation,
-    sideEffectsAuthorized: false,
+    steps.push({ id, action: decision.reason, capability, owner: decision.owner, phase, parallelGroup, risk: highRisk ? "high" : sideEffect ? "moderate" : "low", approvalRequired: highRisk, dependsOn, expectedOutput: capability === "verification-and-evaluation" ? "Verified outcome with explicit status and evidence." : `Governed ${capability} result.` });
+    return id;
   };
+
+  const auth = addStep("identity-and-authorization", "authorize", []);
+  const context = addStep("context-assembly", "context", auth ? [auth] : []);
+  const reasoningStep = addStep("reasoning-and-planning", "reason", context ? [context] : []);
+  const gather = reasoning.externalEvidenceSatisfied
+    ? addStep("external-evidence-validation", "gather", reasoningStep ? [reasoningStep] : [])
+    : addStep("external-source-aggregation", "gather", reasoningStep ? [reasoningStep] : []);
+  const executionGate = addStep("execution-governance", "authorize", [gather || reasoningStep].filter(Boolean));
+  const executionBase = [executionGate || gather || reasoningStep].filter(Boolean);
+
+  const specialistIds: string[] = [];
+  for (const capability of ["build", "automation", "communication", "integrity", "discovery", "scholar", "capital"]) {
+    const id = addStep(capability, "execute", executionBase, "specialist_execution");
+    if (id) specialistIds.push(id);
+  }
+  const verifyDeps = specialistIds.length ? specialistIds : [gather || reasoningStep].filter(Boolean);
+  const verify = addStep("verification-and-evaluation", "verify", verifyDeps);
+  addStep("presentation-and-assignment", "present", verify ? [verify] : verifyDeps);
+
+  return { objective: request.message.trim(), responseForm: responseForm(reasoning), capabilities, steps, externalInformationRequired: reasoning.needsExternalInformation, externalInformationSatisfied: reasoning.externalEvidenceSatisfied, sideEffectsAuthorized: false };
 }
 
 function evaluate(request: ZcosIntelligenceRequest, reasoning: ReasoningAssessment, context: ZcosContextItem[], plan: ZcosExecutionPlan): EvaluationResult {
   const objectiveAlignment = request.message.trim() && plan.objective === request.message.trim() ? 1 : 0;
-  const grounding = reasoning.needsExternalInformation ? (context.length > 0 ? 0.6 : 0.35) : 0.9;
-  const authoritySafety = plan.steps.some((step) => step.capability === "identity-and-authorization")
-    && plan.steps.some((step) => step.capability === "verification-and-evaluation")
-    && plan.sideEffectsAuthorized === false ? 1 : 0.4;
+  const grounding = reasoning.needsExternalInformation ? (reasoning.externalEvidenceSatisfied ? 0.95 : context.length > 0 ? 0.6 : 0.35) : 0.9;
+  const authoritySafety = plan.steps.some((step) => step.capability === "identity-and-authorization") && plan.steps.some((step) => step.capability === "verification-and-evaluation") && plan.sideEffectsAuthorized === false ? 1 : 0.4;
   const completeness = plan.capabilities.length >= 4 ? 0.95 : 0.65;
   const uncertaintyDiscipline = reasoning.materialUncertainty && !reasoning.needsExternalInformation && context.length === 0 ? 0.55 : 0.95;
   const dimensions = { objectiveAlignment, grounding, authoritySafety, completeness, uncertaintyDiscipline };
   const score = Number((Object.values(dimensions).reduce((sum, value) => sum + value, 0) / 5).toFixed(3));
   const issues: string[] = [];
-  if (reasoning.needsExternalInformation) issues.push("Fresh external evidence must be gathered and validated before factual completion.");
+  if (reasoning.needsExternalInformation && !reasoning.externalEvidenceSatisfied) issues.push("Fresh external evidence must be gathered and validated before factual completion.");
   if (authoritySafety < 0.8) issues.push("Authorization or verification gate is missing.");
   if (uncertaintyDiscipline < 0.8) issues.push("Material uncertainty requires additional evidence or one outcome-changing clarification.");
   const blocked = authoritySafety < 0.8;
-  const needsEvidence = reasoning.needsExternalInformation;
-  return {
-    score,
-    passed: !blocked && !needsEvidence && score >= 0.75,
-    dimensions,
-    issues,
-    recommendedAction: blocked ? "block" : needsEvidence ? "gather_evidence" : score >= 0.85 ? "accept" : "revise",
-  };
+  const needsEvidence = reasoning.needsExternalInformation && !reasoning.externalEvidenceSatisfied;
+  return { score, passed: !blocked && !needsEvidence && score >= 0.75, dimensions, issues, recommendedAction: blocked ? "block" : needsEvidence ? "gather_evidence" : score >= 0.85 ? "accept" : "revise" };
 }
 
 export class ZcosIntelligenceRuntime {
@@ -197,13 +182,11 @@ export class ZcosIntelligenceRuntime {
     if (!input.ownerUserId?.trim()) throw new Error("Authenticated ZCOS owner is required");
     if (!input.galaxyId?.trim()) throw new Error("Active galaxy is required");
     if (!input.message?.trim()) throw new Error("Request message is required");
-
     const requestId = `zreq_${createHash("sha256").update(`${input.ownerUserId}\0${input.galaxyId}\0${input.message}\0${Date.now()}`).digest("hex").slice(0, 20)}`;
     const reasoning = assessReasoning(input);
     const selectedContext = selectContext(input);
-    const plan = buildPlan(input, reasoning);
+    const plan = buildPlan({ ...input, context: selectedContext }, reasoning);
     const evaluation = evaluate(input, reasoning, selectedContext, plan);
-
     return {
       requestId,
       reasoning,
@@ -222,6 +205,7 @@ export class ZcosIntelligenceRuntime {
           "ZedAI/server/services/intelligence-core/ResponseOrchestrationEngine",
           "ZedAI/server/services/intelligence-core/SelfOrchestrationEngine",
           "ZedAI/server/services/ZarStrategicReasoningEngine",
+          "ZedAI/server/orchestrator/subagents",
           "ZedAI/server/services/KnowledgeCurationEngine",
           "ZedAI/server/services/ZarReflectionEngine",
         ],
