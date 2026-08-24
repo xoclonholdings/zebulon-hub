@@ -8,6 +8,7 @@ import zcosCanonicalRoutes from './routes/zcos-canonical.js';
 import zcosAdminRoutes from './routes/zcos-admin.js';
 import zcosSsoRoutes from './routes/sso.js';
 import socialMediaRoutes from './routes/social-media.js';
+import intelligenceRoutes from './routes/intelligence.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -75,11 +76,6 @@ type SessionUser = {
 interface AuthenticatedRequest extends Request {
   session: session.Session & { userId?: string; user?: SessionUser };
 }
-
-const requireAuth = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  if (!req.session.userId || !req.session.user) return res.status(401).json({ error: 'Authentication required' });
-  next();
-};
 
 function saveSession(req: AuthenticatedRequest): Promise<void> {
   return new Promise((resolve, reject) => req.session.save((error) => error ? reject(error) : resolve()));
@@ -196,6 +192,7 @@ app.get('/api/system/status', (_req, res) => {
     system: 'ZCOS',
     status: 'operational',
     identityAuthority: 'ZCOS Universal Auth',
+    reasoningAuthority: 'ZCOS Intelligence Runtime',
     canonicalAuthorities: ['identity', 'memory', 'knowledge', 'apps', 'desk', 'settings', 'portal'],
     timestamp: new Date().toISOString(),
   });
@@ -204,10 +201,11 @@ app.get('/api/system/status', (_req, res) => {
 app.use('/api/sso', zcosSsoRoutes);
 app.use('/api/zcos/admin', zcosAdminRoutes);
 app.use('/api/zcos/social', socialMediaRoutes);
+app.use('/api/zcos/intelligence', intelligenceRoutes);
 app.use('/api/zcos', zcosCanonicalRoutes);
 
 app.get(['/health', '/api/health'], (_req, res) => {
-  res.json({ ok: true, service: 'zcos', database: 'Canonical PostgreSQL', timestamp: new Date().toISOString() });
+  res.json({ ok: true, service: 'zcos', database: 'Canonical PostgreSQL', intelligence: 'ZCOS', timestamp: new Date().toISOString() });
 });
 
 const publicPath = path.join(__dirname, '../dist/public');
