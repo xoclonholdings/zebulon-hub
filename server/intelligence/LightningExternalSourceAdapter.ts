@@ -4,18 +4,10 @@ import type { ExternalSourceAdapter, ExternalSourceRequest, ExternalSourceResult
 function config() {
   const baseUrl = String(process.env.LIGHTNING_BASE_URL || process.env.LIGHTNING_AI_URL || "https://lightning.ai/api/v1").replace(/\/+$/, "");
   const apiKey = String(process.env.LIGHTNING_API_KEY || process.env.LIGHTNING_AI_API_KEY || process.env.LIGHTNING_TOKEN || "").trim();
-  const configured = [
-    ...String(process.env.LIGHTNING_MODELS || "").split(","),
-    String(process.env.LIGHTNING_MODEL || ""),
-  ].map((value) => value.trim()).filter(Boolean);
-  const models = [...new Set(configured.length ? configured : ["lightning-ai/gemma-4-31B-it", "lightning-ai/gpt-oss-120b"] )];
-  return {
-    baseUrl,
-    apiKey,
-    chatPath: process.env.LIGHTNING_CHAT_PATH || "/chat/completions",
-    timeoutMs: Number(process.env.LIGHTNING_TIMEOUT_MS || 45000),
-    models,
-  };
+  const configured = [...String(process.env.LIGHTNING_MODELS || "").split(","), String(process.env.LIGHTNING_MODEL || "")]
+    .map((value) => value.trim()).filter(Boolean);
+  const models = [...new Set(configured.length ? configured : ["lightning-ai/gemma-4-31B-it", "lightning-ai/gpt-oss-120b"])];
+  return { baseUrl, apiKey, chatPath: process.env.LIGHTNING_CHAT_PATH || "/chat/completions", timeoutMs: Number(process.env.LIGHTNING_TIMEOUT_MS || 45000), models };
 }
 
 function extractText(payload: unknown): string {
@@ -30,10 +22,14 @@ export class LightningExternalSourceAdapter implements ExternalSourceAdapter {
   readonly id = "lightning";
   readonly kinds = ["model"] as const;
 
+  isConfigured(): boolean {
+    return Boolean(config().apiKey);
+  }
+
   async retrieve(request: ExternalSourceRequest): Promise<ExternalSourceResult> {
     if (!request.sourceKinds.includes("model")) throw new Error("Lightning adapter only accepts model evidence requests");
     const cfg = config();
-    if (!cfg.apiKey) throw new Error("Lightning external source is not configured: LIGHTNING_API_KEY is required");
+    if (!cfg.apiKey) throw Object.assign(new Error("Lightning external source is not configured: LIGHTNING_API_KEY is required"), { status: 503 });
     const errors: string[] = [];
 
     for (const model of cfg.models) {
@@ -67,15 +63,7 @@ export class LightningExternalSourceAdapter implements ExternalSourceAdapter {
         const sourceId = `lightning:${model}:${createHash("sha256").update(content).digest("hex").slice(0, 16)}`;
         return {
           requestId: request.requestId,
-          evidence: [{
-            sourceId,
-            sourceKind: "model",
-            title: `Lightning model evidence (${model})`,
-            locator: `${cfg.baseUrl}${cfg.chatPath}`,
-            retrievedAt,
-            content,
-            provenance: { provider: "lightning", model, evidenceOnly: true },
-          }],
+          evidence: [{ sourceId, sourceKind: "model", title: `Lightning model evidence (${model})`, locator: `${cfg.baseUrl}${cfg.chatPath}`, retrievedAt, content, provenance: { provider: "lightning", model, evidenceOnly: true } }],
           providerTrace: { provider: "lightning", model, evidenceOnly: true },
         };
       } catch (error) {
@@ -85,7 +73,7 @@ export class LightningExternalSourceAdapter implements ExternalSourceAdapter {
       }
     }
 
-    throw new Error(`Lightning evidence retrieval failed: ${errors.join(" | ")}`);
+    throw Object.assign(new Error(`Lightning evidence retrieval failed: ${errors.join(" | ")}`), { status: 502 });
   }
 }
 
