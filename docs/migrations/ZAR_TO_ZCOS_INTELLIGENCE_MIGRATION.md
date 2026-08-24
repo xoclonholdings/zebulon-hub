@@ -1,68 +1,90 @@
 # ZAR → ZCOS Intelligence Migration
 
-**Status:** Implemented on `main`  
+**Status:** Implementation complete on `main`; production certification remains a separate release verdict  
 **Date:** August 24, 2026  
 **Source repository:** `xoclonholdings/ZedAI`  
 **Target repository:** `xoclonholdings/zebulon-hub`
 
 ## Authority correction
 
-The migrated runtime follows the locked request flow: ZAR remains the user-facing relational operator; ZCOS owns context assembly, reasoning, planning, capability routing, external-source governance, evaluation, verification, and outcome-learning proposals. External models/providers are evidence sources, never reasoning authority.
+The migrated runtime follows the locked request flow. ZAR remains the user-facing relational operator and presentation/assignment authority. ZCOS owns authenticated context assembly, reasoning, planning, capability routing, external-source governance, evidence validation, synthesis, evaluation, verification, and outcome-learning proposals. External models/providers are evidence sources, never ZCOS reasoning authority.
 
 ## Source-to-target map
 
 | ZedAI source capability | ZCOS destination | Disposition |
 | --- | --- | --- |
-| `server/services/intelligence-core/DeepThinkingEngine.ts` | `server/intelligence/ZcosIntelligenceRuntime.ts` | Adapted into ZCOS reasoning assessment, complexity, confidence and uncertainty handling |
+| `server/services/intelligence-core/DeepThinkingEngine.ts` | `server/intelligence/ZcosIntelligenceRuntime.ts` | Adapted into ZCOS task, complexity, confidence and uncertainty assessment |
 | `server/services/ZarStrategicReasoningEngine.ts` | `server/intelligence/ZcosIntelligenceRuntime.ts` | Adapted; strategic reasoning ownership moved from ZAR to ZCOS |
-| `server/services/intelligence-core/ContextIntelligenceEngine.ts` | `server/intelligence/ZcosIntelligenceRuntime.ts` + canonical Memory/Knowledge APIs | Adapted to lifecycle-safe, galaxy-aware context selection |
-| `server/services/intelligence-core/DocumentIntelligenceService.ts` | canonical Knowledge/Files context + runtime context authority | Split; original artifacts remain governed Files, derived evidence enters Knowledge/context |
-| `server/services/intelligence-core/ResponseOrchestrationEngine.ts` | `server/intelligence/ZcosIntelligenceRuntime.ts` | Adapted to typed response-form planning; ZAR remains presentation authority |
-| `server/services/intelligence-core/SelfOrchestrationEngine.ts` | `server/intelligence/ZcosIntelligenceRuntime.ts` | Adapted to ZCOS capability routing across galaxies instead of ZAR-owned agents |
-| `server/core/providers/*` | `server/intelligence/ExternalSourceGateway.ts` | Replaced with provider-neutral external-source adapter contract; providers cannot become reasoning authority |
-| `server/services/KnowledgeCurationEngine.ts` | canonical ZCOS Knowledge Curation API + runtime evaluation | Split into canonical Knowledge curation and request/outcome evaluation |
-| `server/services/ZarReflectionEngine.ts` | `server/intelligence/OutcomeLearningEngine.ts` | Adapted; direct Memory writes retired in favor of reviewable learning proposals |
-| legacy approval/external-action intent | typed runtime plan + existing ZCOS authorization/audit boundaries | Authority corrected; runtime identifies risk/approval need but does not self-authorize side effects |
+| `server/services/intelligence-core/ContextIntelligenceEngine.ts` | `ZcosContextAssembler.ts` + runtime retrieval gates | Adapted to canonical, lifecycle-safe, galaxy-aware context selection |
+| `server/services/intelligence-core/DocumentIntelligenceService.ts` | canonical Files/Knowledge boundaries + context/evidence contracts | Split; original artifacts remain with their canonical file owner, derived evidence is not silently promoted to Knowledge |
+| `server/services/intelligence-core/ResponseOrchestrationEngine.ts` | `ZcosIntelligenceRuntime.ts` | Adapted to typed response-form planning; ZAR remains presentation authority |
+| `server/services/intelligence-core/SelfOrchestrationEngine.ts` | `ZcosIntelligenceRuntime.ts` | Adapted to ZCOS capability routing across galaxies |
+| `server/orchestrator/ManagerAgent.ts` + `manager-agent/*` | typed capability decisions and execution plan | Agent-centric routing retired as authority; ZCOS owns routing |
+| `server/orchestrator/subagents/*` | parallel specialist execution groups + verification dependency | Parallel-routing semantics preserved without creating competing reasoning personalities |
+| `server/core/providers/*` | `ExternalSourceGateway.ts` + `LightningExternalSourceAdapter.ts` | Provider execution adapted into evidence-only sourcing; provider/model selection cannot become the planner |
+| Lightning provider configuration | `LightningExternalSourceAdapter.ts` | Existing environment aliases, timeout and model fallback semantics preserved where compatible |
+| `server/services/KnowledgeCurationEngine.ts` | canonical Knowledge Curation + request evaluation | Split; Knowledge truth remains with the Knowledge Engine, request quality with intelligence evaluation |
+| `server/services/ZarReflectionEngine.ts` | `OutcomeLearningEngine.ts` | Adapted; direct Memory writes retired in favor of reviewable proposals |
+| legacy approval/external-action intent | typed risk/approval metadata + separate execution authorization | Planning may identify a side effect but never authorizes it |
 
-## New canonical runtime contracts
+## Canonical runtime contracts
 
 - `server/intelligence/types.ts`
 - `server/intelligence/ZcosIntelligenceRuntime.ts`
+- `server/intelligence/ZcosContextAssembler.ts`
 - `server/intelligence/ExternalSourceGateway.ts`
+- `server/intelligence/LightningExternalSourceAdapter.ts`
+- `server/intelligence/ExternalEvidenceProcessor.ts`
+- `server/intelligence/ExternalEvidenceStore.ts`
+- `server/intelligence/IntelligenceAuditStore.ts`
 - `server/intelligence/OutcomeLearningEngine.ts`
 - `server/routes/intelligence.ts`
 - `server/intelligence/ZcosIntelligenceRuntime.test.ts`
+- `scripts/verify-intelligence-migration.mjs`
 
-The runtime is mounted at `/api/zcos/intelligence` from the main ZCOS server. Protected endpoints use canonical authenticated `OwnerContext`; no fallback owner is introduced. Intelligence plans and observed outcomes write audit evidence through canonical ZCOS storage.
+The runtime is mounted at `/api/zcos/intelligence`. Protected endpoints use canonical authenticated `OwnerContext`; no fallback owner is introduced.
 
-## Preserved behavior
+## Implemented request lifecycle
 
-The migration preserves the useful semantics of the ZAR-era engines while changing authority:
+1. Authenticate a ZCOS owner and resolve the active galaxy.
+2. Assemble Memory and Knowledge server-side from canonical ZCOS storage. Request payloads cannot impersonate canonical Memory or Knowledge.
+3. Filter context by lifecycle, currency, trust and galaxy authorization semantics.
+4. Reason and create a typed plan under ZCOS authority.
+5. Route independent specialist capabilities into a parallel execution group while preserving galaxy ownership.
+6. When fresh evidence is required, return `gather_evidence` instead of pretending the request is grounded.
+7. Gather through a registered external-source adapter. Lightning is registered as an evidence-only model/aggregation adapter when configured.
+8. Validate, deduplicate and persist external evidence in the canonical Source ledger without promoting it to Knowledge.
+9. Reassemble canonical + validated external evidence and synthesize again inside ZCOS.
+10. Keep `sideEffectsAuthorized=false` at planning time. Execution authority must be established separately by the governed capability/action path.
+11. Verify/evaluate before ZAR presentation.
+12. Resolve observed outcomes only against the canonical audited plan, then create reviewable learning proposals. Proposals do not silently mutate Memory, Knowledge or policy.
 
-- complexity-sensitive reasoning and confidence estimation,
-- strategic request detection through task/intent classification,
-- lifecycle-safe context selection,
-- document/file awareness through canonical context,
-- proactive capability selection,
-- separation of autonomous/read-only work from side-effect/approval-sensitive work,
-- typed execution planning,
-- explicit verification/evaluation before ZAR presentation,
-- provider-neutral external evidence ingestion,
-- outcome/error analysis that proposes learning instead of silently mutating Memory/Knowledge.
+## Migration invariants
 
-## Retired authority assumptions
+- ZCOS is the reasoning/planning authority.
+- ZAR is the relational presentation/assignment authority.
+- Providers are evidence sources only.
+- Client-supplied text cannot claim canonical Memory/Knowledge status.
+- Candidate, proposed, rejected, forgotten, superseded and deprecated records do not enter ordinary current reasoning.
+- Disputed material is not silently treated as ordinary truth.
+- Historical or review-due Knowledge is only admitted when the objective calls for that context.
+- Cross-galaxy context must be canonical to the active galaxy/system or explicitly supplied as an authorized projection.
+- External evidence remains source evidence until separately promoted through the Knowledge contract.
+- Intent never grants side-effect authority.
+- Verification precedes presentation.
+- Learning proposals preserve evidence and require a separate canonical promotion path.
+- No target runtime imports code from `xoclonholdings/ZedAI`.
 
-The target ZCOS runtime does **not** preserve these ZAR-era authority assumptions:
+## Verification gate
 
-- ZAR as reasoning authority,
-- ZAR-owned self-orchestration as final execution authority,
-- providers/models as planners or decision-makers,
-- reflection writing directly to project memory,
-- provider-specific routing embedded into reasoning,
-- hidden agent ownership of galaxy-specialized work.
+`npm run verify:intelligence` now performs a deterministic static migration check for required runtime artifacts, route mounting, server-side canonical context assembly, no client-context authority, separate side-effect authorization, Lightning evidence-only behavior, synthesis, direct audited plan lookup, and absence of source-repository imports.
 
-ZedAI remains read-only migration evidence. No target runtime import depends on ZedAI.
+The repository's normal `npm run verify` now executes:
 
-## Verification state
+`verify:layout → verify:intelligence → typecheck → tests → build`
 
-Repository writes were made directly to `main` through the GitHub contents API and verified by commit SHA and direct reads from the target paths. The repository does contain `.github/workflows/verify.yml`, configured to run `npm run verify` on every push to `main`. The available GitHub connector does not expose push-triggered workflow runs through its commit-run lookup, so a completed CI verdict is not claimed here. A separate local clone attempt was also blocked because the execution sandbox could not resolve `github.com`. The committed Vitest migration suite remains part of the repository's normal `npm test` / `npm run verify` certification path.
+`.github/workflows/verify.yml` runs `npm run verify` on every push to `main`.
+
+## Certification truth
+
+All migration changes and the verification gate are present on GitHub `main` and were verified by direct repository reads and commit SHAs. The connected GitHub interface available during this migration does not expose push-triggered workflow runs, and the separate execution sandbox cannot resolve `github.com`, so this record does **not** fabricate a CI-green or production-certified result. Production certification remains governed by the repository's normal verification workflow and deployment evidence. This distinction does not revert the migration: `ZedAI` is migration evidence, not a runtime dependency or ZCOS authority.
