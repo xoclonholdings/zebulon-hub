@@ -194,6 +194,27 @@ model SourceRecord {
   @@map("zcos_source_records")
 }
 
+model FileArtifact {
+  id                   String   @id @default(cuid())
+  ownerUserId          String   @map("owner_user_id")
+  galaxyId             String   @default("zenith") @map("galaxy_id")
+  uploadedFromGalaxyId String?  @map("uploaded_from_galaxy_id")
+  category             String
+  originalName         String   @map("original_name")
+  mimeType             String   @map("mime_type")
+  byteSize             Int      @map("byte_size")
+  contentHash          String   @map("content_hash")
+  content              Bytes
+  version              Int      @default(1)
+  status               String   @default("stored")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  @@index([ownerUserId, createdAt])
+  @@index([ownerUserId, contentHash])
+  @@map("zcos_file_artifacts")
+}
+
 model PartitionGrant {
   id             String    @id @default(cuid())
   ownerUserId    String    @map("owner_user_id")

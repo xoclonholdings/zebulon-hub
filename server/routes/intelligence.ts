@@ -51,7 +51,7 @@ router.post("/external-sources/:adapterId/retrieve", requireOwner, async (req, r
     const plan = jsonObject(planEvent.details).plan as ZcosExecutionPlan | undefined;
     if (!plan?.externalInformationRequired) return res.status(409).json({ error: "This intelligence plan does not require external evidence" });
 
-    const rawKinds = Array.isArray(body.sourceKinds) ? body.sourceKinds.map(String) : ["model"];
+    const rawKinds: string[] = Array.isArray(body.sourceKinds) ? body.sourceKinds.map(String) : ["model"];
     const sourceKinds = rawKinds.filter((kind): kind is ExternalSourceKind => SOURCE_KINDS.has(kind as ExternalSourceKind));
     if (!sourceKinds.length || sourceKinds.length !== rawKinds.length) return res.status(400).json({ error: "Invalid sourceKinds" });
     const query = typeof body.query === "string" && body.query.trim() ? body.query.trim() : plan.objective;

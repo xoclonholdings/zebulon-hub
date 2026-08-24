@@ -9,6 +9,7 @@ import zcosAdminRoutes from './routes/zcos-admin.js';
 import zcosSsoRoutes from './routes/sso.js';
 import socialMediaRoutes from './routes/social-media.js';
 import intelligenceRoutes from './routes/intelligence.js';
+import fileRoutes from './routes/files.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -202,6 +203,7 @@ app.use('/api/sso', zcosSsoRoutes);
 app.use('/api/zcos/admin', zcosAdminRoutes);
 app.use('/api/zcos/social', socialMediaRoutes);
 app.use('/api/zcos/intelligence', intelligenceRoutes);
+app.use('/api/zcos/files', fileRoutes);
 app.use('/api/zcos', zcosCanonicalRoutes);
 
 app.get(['/health', '/api/health'], (_req, res) => {

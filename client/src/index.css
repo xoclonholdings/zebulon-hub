@@ -307,6 +307,34 @@
   color: rgba(165, 243, 252, 0.78);
 }
 
+.zcos-console-upload-status {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  padding: 10px 12px;
+  border-top: 1px solid rgba(113, 224, 255, 0.16);
+  color: rgba(226, 246, 255, 0.62);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.zcos-console-upload-status strong {
+  overflow: hidden;
+  color: rgba(226, 246, 255, 0.88);
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.zcos-console-upload-status.is-error,
+.zcos-console-upload-status.is-error strong {
+  color: rgba(255, 165, 180, 0.9);
+}
+
 .zcos-console-window-footer {
   position: relative;
   z-index: 6;

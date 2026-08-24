@@ -1,8 +1,9 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, type PanInfo } from "framer-motion";
 import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { COMMANDER_DOCK, type CommanderSurfaceId, type DockDestination } from "./commanderDock";
+import { apiUrl } from "@/lib/queryClient";
 
 const SURFACES = [...COMMANDER_DOCK.tabs, ...COMMANDER_DOCK.buttons] as readonly DockDestination[];
 
@@ -45,10 +46,13 @@ function ChatSurface({ messages }: { readonly messages: readonly CommanderChatMe
 
 function UploadSurface() {
   const inputRef = useRef<HTMLInputElement>(null);
+  const categoryRef = useRef("other");
+  const [status, setStatus] = useState<{ state: "idle" | "uploading" | "stored" | "error"; text: string }>({ state: "idle", text: "" });
   const uploadOptions = COMMANDER_DOCK.tabs.find((surface) => surface.id === "upload")?.branch ?? [];
 
   const openPicker = (id: string) => {
     if (!inputRef.current) return;
+    categoryRef.current = id === "upload-image" ? "image" : id === "upload-document" ? "document" : "other";
     inputRef.current.accept = id === "upload-image"
       ? "image/*"
       : id === "upload-document"
@@ -57,15 +61,46 @@ function UploadSurface() {
     inputRef.current.click();
   };
 
+  const uploadFile = async (file: File) => {
+    setStatus({ state: "uploading", text: file.name });
+    const body = new FormData();
+    body.append("category", categoryRef.current);
+    body.append("file", file);
+    try {
+      const response = await fetch(apiUrl("/api/zcos/files"), { method: "POST", body, credentials: "include" });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(typeof result.error === "string" ? result.error : "Upload failed");
+      setStatus({ state: "stored", text: result.file?.originalName || file.name });
+    } catch (error) {
+      setStatus({ state: "error", text: error instanceof Error ? error.message : "Upload failed" });
+    } finally {
+      if (inputRef.current) inputRef.current.value = "";
+    }
+  };
+
   return (
     <div className="zcos-console-menu" data-testid="commander-upload-menu">
-      <input ref={inputRef} type="file" className="sr-only" />
+      <input
+        ref={inputRef}
+        type="file"
+        className="sr-only"
+        onChange={(event) => {
+          const file = event.currentTarget.files?.[0];
+          if (file) void uploadFile(file);
+        }}
+      />
       {uploadOptions.map(({ id, label, Icon }) => (
-        <button key={id} type="button" onClick={() => openPicker(id)}>
+        <button key={id} type="button" onClick={() => openPicker(id)} disabled={status.state === "uploading"}>
           <span className="zcos-console-menu-icon"><Icon size={18} /></span>
           <span>{label}</span>
         </button>
       ))}
+      {status.state !== "idle" ? (
+        <div className={`zcos-console-upload-status is-${status.state}`} role="status">
+          <span>{status.state === "uploading" ? "Uploading" : status.state === "stored" ? "Uploaded" : "Upload failed"}</span>
+          <strong>{status.text}</strong>
+        </div>
+      ) : null}
     </div>
   );
 }
