@@ -1,13 +1,22 @@
 import { createHash } from "crypto";
 import type { ExternalSourceAdapter, ExternalSourceRequest, ExternalSourceResult } from "./ExternalSourceGateway.js";
 
+const EVIDENCE_SYSTEM_PROMPT = "Return research evidence only. Preserve uncertainty, distinguish sourced facts from inference, and include source names or locators when known. Do not make decisions for ZCOS.";
+
 function config() {
   const baseUrl = String(process.env.LIGHTNING_BASE_URL || process.env.LIGHTNING_AI_URL || "https://lightning.ai/api/v1").replace(/\/+$/, "");
   const apiKey = String(process.env.LIGHTNING_API_KEY || process.env.LIGHTNING_AI_API_KEY || process.env.LIGHTNING_TOKEN || "").trim();
   const configured = [...String(process.env.LIGHTNING_MODELS || "").split(","), String(process.env.LIGHTNING_MODEL || "")]
     .map((value) => value.trim()).filter(Boolean);
   const models = [...new Set(configured.length ? configured : ["lightning-ai/gemma-4-31B-it", "lightning-ai/gpt-oss-120b"])];
-  return { baseUrl, apiKey, chatPath: process.env.LIGHTNING_CHAT_PATH || "/chat/completions", timeoutMs: Number(process.env.LIGHTNING_TIMEOUT_MS || 45000), models };
+  return {
+    baseUrl,
+    apiKey,
+    chatPath: process.env.LIGHTNING_CHAT_PATH || "/chat/completions",
+    timeoutMs: Number(process.env.LIGHTNING_TIMEOUT_MS || 45000),
+    models,
+    includeRunnerCompatFields: process.env.LIGHTNING_INCLUDE_RUNNER_COMPAT_FIELDS === "true",
+  };
 }
 
 function extractText(payload: unknown): string {
@@ -22,12 +31,10 @@ export class LightningExternalSourceAdapter implements ExternalSourceAdapter {
   readonly id = "lightning";
   readonly kinds = ["model"] as const;
 
-  isConfigured(): boolean {
-    return Boolean(config().apiKey);
-  }
+  isConfigured(): boolean { return Boolean(config().apiKey); }
 
   async retrieve(request: ExternalSourceRequest): Promise<ExternalSourceResult> {
-    if (!request.sourceKinds.includes("model")) throw new Error("Lightning adapter only accepts model evidence requests");
+    if (!request.sourceKinds.includes("model")) throw Object.assign(new Error("Lightning adapter only accepts model evidence requests"), { status: 400 });
     const cfg = config();
     if (!cfg.apiKey) throw Object.assign(new Error("Lightning external source is not configured: LIGHTNING_API_KEY is required"), { status: 503 });
     const errors: string[] = [];
@@ -36,16 +43,21 @@ export class LightningExternalSourceAdapter implements ExternalSourceAdapter {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), cfg.timeoutMs);
       try {
+        const body: Record<string, unknown> = {
+          model,
+          messages: [
+            { role: "system", content: EVIDENCE_SYSTEM_PROMPT },
+            { role: "user", content: request.query },
+          ],
+        };
+        if (cfg.includeRunnerCompatFields) {
+          body.message = request.query;
+          body.system_prompt = EVIDENCE_SYSTEM_PROMPT;
+        }
         const response = await fetch(`${cfg.baseUrl}${cfg.chatPath}`, {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${cfg.apiKey}` },
-          body: JSON.stringify({
-            model,
-            messages: [
-              { role: "system", content: "Return research evidence only. Preserve uncertainty, distinguish sourced facts from inference, and include source names or locators when known. Do not make decisions for ZCOS." },
-              { role: "user", content: request.query },
-            ],
-          }),
+          body: JSON.stringify(body),
           signal: controller.signal,
         });
         if (!response.ok) {
@@ -63,7 +75,7 @@ export class LightningExternalSourceAdapter implements ExternalSourceAdapter {
         const sourceId = `lightning:${model}:${createHash("sha256").update(content).digest("hex").slice(0, 16)}`;
         return {
           requestId: request.requestId,
-          evidence: [{ sourceId, sourceKind: "model", title: `Lightning model evidence (${model})`, locator: `${cfg.baseUrl}${cfg.chatPath}`, retrievedAt, content, provenance: { provider: "lightning", model, evidenceOnly: true } }],
+          evidence: [{ sourceId, sourceKind: "model", title: `Lightning model evidence (${model})`, locator: `${cfg.baseUrl}${cfg.chatPath}`, retrievedAt, content, provenance: { provider: "lightning", model, evidenceOnly: true, runnerCompat: cfg.includeRunnerCompatFields } }],
           providerTrace: { provider: "lightning", model, evidenceOnly: true },
         };
       } catch (error) {
