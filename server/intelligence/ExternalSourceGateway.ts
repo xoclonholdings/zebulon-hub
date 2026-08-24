@@ -1,3 +1,5 @@
+import LightningExternalSourceAdapter from "./LightningExternalSourceAdapter.js";
+
 export type ExternalSourceKind = "web" | "model" | "database" | "connector" | "tool";
 
 export interface ExternalSourceRequest {
@@ -27,22 +29,17 @@ export interface ExternalSourceResult {
 
 export interface ExternalSourceAdapter {
   readonly id: string;
-  readonly kinds: ExternalSourceKind[];
+  readonly kinds: readonly ExternalSourceKind[];
   retrieve(request: ExternalSourceRequest): Promise<ExternalSourceResult>;
 }
 
-/**
- * Provider-neutral external information gateway.
- *
- * This is deliberately not a reasoning authority. Lightning, models, web
- * providers, databases and connectors may implement adapters, but all output
- * returns as untrusted evidence for ZCOS provenance/validation before use.
- */
+/** Provider-neutral evidence gateway. Providers never become reasoning authority. */
 export class ExternalSourceGateway {
   private readonly adapters = new Map<string, ExternalSourceAdapter>();
 
   register(adapter: ExternalSourceAdapter): void {
     if (!adapter.id.trim()) throw new Error("External source adapter id is required");
+    if (!adapter.kinds.length) throw new Error(`External source adapter ${adapter.id} must declare at least one source kind`);
     if (this.adapters.has(adapter.id)) throw new Error(`External source adapter already registered: ${adapter.id}`);
     this.adapters.set(adapter.id, adapter);
   }
@@ -59,16 +56,19 @@ export class ExternalSourceGateway {
     const adapter = this.adapters.get(adapterId);
     if (!adapter) throw new Error(`External source adapter is not registered: ${adapterId}`);
     if (!request.ownerUserId.trim()) throw new Error("Authenticated ZCOS owner is required");
+    if (!request.galaxyId.trim()) throw new Error("Active galaxy is required");
+    if (!request.requestId.trim() || !request.query.trim()) throw new Error("External source requestId and query are required");
+    if (!request.sourceKinds.length || request.sourceKinds.some((kind) => !adapter.kinds.includes(kind))) {
+      throw new Error(`External source request asks ${adapterId} for an unsupported source kind`);
+    }
     const result = await adapter.retrieve(request);
     if (result.requestId !== request.requestId) throw new Error("External source result request mismatch");
     return {
       ...result,
-      evidence: result.evidence.map((item) => ({
-        ...item,
-        provenance: { ...item.provenance, adapterId },
-      })),
+      evidence: result.evidence.map((item) => ({ ...item, provenance: { ...item.provenance, adapterId } })),
     };
   }
 }
 
 export const externalSourceGateway = new ExternalSourceGateway();
+externalSourceGateway.register(new LightningExternalSourceAdapter());
