@@ -15,15 +15,22 @@ jobs:
         with:
           node-version: 22
       - run: npm install
-      - run: npm run verify
-      - name: Record successful verification
+      - id: verify
+        continue-on-error: true
+        run: npm run verify
+      - name: Record verification evidence
+        if: always()
+        env:
+          VERIFY_OUTCOME: ${{ steps.verify.outcome }}
         shell: bash
         run: |
           mkdir -p docs/audits
-          node -e 'const fs=require("fs"); fs.writeFileSync("docs/audits/latest-main-verification.json", JSON.stringify({verifiedSha:process.env.GITHUB_SHA,workflow:"verify",runId:process.env.GITHUB_RUN_ID,verifiedAt:new Date().toISOString(),command:"npm run verify",result:"passed"},null,2)+"\n")'
+          node -e 'const fs=require("fs"); fs.writeFileSync("docs/audits/latest-main-verification.json", JSON.stringify({verifiedSha:process.env.GITHUB_SHA,workflow:"verify",runId:process.env.GITHUB_RUN_ID,verifiedAt:new Date().toISOString(),command:"npm run verify",result:process.env.VERIFY_OUTCOME},null,2)+"\n")'
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add docs/audits/latest-main-verification.json
-          git diff --cached --quiet && exit 0
-          git commit -m "Record successful main verification [skip ci]"
+          git diff --cached --quiet || git commit -m "Record main verification result [skip ci]"
           git push
+      - name: Enforce verification result
+        if: steps.verify.outcome != 'success'
+        run: exit 1
