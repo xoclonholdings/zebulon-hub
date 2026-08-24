@@ -20,6 +20,7 @@ export interface ZcosContextItem {
   lifecycle?: string;
   currency?: string;
   galaxyId?: string;
+  trust?: "canonical" | "authorized_projection" | "request";
 }
 
 export interface ZcosIntelligenceRequest {
@@ -68,7 +69,8 @@ export interface ZcosExecutionPlan {
   capabilities: CapabilityDecision[];
   steps: ExecutionStep[];
   externalInformationRequired: boolean;
-  sideEffectsAllowed: boolean;
+  /** Planning never grants side-effect authority. Execution must obtain it separately. */
+  sideEffectsAuthorized: boolean;
 }
 
 export interface EvaluationResult {
@@ -82,7 +84,7 @@ export interface EvaluationResult {
     uncertaintyDiscipline: number;
   };
   issues: string[];
-  recommendedAction: "accept" | "revise" | "block";
+  recommendedAction: "accept" | "gather_evidence" | "revise" | "block";
 }
 
 export interface ZcosIntelligenceResult {
