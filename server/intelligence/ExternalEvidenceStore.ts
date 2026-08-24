@@ -8,8 +8,13 @@ function jsonValue(value: unknown): Prisma.InputJsonValue {
   return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
 }
 
+function recordMetadata(value: Prisma.JsonValue | null): Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
+}
+
 export class ExternalEvidenceStore {
-  static async persist(ownerUserId: string, galaxyId: string, requestId: string, evidence: ExternalSourceEvidence[]) {
+  static async persist(ownerUserId: string, galaxyId: string, requestId: string, evidence: ExternalSourceEvidence[], conflictedSourceIds: string[] = []) {
+    const conflicted = new Set(conflictedSourceIds);
     const records = [];
     for (const item of evidence) {
       const contentHash = createHash("sha256").update(item.content).digest("hex");
@@ -32,7 +37,7 @@ export class ExternalEvidenceStore {
           evidenceExcerpt: item.content.slice(0, 12000),
           extractionMethod: "external source retrieval",
           contentHash,
-          metadata: jsonValue({ requestId, sourceKind: item.sourceKind, provenance: item.provenance }),
+          metadata: jsonValue({ requestId, sourceKind: item.sourceKind, provenance: item.provenance, disputed: conflicted.has(item.sourceId) }),
           accessedAt: new Date(item.retrievedAt),
         },
       }));
@@ -43,16 +48,19 @@ export class ExternalEvidenceStore {
   static async loadContext(ownerUserId: string, galaxyId: string, sourceRecordIds: string[]): Promise<ZcosContextItem[]> {
     if (!sourceRecordIds.length) return [];
     const records = await prisma.sourceRecord.findMany({ where: { ownerUserId, galaxyId, id: { in: sourceRecordIds } } });
-    return records.map((record) => ({
-      id: `external:${record.id}`,
-      authority: "external_evidence",
-      content: record.evidenceExcerpt || "",
-      source: record.locator || record.title || record.sourceId,
-      lifecycle: "supported",
-      currency: "current",
-      galaxyId,
-      trust: "authorized_projection",
-    }));
+    return records.map((record) => {
+      const metadata = recordMetadata(record.metadata);
+      return {
+        id: `external:${record.id}`,
+        authority: "external_evidence" as const,
+        content: record.evidenceExcerpt || "",
+        source: record.locator || record.title || record.sourceId,
+        lifecycle: metadata.disputed === true ? "disputed" : "supported",
+        currency: "current",
+        galaxyId,
+        trust: "authorized_projection" as const,
+      };
+    });
   }
 }
 
