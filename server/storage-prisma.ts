@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto';
 import { Prisma, PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient({ log: ['error', 'warn'] });
+export const prisma = new PrismaClient({ log: ['error', 'warn'] });
 const MEMORY_CURRENT_STATES = ['active', 'confirmed', 'corrected'];
 const KNOWLEDGE_CURRENT_STATES = ['supported', 'confirmed', 'disputed', 'historical'];
 

@@ -222,3 +222,235 @@ model AuditEvent {
   @@index([ownerUserId, createdAt])
   @@map("zcos_audit_events")
 }
+
+model SocialConnection {
+  id             String    @id @default(cuid())
+  ownerUserId    String    @map("owner_user_id")
+  provider       String
+  accountRef     String    @map("account_ref")
+  credentialRef  String?   @map("credential_ref")
+  scopes         String[]  @default([])
+  platforms      String[]  @default([])
+  state          String    @default("connected")
+  metadata       Json?
+  connectedAt    DateTime  @default(now()) @map("connected_at")
+  disconnectedAt DateTime? @map("disconnected_at")
+  revokedAt      DateTime? @map("revoked_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  @@unique([ownerUserId, provider, accountRef])
+  @@index([ownerUserId, state])
+  @@map("zcos_social_connections")
+}
+
+model SocialCampaign {
+  id                   String   @id @default(cuid())
+  ownerUserId          String   @map("owner_user_id")
+  projectRef           String?  @map("project_ref")
+  name                 String
+  objective            String
+  brandContext         Json     @map("brand_context")
+  audienceContext      Json     @map("audience_context")
+  platformObjectives   Json     @map("platform_objectives")
+  strategyAlternatives Json     @map("strategy_alternatives")
+  selectedStrategyId   String?  @map("selected_strategy_id")
+  state                String   @default("draft")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  @@index([ownerUserId, state, updatedAt])
+  @@index([ownerUserId, projectRef])
+  @@map("zcos_social_campaigns")
+}
+
+model SocialResearchSignal {
+  id                String    @id @default(cuid())
+  ownerUserId       String    @map("owner_user_id")
+  campaignId        String    @map("campaign_id")
+  contributorGalaxy String    @map("contributor_galaxy")
+  platform          String?
+  signalType        String    @map("signal_type")
+  summary           String
+  sourceLocator     String    @map("source_locator")
+  sourceTitle       String?   @map("source_title")
+  publishedAt       DateTime? @map("published_at")
+  accessedAt        DateTime  @map("accessed_at")
+  freshUntil        DateTime? @map("fresh_until")
+  provenance        Json
+  createdAt         DateTime  @default(now()) @map("created_at")
+
+  @@index([ownerUserId, campaignId, accessedAt])
+  @@index([ownerUserId, platform, freshUntil])
+  @@map("zcos_social_research_signals")
+}
+
+model SocialContent {
+  id              String   @id @default(cuid())
+  ownerUserId     String   @map("owner_user_id")
+  campaignId      String   @map("campaign_id")
+  title           String
+  contentKind     String   @map("content_kind")
+  brief           Json
+  sourceBindings  String[] @default([]) @map("source_bindings")
+  assetRefs       String[] @default([]) @map("asset_refs")
+  state           String   @default("draft")
+  createdByGalaxy String   @default("ZYNC") @map("created_by_galaxy")
+  version         Int      @default(1)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@index([ownerUserId, campaignId, state])
+  @@map("zcos_social_content")
+}
+
+model SocialVariant {
+  id               String    @id @default(cuid())
+  ownerUserId      String    @map("owner_user_id")
+  campaignId       String    @map("campaign_id")
+  contentId        String    @map("content_id")
+  platform         String
+  connectionId     String?   @map("connection_id")
+  copy             String
+  adaptationNote   String    @map("adaptation_note")
+  assetRefs        String[]  @default([]) @map("asset_refs")
+  metadata         Json
+  state            String    @default("draft")
+  scheduledAt      DateTime? @map("scheduled_at")
+  approvedAt       DateTime? @map("approved_at")
+  approvedBy       String?   @map("approved_by")
+  approvalPolicyId String?   @map("approval_policy_id")
+  publishedAt      DateTime? @map("published_at")
+  providerPostId   String?   @map("provider_post_id")
+  providerUrl      String?   @map("provider_url")
+  revisionOfId     String?   @map("revision_of_id")
+  version          Int       @default(1)
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  @@index([ownerUserId, campaignId, platform, state])
+  @@index([ownerUserId, contentId])
+  @@index([connectionId, providerPostId])
+  @@map("zcos_social_variants")
+}
+
+model SocialApprovalPolicy {
+  id           String    @id @default(cuid())
+  ownerUserId  String    @map("owner_user_id")
+  mode         String
+  operations   String[]  @default([])
+  platform     String?
+  campaignId   String?   @map("campaign_id")
+  connectionId String?   @map("connection_id")
+  startsAt     DateTime  @default(now()) @map("starts_at")
+  expiresAt    DateTime? @map("expires_at")
+  revokedAt    DateTime? @map("revoked_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  @@index([ownerUserId, revokedAt, expiresAt])
+  @@index([ownerUserId, campaignId, platform, connectionId])
+  @@map("zcos_social_approval_policies")
+}
+
+model AutomationJob {
+  id             String    @id @default(cuid())
+  ownerUserId    String    @map("owner_user_id")
+  owningGalaxy   String    @default("ZYLO") @map("owning_galaxy")
+  jobType        String    @map("job_type")
+  targetType     String    @map("target_type")
+  targetId       String    @map("target_id")
+  scheduledFor   DateTime  @map("scheduled_for")
+  state          String    @default("scheduled")
+  idempotencyKey String    @unique @map("idempotency_key")
+  attemptCount   Int       @default(0) @map("attempt_count")
+  metadata       Json
+  cancelledAt    DateTime? @map("cancelled_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  @@index([ownerUserId, owningGalaxy, state, scheduledFor])
+  @@index([ownerUserId, targetType, targetId])
+  @@map("zcos_automation_jobs")
+}
+
+model SocialPublishAttempt {
+  id                  String    @id @default(cuid())
+  ownerUserId         String    @map("owner_user_id")
+  variantId           String    @map("variant_id")
+  connectionId        String    @map("connection_id")
+  idempotencyKey      String    @unique @map("idempotency_key")
+  state               String    @default("running")
+  providerOperationId String?   @map("provider_operation_id")
+  providerPostId      String?   @map("provider_post_id")
+  providerUrl         String?   @map("provider_url")
+  providerResult      Json?     @map("provider_result")
+  failureCode         String?   @map("failure_code")
+  failureMessage      String?   @map("failure_message")
+  startedAt           DateTime  @default(now()) @map("started_at")
+  completedAt         DateTime? @map("completed_at")
+
+  @@index([ownerUserId, variantId, startedAt])
+  @@index([connectionId, providerPostId])
+  @@map("zcos_social_publish_attempts")
+}
+
+model SocialMetricSnapshot {
+  id               String   @id @default(cuid())
+  ownerUserId      String   @map("owner_user_id")
+  campaignId       String   @map("campaign_id")
+  contentId        String?  @map("content_id")
+  variantId        String?  @map("variant_id")
+  platform         String
+  objective        String
+  windowStart      DateTime @map("window_start")
+  windowEnd        DateTime @map("window_end")
+  metrics          Json
+  providerSourceId String   @map("provider_source_id")
+  sourceBindings   String[] @default([]) @map("source_bindings")
+  capturedAt       DateTime @default(now()) @map("captured_at")
+
+  @@index([ownerUserId, campaignId, windowStart, windowEnd])
+  @@index([ownerUserId, variantId, platform])
+  @@map("zcos_social_metric_snapshots")
+}
+
+model SocialOutcomeInsight {
+  id              String   @id @default(cuid())
+  ownerUserId     String   @map("owner_user_id")
+  campaignId      String   @map("campaign_id")
+  objective       String
+  windowStart     DateTime @map("window_start")
+  windowEnd       DateTime @map("window_end")
+  snapshotIds     String[] @default([]) @map("snapshot_ids")
+  summary         String
+  recommendations Json
+  state           String   @default("candidate")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@index([ownerUserId, campaignId, state])
+  @@map("zcos_social_outcome_insights")
+}
+
+model SocialModerationItem {
+  id               String   @id @default(cuid())
+  ownerUserId      String   @map("owner_user_id")
+  campaignId       String?  @map("campaign_id")
+  platform         String
+  connectionId     String   @map("connection_id")
+  providerItemId   String   @map("provider_item_id")
+  itemType         String   @map("item_type")
+  proposedAction   String   @map("proposed_action")
+  riskLevel        String   @map("risk_level")
+  state            String   @default("queued")
+  providerActionId String?  @map("provider_action_id")
+  providerResult   Json?    @map("provider_result")
+  failureMessage   String?  @map("failure_message")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@unique([ownerUserId, connectionId, providerItemId, itemType])
+  @@index([ownerUserId, campaignId, platform, state])
+  @@map("zcos_social_moderation_items")
+}

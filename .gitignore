@@ -21,6 +21,7 @@ server/public/
 *.sqlite
 prisma/dev.db
 *.sql
+!prisma/migrations/**/*.sql
 
 # User/runtime uploads and captures
 uploads/

@@ -10,7 +10,7 @@
     "build:client": "vite build --config vite.config.clean.ts",
     "build:server": "prisma generate && tsc --project tsconfig.server.json",
     "typecheck": "prisma generate && tsc --noEmit",
-    "test": "vitest run --config vite.config.clean.ts",
+    "test": "vitest run --config vitest.config.ts",
     "start": "node scripts/prepare-database.mjs && NODE_ENV=production node dist/server/server/index.js",
     "verify:layout": "node scripts/verify-zcos-layout.mjs",
     "verify": "npm run verify:layout && npm run typecheck && npm test && npm run build",

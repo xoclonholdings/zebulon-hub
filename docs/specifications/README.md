@@ -10,6 +10,7 @@ This directory contains the specifications that govern the `xoclonholdings/zebul
 4. [`ZCOS_KNOWLEDGE_ENGINE_REQUIREMENTS.md`](./ZCOS_KNOWLEDGE_ENGINE_REQUIREMENTS.md) — canonical Knowledge contract.
 5. [`ZCOS_UNIVERSAL_DOCK_SPECIFICATION.md`](./ZCOS_UNIVERSAL_DOCK_SPECIFICATION.md) — locked five-control Dock baseline.
 6. [`ZCOS_ZAR_REPOSITORY_MIGRATION_PLAN.md`](./ZCOS_ZAR_REPOSITORY_MIGRATION_PLAN.md) — migration sequence and evidence rules.
+7. [`CROSS_GALAXY_SOCIAL_MEDIA_CAPABILITY.md`](./CROSS_GALAXY_SOCIAL_MEDIA_CAPABILITY.md) — coordinated social strategy, publishing, automation, integration, governance and outcome-learning contract.
 
 ## Locked source PDFs
 
