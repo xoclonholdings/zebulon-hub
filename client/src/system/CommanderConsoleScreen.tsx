@@ -1,6 +1,6 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { AnimatePresence, motion, type PanInfo } from "framer-motion";
-import { ArrowUp, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { COMMANDER_DOCK, type CommanderSurfaceId, type DockDestination } from "./commanderDock";
 
@@ -20,14 +20,25 @@ function Waveform() {
   );
 }
 
-function ChatSurface() {
+export interface CommanderChatMessage {
+  readonly id: string;
+  readonly text: string;
+}
+
+function ChatSurface({ messages }: { readonly messages: readonly CommanderChatMessage[] }) {
+  const logRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    logRef.current?.scrollTo({ top: logRef.current.scrollHeight });
+  }, [messages]);
+
   return (
     <div className="zcos-console-chat">
-      <div className="zcos-console-chat-log" />
-      <form className="zcos-console-composer" onSubmit={(event) => event.preventDefault()}>
-        <textarea aria-label="Chat" rows={1} />
-        <button type="submit" aria-label="Send"><ArrowUp size={18} /></button>
-      </form>
+      <div ref={logRef} className="zcos-console-chat-log" aria-live="polite">
+        {messages.map((message) => (
+          <p key={message.id} className="zcos-console-chat-message">{message.text}</p>
+        ))}
+      </div>
     </div>
   );
 }
@@ -59,8 +70,14 @@ function UploadSurface() {
   );
 }
 
-function SurfaceContent({ id }: { readonly id: CommanderSurfaceId }) {
-  if (id === "chat") return <ChatSurface />;
+function SurfaceContent({
+  id,
+  chatMessages,
+}: {
+  readonly id: CommanderSurfaceId;
+  readonly chatMessages: readonly CommanderChatMessage[];
+}) {
+  if (id === "chat") return <ChatSurface messages={chatMessages} />;
   if (id === "upload") return <UploadSurface />;
   return <div className="zcos-console-void" aria-hidden="true" />;
 }
@@ -71,8 +88,8 @@ export function CommanderConsoleScreen({
   onActivate,
   onPrevious,
   onNext,
-  canHideDock,
-  onHideDock,
+  onMinimize,
+  chatMessages,
   reducedMotion,
 }: {
   readonly windows: readonly CommanderSurfaceId[];
@@ -80,8 +97,8 @@ export function CommanderConsoleScreen({
   readonly onActivate: (id: CommanderSurfaceId) => void;
   readonly onPrevious: () => void;
   readonly onNext: () => void;
-  readonly canHideDock: boolean;
-  readonly onHideDock: () => void;
+  readonly onMinimize: () => void;
+  readonly chatMessages: readonly CommanderChatMessage[];
   readonly reducedMotion: boolean;
 }) {
   const activeSurface = surfaceById(activeId);
@@ -148,18 +165,16 @@ export function CommanderConsoleScreen({
               exit={reducedMotion ? undefined : { opacity: 0, x: -18 }}
               transition={{ duration: reducedMotion ? 0 : 0.18 }}
             >
-              <SurfaceContent id={activeId} />
+              <SurfaceContent id={activeId} chatMessages={chatMessages} />
             </motion.div>
           </AnimatePresence>
         </div>
 
         <footer className="zcos-console-window-footer">
           <Waveform />
-          {canHideDock ? (
-            <button type="button" onClick={onHideDock} aria-label="Hide dock">
-              <ChevronDown size={15} />
-            </button>
-          ) : null}
+          <button type="button" onClick={onMinimize} aria-label="Minimize console and return to Galaxy view">
+            <ChevronDown size={15} />
+          </button>
         </footer>
       </motion.section>
     </motion.div>
