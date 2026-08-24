@@ -116,9 +116,11 @@ function capabilityDecisions(request: ZcosIntelligenceRequest, reasoning: Reason
   if (/\b(trend|culture|discover|news|social|ugc)\b/i.test(message)) add("discovery", "zwap", "ZWAP supplies discovery, trend and culture signals.");
   if (/\b(file|library|study|learning|document|artifact)\b/i.test(message)) add("scholar", "zenith", "ZENITH owns intentional Scholar organization and file/library surfaces.");
   if (/\b(budget|trade|trading|invest|portfolio|capital|finance)\b/i.test(message)) add("capital", "zillion", "ZILLION owns Capital execution and analysis.");
+  const specialistWork = decisions.some((decision) => !["zcos", "zar"].includes(decision.owner));
+  if (specialistWork) add("operator-assignment", "zar", "ZAR receives the governed ZCOS plan and assigns specialized work to the owning galaxies.");
   if (reasoning.needsExecution) add("execution-governance", "zcos", "Side effects require separate authorization and reconciliation.");
-  add("verification-and-evaluation", "zcos", "Results return through ZCOS verification before completion.");
-  add("presentation-and-assignment", "zar", "ZAR owns user-facing communication and assignment.");
+  add("verification-and-evaluation", "zcos", "Specialist results return to ZCOS for verification before completion.");
+  add("operator-presentation", "zar", "After ZCOS verification, ZAR communicates the final governed result to the user.");
   return decisions;
 }
 
@@ -149,7 +151,9 @@ function buildPlan(request: ZcosIntelligenceRequest, reasoning: ReasoningAssessm
     ? addStep("external-evidence-validation", "gather", reasoningStep ? [reasoningStep] : [])
     : addStep("external-source-aggregation", "gather", reasoningStep ? [reasoningStep] : []);
   const executionGate = addStep("execution-governance", "authorize", [gather || reasoningStep].filter(Boolean));
-  const executionBase = [executionGate || gather || reasoningStep].filter(Boolean);
+  const handoffBase = [executionGate || gather || reasoningStep].filter(Boolean);
+  const assignment = addStep("operator-assignment", "execute", handoffBase);
+  const executionBase = [assignment || executionGate || gather || reasoningStep].filter(Boolean);
 
   const specialistIds: string[] = [];
   for (const capability of ["build", "automation", "communication", "integrity", "discovery", "scholar", "capital"]) {
@@ -158,7 +162,7 @@ function buildPlan(request: ZcosIntelligenceRequest, reasoning: ReasoningAssessm
   }
   const verifyDeps = specialistIds.length ? specialistIds : [gather || reasoningStep].filter(Boolean);
   const verify = addStep("verification-and-evaluation", "verify", verifyDeps);
-  addStep("presentation-and-assignment", "present", verify ? [verify] : verifyDeps);
+  addStep("operator-presentation", "present", verify ? [verify] : verifyDeps);
 
   return { objective: request.message.trim(), responseForm: responseForm(reasoning), capabilities, steps, externalInformationRequired: reasoning.needsExternalInformation, externalInformationSatisfied: reasoning.externalEvidenceSatisfied, sideEffectsAuthorized: false };
 }
