@@ -58,9 +58,10 @@ router.post("/external-sources/:adapterId/retrieve", requireOwner, async (req, r
     const raw = await externalSourceGateway.retrieve(req.params.adapterId, { requestId, objective: plan.objective, sourceKinds, query, ownerUserId: owner.ownerUserId, galaxyId });
     const processed = ExternalEvidenceProcessor.process(raw, galaxyId);
     if (!processed.evidence.length) return res.status(422).json({ error: "No valid external evidence was returned", issues: processed.issues });
-    const sourceRecords = await ExternalEvidenceStore.persist(owner.ownerUserId, galaxyId, requestId, processed.evidence);
-    await storage.recordAudit({ ownerUserId: owner.ownerUserId, galaxyId, eventType: "intelligence.external_evidence_validated", targetType: "intelligence_request", targetId: requestId, details: { adapterId: req.params.adapterId, sourceRecordIds: sourceRecords.map((record) => record.id), issues: processed.issues, duplicatesRemoved: processed.duplicatesRemoved } });
-    res.json({ requestId, adapterId: req.params.adapterId, sourceRecordIds: sourceRecords.map((record) => record.id), evidence: processed.evidence, issues: processed.issues, duplicatesRemoved: processed.duplicatesRemoved });
+    const conflictedSourceIds = processed.conflicts.map((conflict) => conflict.sourceId);
+    const sourceRecords = await ExternalEvidenceStore.persist(owner.ownerUserId, galaxyId, requestId, processed.evidence, conflictedSourceIds);
+    await storage.recordAudit({ ownerUserId: owner.ownerUserId, galaxyId, eventType: "intelligence.external_evidence_validated", targetType: "intelligence_request", targetId: requestId, details: { adapterId: req.params.adapterId, sourceRecordIds: sourceRecords.map((record) => record.id), issues: processed.issues, conflicts: processed.conflicts, duplicatesRemoved: processed.duplicatesRemoved } });
+    res.json({ requestId, adapterId: req.params.adapterId, sourceRecordIds: sourceRecords.map((record) => record.id), evidence: processed.evidence, issues: processed.issues, conflicts: processed.conflicts, duplicatesRemoved: processed.duplicatesRemoved });
   } catch (error) { next(error); }
 });
 
@@ -110,16 +111,18 @@ router.get("/learning-proposals", requireOwner, async (req, res, next) => {
     const owner = ownerContextFromRequest(req);
     const galaxyId = req.query.galaxyId ? normalizeGalaxyId(String(req.query.galaxyId)) : undefined;
     if (req.query.galaxyId && !galaxyId) return res.status(400).json({ error: "Unknown ZCOS galaxy" });
-    const events = await IntelligenceAuditStore.listOutcomeLearning(owner.ownerUserId, galaxyId || undefined, Number(req.query.limit || 100));
+    if (owner.originGalaxyId && galaxyId && owner.originGalaxyId !== galaxyId) return res.status(403).json({ error: "Cross-galaxy learning review requires an authorized system projection" });
+    const scopeGalaxy = owner.originGalaxyId || galaxyId || undefined;
+    const events = await IntelligenceAuditStore.listOutcomeLearning(owner.ownerUserId, scopeGalaxy, Number(req.query.limit || 100));
     const proposals = events.flatMap((event) => {
       const details = jsonObject(event.details);
       return Array.isArray(details.proposals) ? details.proposals : [];
     });
-    res.json({ proposals });
+    res.json({ galaxyId: scopeGalaxy || null, proposals });
   } catch (error) { next(error); }
 });
 
 router.get("/external-sources", requireOwner, (_req, res) => res.json({ authority: "evidence-only", reasoningAuthority: "ZCOS", adapters: externalSourceGateway.list() }));
-router.get("/capabilities", requireOwner, (_req, res) => res.json({ reasoningAuthority: "ZCOS", presentationAuthority: "ZAR", providerNeutral: true, canonicalContextAuthority: true, migratedCapabilities: ["deep-thinking", "strategic-reasoning", "context-intelligence", "document-grounding", "response-planning", "parallel-capability-routing", "external-source-governance", "evidence-validation", "synthesis", "evaluation", "outcome-verification", "outcome-learning-proposals"], lockedFlow: ["authenticate", "assemble-canonical-context", "reason", "plan", "gather-external-information-when-required", "validate-and-store-evidence", "synthesize-in-zcos", "assign-capabilities", "authorize-execution-separately", "verify-outcome", "learn-from-outcome-without-silent-canonical-mutation", "present-through-zar"] }));
+router.get("/capabilities", requireOwner, (_req, res) => res.json({ reasoningAuthority: "ZCOS", presentationAuthority: "ZAR", providerNeutral: true, canonicalContextAuthority: true, migratedCapabilities: ["deep-thinking", "strategic-reasoning", "context-intelligence", "document-grounding", "response-planning", "parallel-capability-routing", "external-source-governance", "evidence-validation", "conflict-preservation", "synthesis", "evaluation", "outcome-verification", "outcome-learning-proposals"], lockedFlow: ["authenticate", "assemble-canonical-context", "reason", "plan", "gather-external-information-when-required", "validate-deduplicate-and-preserve-conflicts", "store-evidence-in-source-ledger", "synthesize-in-zcos", "assign-capabilities", "authorize-execution-separately", "verify-outcome", "learn-from-outcome-without-silent-canonical-mutation", "present-through-zar"] }));
 
 export default router;
