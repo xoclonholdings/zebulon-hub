@@ -22,6 +22,12 @@ function resolveGalaxy(req: express.Request, bodyGalaxy: unknown) {
   return { owner, galaxyId };
 }
 
+function jsonObject(value: unknown): Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
 router.post("/analyze", requireOwner, async (req, res, next) => {
   try {
     const body = req.body || {};
@@ -81,10 +87,12 @@ router.post("/outcomes", requireOwner, async (req, res, next) => {
     );
     if (!planEvent) return res.status(404).json({ error: "Canonical intelligence plan not found for this owner and galaxy" });
 
-    const details = (planEvent.details || {}) as Record<string, unknown>;
+    const details = jsonObject(planEvent.details);
     const plan = details.plan as ZcosExecutionPlan | undefined;
     const evaluation = details.evaluation as EvaluationResult | undefined;
-    if (!plan || !evaluation) return res.status(409).json({ error: "Canonical intelligence plan is incomplete and cannot be learned from" });
+    if (!plan || !evaluation || typeof plan.objective !== "string" || typeof evaluation.score !== "number") {
+      return res.status(409).json({ error: "Canonical intelligence plan is incomplete and cannot be learned from" });
+    }
 
     const proposals = OutcomeLearningEngine.observe({
       requestId: body.requestId,
