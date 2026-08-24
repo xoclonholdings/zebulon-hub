@@ -19,6 +19,8 @@ const CREATE_WORDS = /\b(write|draft|create|make|design|render|generate|compose)
 const ANALYSIS_WORDS = /\b(analy[sz]e|audit|compare|evaluate|assess|diagnose|review|critic)\b/i;
 const HIGH_RISK_WORDS = /\b(delete|remove|buy|sell|trade|payment|transfer|deploy|merge|publish|send)\b/i;
 const UNCERTAINTY_WORDS = /\b(maybe|possibly|probably|uncertain|unknown|not sure|might|could)\b/i;
+const HISTORICAL_INTENT = /\b(history|historical|previous|formerly|prior|old version|at the time|as of|in 20\d{2}|before|superseded)\b/i;
+const CONFLICT_INTENT = /\b(conflict|contradiction|dispute|disputed|compare claims|competing claims|why do sources differ)\b/i;
 
 function clamp(value: number): number {
   return Math.max(0, Math.min(1, value));
@@ -43,15 +45,15 @@ function assessReasoning(request: ZcosIntelligenceRequest): ReasoningAssessment 
     : wordCount > 25 || ["research", "analysis", "planning", "execution"].includes(type)
       ? "moderate"
       : "simple";
-  const context = request.context || [];
-  const grounded = context.filter((item) => item.content.trim()).length;
+  const canonicalContext = (request.context || []).filter((item) => item.trust === "canonical" || item.trust === "authorized_projection");
+  const grounded = canonicalContext.filter((item) => item.content.trim()).length;
   const needsExternalInformation = RESEARCH_WORDS.test(message) || /\b(latest|today|current|recent|web|internet|external)\b/i.test(message);
   const materialUncertainty = UNCERTAINTY_WORDS.test(message) || (needsExternalInformation && grounded === 0);
   const confidence = clamp(0.9 - (materialUncertainty ? 0.25 : 0) - (complexity === "complex" ? 0.08 : 0) + Math.min(0.08, grounded * 0.01));
   const rationale: string[] = [
     `classified:${type}`,
     `complexity:${complexity}`,
-    needsExternalInformation ? "external-information-required" : "internal-context-sufficient-unless-execution-reveals-gap",
+    needsExternalInformation ? "external-information-required" : "canonical-context-sufficient-unless-execution-reveals-gap",
   ];
   if (materialUncertainty) rationale.push("material-uncertainty-present");
   return {
@@ -65,11 +67,17 @@ function assessReasoning(request: ZcosIntelligenceRequest): ReasoningAssessment 
   };
 }
 
-function contextEligible(item: ZcosContextItem): boolean {
+function contextEligible(item: ZcosContextItem, message: string): boolean {
   if (!item.content.trim()) return false;
+  if (["memory", "knowledge", "system"].includes(item.authority) && !["canonical", "authorized_projection"].includes(item.trust || "")) return false;
   const lifecycle = item.lifecycle?.toLowerCase();
-  if (["rejected", "forgotten", "superseded", "deprecated"].includes(lifecycle || "")) return false;
-  if (item.authority === "knowledge" && ["potentially_outdated", "historical"].includes(item.currency || "")) return false;
+  if (["rejected", "forgotten", "superseded", "deprecated", "candidate", "proposed"].includes(lifecycle || "")) return false;
+  if (lifecycle === "disputed" && !CONFLICT_INTENT.test(message)) return false;
+  if (item.authority === "knowledge") {
+    const currency = item.currency?.toLowerCase();
+    if (currency === "historical" && !HISTORICAL_INTENT.test(message)) return false;
+    if (["potentially_outdated", "review_due"].includes(currency || "") && !HISTORICAL_INTENT.test(message)) return false;
+  }
   return true;
 }
 
@@ -79,14 +87,18 @@ function lexicalScore(message: string, item: ZcosContextItem): number {
   let score = 0;
   for (const term of terms) if (haystack.includes(term)) score += 1;
   if (item.authority === "system") score += 0.5;
+  if (item.trust === "canonical") score += 0.35;
   if ((item.confidence ?? 0.75) >= 0.9) score += 0.25;
   return score;
 }
 
 function selectContext(request: ZcosIntelligenceRequest): ZcosContextItem[] {
   return (request.context || [])
-    .filter(contextEligible)
-    .filter((item) => !item.galaxyId || item.galaxyId === request.galaxyId || item.authority === "system")
+    .filter((item) => contextEligible(item, request.message))
+    .filter((item) => {
+      if (!item.galaxyId || item.galaxyId === request.galaxyId || item.authority === "system") return true;
+      return item.trust === "authorized_projection";
+    })
     .map((item) => ({ item, score: lexicalScore(request.message, item) }))
     .filter(({ score }) => score > 0 || (request.context?.length || 0) <= 5)
     .sort((a, b) => b.score - a.score)
@@ -151,29 +163,32 @@ function buildPlan(request: ZcosIntelligenceRequest, reasoning: ReasoningAssessm
     capabilities,
     steps,
     externalInformationRequired: reasoning.needsExternalInformation,
-    sideEffectsAllowed: reasoning.needsExecution,
+    sideEffectsAuthorized: false,
   };
 }
 
 function evaluate(request: ZcosIntelligenceRequest, reasoning: ReasoningAssessment, context: ZcosContextItem[], plan: ZcosExecutionPlan): EvaluationResult {
   const objectiveAlignment = request.message.trim() && plan.objective === request.message.trim() ? 1 : 0;
-  const grounding = reasoning.needsExternalInformation ? (context.length > 0 ? 0.8 : 0.35) : 0.9;
-  const authoritySafety = plan.steps.some((step) => step.capability === "identity-and-authorization") && plan.steps.some((step) => step.capability === "verification-and-evaluation") ? 1 : 0.4;
+  const grounding = reasoning.needsExternalInformation ? (context.length > 0 ? 0.6 : 0.35) : 0.9;
+  const authoritySafety = plan.steps.some((step) => step.capability === "identity-and-authorization")
+    && plan.steps.some((step) => step.capability === "verification-and-evaluation")
+    && plan.sideEffectsAuthorized === false ? 1 : 0.4;
   const completeness = plan.capabilities.length >= 4 ? 0.95 : 0.65;
   const uncertaintyDiscipline = reasoning.materialUncertainty && !reasoning.needsExternalInformation && context.length === 0 ? 0.55 : 0.95;
   const dimensions = { objectiveAlignment, grounding, authoritySafety, completeness, uncertaintyDiscipline };
   const score = Number((Object.values(dimensions).reduce((sum, value) => sum + value, 0) / 5).toFixed(3));
   const issues: string[] = [];
-  if (grounding < 0.6) issues.push("Required external or canonical grounding has not yet been supplied.");
+  if (reasoning.needsExternalInformation) issues.push("Fresh external evidence must be gathered and validated before factual completion.");
   if (authoritySafety < 0.8) issues.push("Authorization or verification gate is missing.");
-  if (uncertaintyDiscipline < 0.8) issues.push("Material uncertainty requires additional evidence or clarification.");
-  const blocked = authoritySafety < 0.8 || (reasoning.needsExternalInformation && grounding < 0.5);
+  if (uncertaintyDiscipline < 0.8) issues.push("Material uncertainty requires additional evidence or one outcome-changing clarification.");
+  const blocked = authoritySafety < 0.8;
+  const needsEvidence = reasoning.needsExternalInformation;
   return {
     score,
-    passed: !blocked && score >= 0.75,
+    passed: !blocked && !needsEvidence && score >= 0.75,
     dimensions,
     issues,
-    recommendedAction: blocked ? "block" : score >= 0.85 ? "accept" : "revise",
+    recommendedAction: blocked ? "block" : needsEvidence ? "gather_evidence" : score >= 0.85 ? "accept" : "revise",
   };
 }
 
@@ -203,9 +218,12 @@ export class ZcosIntelligenceRuntime {
         migratedFrom: [
           "ZedAI/server/services/intelligence-core/DeepThinkingEngine",
           "ZedAI/server/services/intelligence-core/ContextIntelligenceEngine",
+          "ZedAI/server/services/intelligence-core/DocumentIntelligenceService",
           "ZedAI/server/services/intelligence-core/ResponseOrchestrationEngine",
           "ZedAI/server/services/intelligence-core/SelfOrchestrationEngine",
           "ZedAI/server/services/ZarStrategicReasoningEngine",
+          "ZedAI/server/services/KnowledgeCurationEngine",
+          "ZedAI/server/services/ZarReflectionEngine",
         ],
       },
     };
