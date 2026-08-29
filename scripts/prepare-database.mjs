@@ -2,6 +2,8 @@ import { spawnSync } from 'node:child_process';
 
 const baselineMigration = '20260813120000_zcos_core';
 const baselineSql = `prisma/migrations/${baselineMigration}/migration.sql`;
+const fileAuthorityMigration = '20260824200000_file_authority';
+const fileAuthorityRepairSql = `prisma/migrations/${fileAuthorityMigration}/repair.sql`;
 
 function run(args, { allowFailure = false } = {}) {
   const result = spawnSync('npx', args, {
@@ -22,6 +24,14 @@ if (deploy.status === 0) {
 }
 
 const output = `${deploy.stdout || ''}\n${deploy.stderr || ''}`;
+if (output.includes('P3009') && output.includes(fileAuthorityMigration)) {
+  console.log('Completing the interrupted ZCOS file-authority migration...');
+  run(['prisma', 'db', 'execute', '--file', fileAuthorityRepairSql, '--schema', 'prisma/schema.prisma']);
+  run(['prisma', 'migrate', 'resolve', '--applied', fileAuthorityMigration]);
+  run(['prisma', 'migrate', 'deploy']);
+  process.exit(0);
+}
+
 if (!output.includes('P3005')) {
   process.stdout.write(deploy.stdout || '');
   process.stderr.write(deploy.stderr || '');
